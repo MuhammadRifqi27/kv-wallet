@@ -1,0 +1,360 @@
+CATATAN IMPLEMENTASI - SPLASH SCREEN, LOGIN, & REGISTER (KVWallet Mobile)
+=========================================================================
+Dokumen ini mencatat detail teknis pembangunan 3 halaman pertama aplikasi
+KVWallet (Splash, Login, Register) dari nol sampai berhasil login ke
+backend Laravel lokal. Ditulis supaya Anda (pemilik project) bisa
+memahami file apa saja yang dibuat, kenapa dibuat seperti itu, dan
+masalah apa saja yang ditemui saat testing beserta solusinya.
+
+Baca juga:
+- docs/flutter-mobile-app-development-guide.txt (panduan API dari tim backend)
+- docs/money-management-alur-bisnis-database.txt (alur bisnis & database)
+
+
+BAGIAN 0 - KEPUTUSAN AWAL SEBELUM CODING
+---------------------------------------------
+Sebelum menulis kode, ada 3 keputusan yang dikonfirmasi dulu:
+  1. Gaya desain   : "Modern Fintech Minimalist" - clean, white space
+                      banyak, 1 warna aksen (indigo) + netral, card
+                      dengan soft shadow, rounded corner besar. Kesan
+                      terpercaya & simpel, cocok untuk app finansial
+                      (mirip Jago/Livin' Mandiri/Blu).
+  2. State management: Riverpod (dipilih dibanding Provider - lebih
+                      modern & type-safe untuk app dengan banyak fitur
+                      ke depan seperti dashboard, portfolio, dll).
+  3. Routing        : go_router (dipilih dibanding Navigator bawaan -
+                      mendukung redirect guard otomatis berdasarkan
+                      status login, penting untuk alur splash->login/
+                      home).
+
+Catatan penting yang jadi acuan sejak awal: backend BELUM punya endpoint
+registrasi mandiri dari mobile (lihat flutter-mobile-app-development-
+guide.txt BAGIAN 2 & 7). Jadi halaman Register dibuat lengkap secara UI,
+tapi diberi penanganan khusus kalau endpoint-nya memang belum aktif di
+server (lihat BAGIAN 3 poin Register Page & BAGIAN 5.6).
+
+
+BAGIAN 1 - PACKAGE YANG DITAMBAHKAN (pubspec.yaml)
+-------------------------------------------------------
+Ditambahkan lewat `flutter pub add`:
+  - flutter_riverpod   -> state management (AuthController, dsb)
+  - go_router          -> routing + redirect otomatis berdasar status login
+  - dio                -> HTTP client ke API Laravel (lebih enak dari
+                          `http` bawaan, punya interceptor untuk
+                          auto-attach token & tangani error terpusat)
+  - flutter_secure_storage -> simpan token Sanctum dengan aman (Keystore
+                          di Android, Keychain di iOS)
+  - google_fonts       -> font "Plus Jakarta Sans" untuk kesan modern
+                          fintech (font ini juga buatan Indonesia,
+                          cocok untuk app lokal)
+
+Semua ini sesuai rekomendasi di flutter-mobile-app-development-guide.txt
+BAGIAN 1 poin 4, kecuali google_fonts yang ditambahkan khusus untuk
+kebutuhan desain.
+
+
+BAGIAN 2 - STRUKTUR FOLDER & PENJELASAN SETIAP FILE
+---------------------------------------------------------
+lib/
+  main.dart
+    Entry point aplikasi. Membungkus app dengan `ProviderScope` (wajib
+    untuk Riverpod), lalu pakai `MaterialApp.router` supaya navigasinya
+    dikendalikan oleh go_router (bukan Navigator biasa).
+
+  core/
+    network/
+      api_endpoints.dart
+        Konstanta base URL API & path endpoint (login, logout, me,
+        register). Base URL ini yang paling sering perlu diubah manual
+        selama development (lihat BAGIAN 5.1 & 5.2).
+      api_client.dart
+        Wrapper Dio. Ada 2 interceptor:
+          1. Auto-attach header "Authorization: Bearer {token}" ke
+             setiap request (token diambil dari secure storage).
+          2. Auto-hapus token & panggil callback `onUnauthorized` kalau
+             server balas 401 (token kadaluarsa/invalid) - dipakai untuk
+             paksa logout otomatis.
+        Ditambahkan juga LogInterceptor (khusus saat `kDebugMode`) untuk
+        mencetak request/response Dio ke console - ini yang dipakai
+        untuk debug masalah koneksi di BAGIAN 5.4.
+      api_exception.dart
+        Menerjemahkan error mentah dari Dio (DioException) jadi pesan
+        yang enak ditampilkan ke user, sesuai kode status yang
+        dijelaskan di flutter-mobile-app-development-guide.txt BAGIAN 5
+        (401/403/404/422/dst). Untuk 422, field error per-field
+        (`fieldErrors`) disimpan supaya bisa ditampilkan tepat di bawah
+        input form yang relevan.
+    storage/
+      secure_storage_service.dart
+        Wrapper tipis di atas flutter_secure_storage, cuma untuk
+        simpan/baca/hapus token.
+    theme/
+      app_colors.dart
+        Semua warna brand KVWallet didefinisikan di sini (primary
+        indigo #4F46E5, accent amber, dst) - satu sumber kebenaran
+        warna supaya konsisten di semua halaman.
+      app_theme.dart
+        ThemeData Material 3 yang dipakai di seluruh app: font Plus
+        Jakarta Sans, gaya input field (rounded, border tipis), gaya
+        tombol utama (solid indigo, rounded 14px), dll.
+    providers/
+      core_providers.dart
+        Tempat semua Riverpod Provider untuk service inti didaftarkan:
+        SecureStorageService, ApiClient, AuthRepository. Disusun supaya
+        gampang di-mock kalau nanti butuh unit test.
+
+  data/
+    models/
+      user_model.dart
+        Model Dart untuk data user dari response API (id, name, email,
+        avatar_url, money_management_permissions) - field terakhir ini
+        nanti dipakai untuk atur menu apa yang tampil (lihat guide
+        BAGIAN 3 & 6), meskipun untuk saat ini (splash/login/register)
+        belum dipakai untuk itu.
+    repositories/
+      auth_repository.dart
+        Satu-satunya class yang benar-benar memanggil endpoint auth ke
+        Laravel: login(), register(), logout(), currentUser() (dipakai
+        untuk cek GET /auth/me saat splash). Semua error dari Dio
+        dikonversi ke ApiException di sini.
+
+  features/
+    splash/presentation/splash_page.dart
+      Halaman pertama yang tampil. Menampilkan logo KVWallet dengan
+      animasi fade+slide sederhana, lalu memicu
+      `authControllerProvider.checkAuthStatus()` untuk mengecek apakah
+      ada token tersimpan yang masih valid (panggil GET /auth/me).
+      Splash sendiri TIDAK memanggil navigasi manual - dia hanya
+      mengubah state, dan go_router yang otomatis redirect berdasarkan
+      hasilnya (lihat routing/app_router.dart).
+    auth/
+      application/
+        auth_state.dart
+          Model state auth: status (unknown/authenticating/
+          authenticated/unauthenticated), data user (kalau sudah
+          login), dan error (ApiException, kalau ada).
+        auth_controller.dart
+          "Otak" dari alur auth - StateNotifier yang mengubah
+          auth_state.dart berdasarkan hasil panggilan ke
+          AuthRepository. Berisi method checkAuthStatus(), login(),
+          register(), logout(), forceLogout() (dipanggil otomatis saat
+          401 dari ApiClient).
+      presentation/
+        login_page.dart
+          Form email + password. Validasi client-side dulu (format
+          email, field kosong) sebelum panggil authController.login().
+          Kalau sukses -> pindah ke /home. Kalau gagal -> tampilkan
+          pesan error dari ApiException (general banner atau error di
+          bawah field spesifik untuk validasi 422).
+        register_page.dart
+          Form nama + email + password + konfirmasi password. Karena
+          endpoint registrasi belum aktif di backend (lihat BAGIAN 0),
+          kalau responnya 404 akan muncul dialog khusus "Registrasi
+          mandiri belum aktif, hubungi admin" - bukan pesan error
+          generik. Sengaja dibuat begini supaya user (nanti end user
+          aplikasi ini) tidak bingung dikira bug.
+    home/presentation/home_page.dart
+      Halaman placeholder setelah login berhasil - dashboard
+      sesungguhnya belum dibangun (di luar scope splash/login/register).
+      Cuma menampilkan nama user & tombol logout, untuk membuktikan
+      alur login->home benar-benar jalan.
+
+  routing/
+    app_router.dart
+      Konfigurasi go_router. Bagian terpenting adalah fungsi
+      `redirect`, yang menentukan halaman mana yang boleh diakses
+      berdasarkan `AuthStatus` sekarang. Ada juga `_AuthRouterRefresh`
+      yang menjembatani perubahan state Riverpod supaya go_router tahu
+      kapan harus mengevaluasi ulang redirect (karena go_router by
+      default cuma re-evaluate saat ada navigasi, bukan saat state
+      berubah sendiri). Detail bug yang pernah terjadi di sini ada di
+      BAGIAN 5.4.
+
+  shared/widgets/
+    app_logo.dart      -> logo KVWallet (dibuat programatik, belum ada
+                          file gambar asli), dipakai di Splash & Login.
+    app_text_field.dart -> input field custom dengan ikon, toggle show/
+                          hide password, dan error text.
+    primary_button.dart -> tombol utama yang otomatis menampilkan
+                          loading spinner saat `isLoading: true`.
+
+test/widget_test.dart
+  Test bawaan Flutter (counter demo) diganti jadi smoke test yang
+  memastikan splash screen menampilkan tulisan "KVWallet".
+
+
+BAGIAN 3 - ALUR APLIKASI SECARA KESELURUHAN
+-------------------------------------------------
+1. App dibuka -> main.dart pasang ProviderScope -> go_router mulai di
+   '/splash' (initialLocation).
+2. SplashPage tampil, lalu langsung panggil
+   authController.checkAuthStatus() -> ini panggil GET /auth/me pakai
+   token yang ada di secure storage (kalau ada).
+3. Berdasarkan hasilnya, AuthState.status berubah jadi `authenticated`
+   atau `unauthenticated`. Perubahan ini otomatis membuat go_router
+   redirect: authenticated -> '/home', unauthenticated -> '/login'.
+4. Di LoginPage, user isi email+password -> tekan "Masuk" ->
+   authController.login() dipanggil -> status sementara jadi
+   `authenticating` (tombol jadi spinner) -> panggil POST /auth/login.
+5. Kalau sukses: token disimpan ke secure storage, status jadi
+   `authenticated` -> go_router otomatis pindah ke '/home'.
+   Kalau gagal: status balik `unauthenticated` + error diisi -> tetap
+   di LoginPage, pesan error ditampilkan di form.
+6. Dari LoginPage juga bisa ke RegisterPage lewat link "Daftar".
+
+
+BAGIAN 4 - MASALAH YANG DITEMUI SAAT TESTING & CARA MENYELESAIKANNYA
+-------------------------------------------------------------------------
+Ini kronologis persis apa yang terjadi setelah kode pertama kali
+dicoba jalan di HP fisik (SM A266B), sampai akhirnya berhasil login.
+
+4.1 SALAH BASE URL - PAKAI 127.0.0.1 DI HP FISIK
+    Gejala: begitu tekan "Masuk", muncul pesan "Tidak dapat terhubung
+    ke server. Periksa koneksi internet Anda."
+    Penyebab: base URL di api_endpoints.dart sempat di-set ke
+    `http://127.0.0.1:8000/api/v1`. Alamat `127.0.0.1` (localhost)
+    artinya "diri sendiri" - kalau yang menjalankan app adalah HP
+    fisik, maka `127.0.0.1` merujuk ke HP itu sendiri, BUKAN ke laptop
+    tempat `php artisan serve` jalan. Jadi otomatis gagal connect
+    (dari sudut pandang OS di HP, tidak ada apa pun yang listen di
+    127.0.0.1:8000 pada HP tersebut).
+    Solusi: cari alamat IP laptop di jaringan Wi-Fi (lewat `ipconfig`,
+    ambil IPv4 Address dari adapter Wi-Fi yang aktif), lalu pakai IP
+    itu sebagai base URL, contoh: `http://10.139.130.27:8000/api/v1`.
+    Aturan umumnya (sudah ditulis juga di
+    flutter-mobile-app-development-guide.txt BAGIAN 1 poin 6):
+      - Android EMULATOR   -> pakai `10.0.2.2` (alias khusus emulator
+                              untuk localhost komputer)
+      - HP FISIK            -> pakai IP LAN laptop (harus 1 jaringan
+                              Wi-Fi yang sama dengan laptop)
+      - Web (Chrome) / Windows desktop, dijalankan DI laptop yang sama
+                              -> `127.0.0.1` valid-valid saja, karena
+                              yang menjalankan app memang laptop itu
+                              sendiri.
+
+4.2 KENAPA PERLU `php artisan serve --host=0.0.0.0 --port=8000`
+    Setelah base URL diperbaiki ke IP laptop, login MASIH gagal
+    (connection timeout). Setelah dicek pakai `netstat -ano`, ternyata:
+        TCP    127.0.0.1:8000    0.0.0.0:0    LISTENING
+    Penjelasan konsepnya:
+      - Secara default, `php artisan serve` (tanpa opsi `--host`) hanya
+        "bind" / menempel ke network interface loopback, yaitu
+        127.0.0.1. Bayangkan sebuah laptop biasanya punya beberapa
+        "pintu masuk jaringan" (network interface): loopback
+        (127.0.0.1, cuma bisa diakses dari mesin itu sendiri), dan
+        interface fisik seperti Wi-Fi (di kasus ini 10.139.130.27, bisa
+        diakses perangkat lain di jaringan yang sama).
+      - Kalau server cuma bind ke 127.0.0.1, maka permintaan yang
+        datang lewat interface Wi-Fi (dari HP, walaupun IP tujuannya
+        sudah benar yaitu 10.139.130.27:8000) TIDAK akan pernah sampai
+        ke proses PHP itu - karena proses itu memang tidak "mendengarkan"
+        di pintu masuk Wi-Fi tersebut sama sekali. Ini murni soal
+        konfigurasi server, bukan soal DNS/IP yang salah lagi.
+      - `--host=0.0.0.0` artinya "dengarkan permintaan yang datang dari
+        SEMUA network interface yang ada di mesin ini", bukan cuma
+        loopback. Setelah pakai opsi ini, `netstat` akan menunjukkan
+        server listen di semua interface, dan HP yang mengakses lewat
+        IP Wi-Fi laptop baru bisa "diterima" oleh proses PHP-nya.
+    Solusi: matikan `php artisan serve` yang lama, jalankan ulang
+    dengan:
+        php artisan serve --host=0.0.0.0 --port=8000
+
+4.3 WINDOWS FIREWALL (PROFIL "PUBLIC") IKUT MEMBLOKIR
+    Dicek juga saat troubleshooting (walaupun di kasus ini solusi 4.2
+    saja sudah cukup menyelesaikan masalahnya): profil jaringan Wi-Fi
+    di Windows terdeteksi sebagai "Public"
+    (`Get-NetConnectionProfile`), dan tidak ada firewall rule inbound
+    untuk port 8000. Di profil "Public", Windows Firewall secara
+    default DIAM-DIAM MEMBUANG (drop) paket yang masuk dari perangkat
+    lain kalau tidak ada rule eksplisit yang mengizinkan - ini beda
+    dengan "connection refused" (yang terjadi instan kalau memang tidak
+    ada apa pun yang listen di situ). Paket yang di-drop diam-diam
+    itulah yang menyebabkan gejala "connection timeout" (klien nunggu
+    sampai batas waktu habis, bukan langsung dapat error).
+    Kalau suatu saat 4.2 saja belum cukup (masih timeout setelah server
+    listen di 0.0.0.0), langkah berikutnya adalah menambahkan inbound
+    firewall rule untuk TCP port 8000, misalnya lewat PowerShell (perlu
+    dijalankan sebagai Administrator):
+        New-NetFirewallRule -DisplayName "Laravel Dev Server 8000" `
+          -Direction Inbound -Protocol TCP -LocalPort 8000 -Action Allow
+
+4.4 BUG DI LOGIKA REDIRECT go_router (auth_router.dart)
+    Setelah base URL & server sudah benar, login SEBENARNYA berhasil
+    di sisi network (token tersimpan), TAPI app tetap "memantul balik"
+    ke halaman Login, tidak pernah sampai ke halaman Home.
+    Penyebab (bug logika, bukan masalah jaringan lagi): di fungsi
+    `redirect` pada routing/app_router.dart, status `authenticating`
+    (status SEMENTARA saat request login sedang berlangsung) sempat
+    digabung logikanya dengan status `unknown`, dan sama-sama memaksa
+    redirect ke halaman '/splash'. Efeknya:
+      1. User tekan "Masuk" di LoginPage -> status langsung berubah
+         jadi `authenticating`.
+      2. go_router yang "mendengarkan" perubahan status ini (lewat
+         `_AuthRouterRefresh`) LANGSUNG memaksa pindah ke '/splash' -
+         padahal request login ke server BELUM selesai sama sekali.
+      3. SplashPage jalan lagi dari awal, memanggil
+         checkAuthStatus() -> saat itu token BELUM tersimpan (karena
+         proses login yang asli belum selesai) -> status jadi
+         `unauthenticated` -> otomatis dilempar balik ke '/login'.
+      4. Baru setelah itu, request login yang ASLI selesai di
+         background dan sukses menyimpan token & mengubah status jadi
+         `authenticated` - tapi user sudah terlanjur "dilempar-lempar"
+         duluan oleh proses splash liar di atas, sehingga hasil akhirnya
+         jadi tidak konsisten / tetap terasa seperti gagal login.
+    Solusi: pisahkan logika `authenticating` dari `unknown`. Status
+    `authenticating` seharusnya TIDAK memicu redirect apa pun (biarkan
+    user tetap di halaman Login/Register yang sedang menampilkan
+    loading spinner-nya sendiri), sedangkan `unknown` (murni status
+    awal sebelum checkAuthStatus() pernah dipanggil sama sekali) yang
+    seharusnya memaksa ke Splash.
+
+4.5 MENAMBAHKAN LOGGING SEMENTARA UNTUK DEBUGGING
+    Untuk mendiagnosa masalah 4.1-4.2 di atas, ditambahkan
+    `LogInterceptor` dari Dio di core/network/api_client.dart, tapi
+    dibungkus `if (kDebugMode)` supaya:
+      - HANYA aktif saat development (debug build), tidak akan ikut
+        ke build release/production, jadi tidak membocorkan detail
+        request/response (termasuk token) di log produksi.
+      - Muncul di adb logcat dengan prefix "[Dio]", memudahkan
+        membedakan mana request/response sungguhan vs log Android
+        system yang lain.
+
+4.6 REGISTER: BELUM DITES SAMPAI SUKSES (MEMANG BELUM BISA)
+    Endpoint POST /auth/register memang belum ada di backend (lihat
+    BAGIAN 0). RegisterPage sudah siap secara kode untuk memanggilnya,
+    dan sudah ditangani supaya kalau responnya 404 (endpoint belum
+    ada), muncul dialog "Registrasi mandiri belum aktif, hubungi admin"
+    - bukan pesan error jaringan yang membingungkan. Ini baru bisa
+    benar-benar dites end-to-end setelah tim backend menambahkan
+    endpoint tersebut.
+
+
+BAGIAN 5 - KONFIGURASI AKHIR YANG TERBUKTI JALAN
+------------------------------------------------------
+- Backend  : `php artisan serve --host=0.0.0.0 --port=8000`
+- Flutter  : lib/core/network/api_endpoints.dart ->
+             baseUrl = 'http://<IP Wi-Fi laptop>:8000/api/v1'
+             (dicek lewat `ipconfig`, adapter Wi-Fi yang aktif -
+             CATATAN: IP ini bisa berubah kalau laptop reconnect ke
+             Wi-Fi, karena belum diatur jadi static/DHCP reservation -
+             ini keputusan sadar untuk sementara waktu development,
+             lihat opsi static IP/ngrok yang pernah dibahas terpisah)
+- Device test: HP fisik Android (SM A266B) via `flutter run`, satu
+             jaringan Wi-Fi yang sama dengan laptop.
+- Hasil    : Splash -> cek token -> tidak ada -> Login -> isi
+             email/password -> submit -> POST /auth/login sukses ->
+             token tersimpan -> otomatis pindah ke Home (placeholder).
+
+
+BAGIAN 6 - YANG BELUM DIKERJAKAN (DI LUAR SCOPE SESI INI)
+---------------------------------------------------------------
+- Halaman Home masih placeholder (cuma nama user + tombol logout) -
+  Dashboard sungguhan belum dibangun.
+- Fitur "Lupa kata sandi" di LoginPage baru berupa pesan
+  "hubungi admin", belum ada alurnya (memang belum ada endpoint-nya
+  di backend).
+- Register belum bisa dites end-to-end sampai backend menyediakan
+  endpoint POST /auth/register (lihat BAGIAN 4.6).
+- IP laptop untuk baseUrl masih manual, belum di-setting jadi static
+  (DHCP reservation di router) - sengaja ditunda dulu atas permintaan
+  pemilik project.
