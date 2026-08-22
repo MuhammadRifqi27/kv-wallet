@@ -24,11 +24,11 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> login({required String email, required String password}) async {
+  Future<bool> login({required String login, required String password}) async {
     state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
     try {
       final user = await _ref.read(authRepositoryProvider).login(
-            email: email,
+            login: login,
             password: password,
             deviceName: 'KVWallet Mobile',
           );
@@ -42,12 +42,18 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<bool> register({
     required String name,
+    required String username,
     required String email,
     required String password,
   }) async {
     state = state.copyWith(status: AuthStatus.authenticating, clearError: true);
     try {
-      await _ref.read(authRepositoryProvider).register(name: name, email: email, password: password);
+      await _ref.read(authRepositoryProvider).register(
+            name: name,
+            username: username,
+            email: email,
+            password: password,
+          );
       state = state.copyWith(status: AuthStatus.unauthenticated);
       return true;
     } on ApiException catch (e) {

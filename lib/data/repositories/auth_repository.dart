@@ -13,13 +13,13 @@ class AuthRepository {
   final SecureStorageService _storage;
 
   Future<UserModel> login({
-    required String email,
+    required String login,
     required String password,
     required String deviceName,
   }) async {
     try {
       final response = await _apiClient.dio.post(ApiEndpoints.login, data: {
-        'email': email,
+        'login': login,
         'password': password,
         'device_name': deviceName,
       });
@@ -36,12 +36,14 @@ class AuthRepository {
   /// `POST /auth/register` ships — see docs BAGIAN 2 & 7.
   Future<void> register({
     required String name,
+    required String username,
     required String email,
     required String password,
   }) async {
     try {
       await _apiClient.dio.post(ApiEndpoints.register, data: {
         'name': name,
+        'username': username,
         'email': email,
         'password': password,
         'password_confirmation': password,
@@ -66,7 +68,7 @@ class AuthRepository {
     if (token == null) return null;
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.me);
-      return UserModel.fromJson(response.data['user'] as Map<String, dynamic>);
+      return UserModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) return null;
       throw ApiException.fromDioException(e);

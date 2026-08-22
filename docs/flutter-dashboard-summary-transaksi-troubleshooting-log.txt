@@ -1,0 +1,201 @@
+CATATAN TROUBLESHOOTING - DASHBOARD, SUMMARY, TRANSAKSI (KVWallet Mobile)
+=============================================================================
+Dokumen ini mencatat detail teknis kenapa 3 halaman ini (Dashboard, Ringkasan/
+Summary, Transaksi) sempat tidak menampilkan data sama sekali atau salah
+tampil setelah pertama kali dibangun, dan bagaimana masing-masing diperbaiki
+setelah melihat response JSON asli dari API. Ditulis supaya pola masalah yang
+sama bisa dikenali lebih cepat saat membangun fitur berikutnya (Budget,
+Transfer, Recurring, IPO, dst) yang kemungkinan besar punya gap dokumentasi
+serupa.
+
+Baca juga docs/flutter-development-log-2026-08-05.txt untuk konteks
+pengembangan hari ini secara keseluruhan.
+
+
+BAGIAN 0 - AKAR MASALAH: TIDAK ADA CONTOH JSON DI PANDUAN API
+------------------------------------------------------------------
+Dari semua endpoint di flutter-mobile-app-development-guide.txt, cuma
+POST /auth/login yang dikasih contoh response JSON persis. Dashboard,
+Summary, dan Transaksi cuma dijelaskan secara naratif (deskripsi bisnis di
+money-management-alur-bisnis-database.txt) tanpa bentuk field yang pasti.
+
+Pendekatan yang dipakai: bangun model Dart berdasarkan tebakan dari deskripsi
+bisnis, dengan parsing DEFENSIF (fallback ke 0/list kosong, bukan crash kalau
+field yang ditebak ternyata salah nama) - lihat lib/core/utils/json_parsing.dart
+(parseDouble, parseDate, parseList, parseLabel, parseListResponse). Ini
+supaya satu field yang salah tebak tidak menjatuhkan seluruh halaman yang
+biasanya punya banyak section sekaligus. Setelah itu, user test di HP asli,
+kirim log [Dio] mentahnya, baru model disesuaikan ke bentuk yang benar.
+
+Hasilnya: hampir semua nama field yang ditebak di awal MELESET dari yang
+sebenarnya. Detail lengkap di bagian-bagian bawah.
+
+
+BAGIAN 1 - PRASYARAT: PERBAIKAN LOGGING DIO
+------------------------------------------------
+Sebelum bisa membandingkan tebakan vs response asli, ada masalah teknis:
+Android logcat memotong baris log yang terlalu panjang (sekitar 4000
+karakter), dan response Dashboard/Summary cukup besar sehingga sering
+kepotong di tengah objek JSON saat dilihat dari log.
+
+Perbaikan di lib/core/network/api_client.dart: LogInterceptor bawaan Dio
+diganti logPrint-nya dengan fungsi _logChunked() yang memotong string
+response jadi potongan 800 karakter sebelum di-print satu-satu. Setelah ini,
+response sebesar apa pun akan selalu tercetak utuh di log (cuma terpisah
+beberapa baris), tidak pernah kepotong lagi.
+
+
+BAGIAN 2 - TRANSAKSI (GET /money-management/transactions)
+----------------------------------------------------------------
+1. BUG UTAMA - respons dibungkus 2 lapis (data tidak tampil sama sekali)
+   Bentuk asli:
+     { "data": { "data": [...transaksi...], "current_page": 1, ...paginator },
+       "summary": {...} }
+   Fungsi lama (parseListResponse) cuma cek 1 lapis: kalau json['data']
+   bukan List (di sini dia Map/objek paginator), langsung balik array
+   kosong. Ini penyebab tunggal kenapa transaksi tidak tampil sama sekali
+   di awal, walau datanya sebenarnya ada di server.
+
+   Perbaikan: parseListResponse() dibuat rekursif - terus turun ke dalam
+   key 'data' sampai ketemu List, berapa pun level nesting-nya:
+     List<dynamic> parseListResponse(Object? data) {
+       if (data is List) return data;
+       if (data is Map && data.containsKey('data')) {
+         return parseListResponse(data['data']);
+       }
+       return const [];
+     }
+
+2. portfolio.account_name, BUKAN portfolio.name
+   Tiap transaksi punya nested object "portfolio" untuk info akun terkait,
+   tapi field nama akunnya "account_name", bukan "name" generik seperti
+   yang dipakai object "category". Helper generik parseLabel() gagal
+   menangkap ini karena dia cuma cari key 'name' di dalam object nested.
+   Perbaikan: baca langsung json['portfolio']?['account_name'] di
+   TransactionModel.fromJson, tidak pakai parseLabel() untuk field ini.
+
+3. "amount" adalah STRING desimal, misal "13000.00" - bukan number JSON
+   murni. parseDouble() sudah menangani ini lewat double.tryParse(), tidak
+   perlu perubahan tapi penting diingat kalau menambah field angka baru:
+   selalu pakai parseDouble(), jangan `json['x'] as double` langsung.
+
+4. Field FK di response GET pakai nama kolom database asli:
+   finance_category_id dan finance_investment_id - bukan category_id/
+   investment_id polos seperti yang ada di spesifikasi *request body*
+   POST/PUT di panduan API. Dua konteks (kirim vs terima) ternyata beda
+   penamaan.
+
+5. Ada key "summary" sejajar dengan "data" di level teratas response,
+   isinya { total_income, total_expense, net_balance } untuk SELURUH hasil
+   yang match filter (bukan cuma yang tampil di halaman itu). Ditambahkan
+   class TransactionListResult yang membungkus list transaksi + summary
+   ini bareng, ditampilkan sebagai 3 kartu ringkasan di atas list halaman
+   Transaksi.
+
+
+BAGIAN 3 - DASHBOARD (GET /money-management/dashboard)
+---------------------------------------------------------
+Field yang ternyata berbeda nama dari tebakan awal:
+  total_cash_balance        (tebakan)  ->  total_liquid_cash        (asli)
+  total_investment_balance  (tebakan)  ->  total_investment_value   (asli)
+  cycle_income              (tebakan)  ->  income_pool              (asli)
+  cycle_expense             (tebakan)  ->  monthly_expense          (asli)
+  top_categories            (tebakan)  ->  top_expenses             (asli,
+                                            item-nya pakai key 'total')
+
+Field yang kebetulan sudah benar dari awal: total_net_worth,
+cycle_start_date, cycle_end_date, dan nama key recent_transactions (tapi
+struktur nested di dalamnya tetap meleset, lihat poin 2).
+
+Field yang sebelumnya SAMA SEKALI tidak diketahui/terlewat:
+  - month, year
+  - net_profit
+  - income_breakdown (rincian per sumber pemasukan, misal "Sallary")
+  - portfolios (daftar LENGKAP semua akun user - kas maupun investasi -
+    lengkap dengan saldo & nama provider tiap akun). Ini jadi section baru
+    "Semua Akun" di halaman Dashboard.
+
+2. recent_transactions kena masalah nested object yang sama seperti
+   Transaksi (BAGIAN 2 poin 2): category.name kebaca benar (kebetulan
+   object kategori memang pakai key 'name'), tapi portfolio.account_name
+   tidak kebaca kalau masih pakai parseLabel() generik.
+
+3. recent_transactions bisa berisi type:"transfer" (bukan cuma income/
+   expense), dengan "amount" BERTANDA (+/-) karena transfer dicatat
+   sebagai 2 baris berpasangan (baris keluar & baris masuk). Perbaikan:
+   isIncome dihitung dari `type == 'income' || (type == 'transfer' &&
+   amount > 0)`, lalu nilai yang ditampilkan pakai `.abs()`.
+
+
+BAGIAN 4 - RINGKASAN / SUMMARY (GET /money-management/summary)
+--------------------------------------------------------------------
+Field yang berbeda nama dari tebakan awal:
+  net_worth_trend    (tebakan)  ->  net_worth_history (asli), isi tiap
+                                     poin {date, amount} - bukan
+                                     {label, amount}
+  expense_breakdown  (tebakan)  ->  category_summary (asli), key
+                                     angkanya 'total' (string desimal,
+                                     misal "500000.00")
+  monthly_trend      (tebakan)  ->  chart_data (asli) - dan field
+                                     "label"-nya SUDAH diformat server
+                                     ("Jan 2026"), tidak perlu format
+                                     ulang manual di Flutter
+  smart_advisor      (tebakan)  ->  advice (asli)
+  comparison object  (tebakan)  ->  TIDAK ADA SAMA SEKALI di response
+                                     asli. Diganti pakai 3 angka yang
+                                     memang benar-benar dikirim server:
+                                     total_income, total_expense,
+                                     net_profit.
+
+Field yang sebelumnya terlewat total: asset_allocation (breakdown net
+worth per akun/aset, key angkanya 'value') - jadi section chart baru
+"Alokasi Aset".
+
+2. NamedAmount ditarik jadi model shared (lib/data/models/named_amount.dart)
+   karena dipakai bareng oleh Dashboard (top_expenses, income_breakdown)
+   dan Summary (asset_allocation, category_summary) - semuanya cuma bentuk
+   {name, angka}, tapi key angkanya beda-beda per konteks (value/total/
+   balance/amount). NamedAmount.fromJson coba semua kemungkinan itu
+   berurutan: `json['amount'] ?? json['value'] ?? json['total'] ??
+   json['balance']`.
+
+3. Fitur "Simpan Snapshot Net Worth" dan chart "Tren Net Worth" DIHAPUS
+   TOTAL dari halaman Ringkasan (bukan cuma tombolnya). Data
+   net_worth_history ternyata cuma bertambah kalau ada yang menekan tombol
+   simpan snapshot secara manual (baik dari mobile atau web) - dan tombol
+   itu tidak berfungsi dengan benar dari mobile. Karena tidak ada cara
+   lain menambah data baru ke situ dari mobile, section chart-nya dihapus
+   sepenuhnya daripada menampilkan tren yang datanya "beku"/tidak pernah
+   ter-update secara wajar.
+
+
+BAGIAN 5 - POLA UMUM YANG DIPELAJARI
+-----------------------------------------
+Berguna untuk fitur berikutnya yang panduannya juga tidak ada contoh JSON
+(Budget, Transfer Antar Akun, Recurring, IPO, Stock Tracking, BTC Tracking):
+
+1. Anggap SEMUA nama field di response GET adalah tebakan sampai
+   terverifikasi lewat log asli, kalau panduan API tidak kasih contoh
+   JSON persis untuk endpoint itu. Jangan asumsikan penamaan konsisten
+   antar endpoint - satu endpoint bisa pakai 'total', endpoint lain
+   'amount', lainnya lagi 'value' atau 'balance' untuk konsep yang sama.
+
+2. Object nested (kategori, portfolio/akun, investasi, dst) TIDAK SELALU
+   pakai key 'name' untuk label-nya. Kategori pakai 'name', tapi
+   portfolio konsisten pakai 'account_name'. Cek satu-satu per jenis
+   object, jangan asumsikan seragam.
+
+3. Nominal uang kadang number JSON murni, kadang string berformat desimal
+   ("13000.00"). Selalu pakai parseDouble() di json_parsing.dart untuk
+   field angka baru, jangan `as double`/`as int` langsung.
+
+4. Endpoint yang punya query param `page=` kemungkinan besar paginated ala
+   Laravel - response BISA dibungkus dobel (`{"data": {"data": [...],
+   ...}}`) kalau ada wrapper tambahan di atasnya (misal buat nyisipin key
+   'summary' sejajar). parseListResponse() sudah rekursif dan aman dipakai
+   ulang untuk endpoint list baru.
+
+5. Cara paling cepat verifikasi: minta contoh log [Dio] mentah (sudah
+   di-chunk, jadi tidak kepotong logcat) langsung dari device asli user,
+   cocokkan field demi field dengan model Dart yang sudah ada sebelum
+   membangun UI di atasnya.

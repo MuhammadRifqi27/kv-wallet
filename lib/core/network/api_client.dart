@@ -38,11 +38,24 @@ class ApiClient {
       dio.interceptors.add(LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (o) => debugPrint('[Dio] $o'),
+        logPrint: _logChunked,
       ));
     }
   }
 
   final Dio dio;
   final void Function()? onUnauthorized;
+}
+
+/// adb logcat truncates long single lines (~4000 chars), which was cutting
+/// off large JSON responses (Dashboard/Summary) mid-object. Slicing into
+/// fixed-size pieces keeps every line well under that limit so the full
+/// payload is always readable in the log.
+void _logChunked(Object? object) {
+  final text = object.toString();
+  const chunkSize = 800;
+  for (var i = 0; i < text.length; i += chunkSize) {
+    final end = (i + chunkSize < text.length) ? i + chunkSize : text.length;
+    debugPrint('[Dio] ${text.substring(i, end)}');
+  }
 }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../application/auth_controller.dart';
 
@@ -17,12 +18,12 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _loginController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _loginController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,7 +32,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final success = await ref.read(authControllerProvider.notifier).login(
-          email: _emailController.text.trim(),
+          login: _loginController.text.trim(),
           password: _passwordController.text,
         );
     if (success && mounted) {
@@ -76,19 +77,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     const SizedBox(height: 32),
                     if (error != null && error.fieldErrors == null) ...[
-                      _ErrorBanner(message: error.message),
+                      ErrorBanner(message: error.message),
                       const SizedBox(height: 16),
                     ],
                     AppTextField(
-                      label: 'Email',
-                      controller: _emailController,
-                      icon: Icons.mail_outline_rounded,
-                      keyboardType: TextInputType.emailAddress,
+                      label: 'Email atau Username',
+                      controller: _loginController,
+                      icon: Icons.person_outline_rounded,
+                      keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
-                      errorText: error?.errorFor('email'),
+                      errorText: error?.errorFor('login'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email wajib diisi';
-                        if (!value.contains('@')) return 'Format email tidak valid';
+                        if (value == null || value.trim().isEmpty) return 'Email atau username wajib diisi';
                         return null;
                       },
                     ),
@@ -142,34 +142,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(message, style: const TextStyle(color: AppColors.error, fontSize: 13)),
-          ),
-        ],
       ),
     );
   }

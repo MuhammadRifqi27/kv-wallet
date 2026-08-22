@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../application/auth_controller.dart';
 
@@ -18,6 +19,7 @@ class RegisterPage extends ConsumerStatefulWidget {
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -25,6 +27,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
@@ -37,6 +40,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     final success = await ref.read(authControllerProvider.notifier).register(
           name: _nameController.text.trim(),
+          username: _usernameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -145,7 +149,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                     ),
                     if (generalError) ...[
-                      _ErrorBanner(message: error.message),
+                      ErrorBanner(message: error.message),
                       const SizedBox(height: 16),
                     ],
                     AppTextField(
@@ -156,6 +160,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       errorText: error?.errorFor('name'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return 'Nama wajib diisi';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    AppTextField(
+                      label: 'Username',
+                      controller: _usernameController,
+                      icon: Icons.alternate_email_rounded,
+                      textInputAction: TextInputAction.next,
+                      errorText: error?.errorFor('username'),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Username wajib diisi';
+                        if (value.contains(' ')) return 'Username tidak boleh mengandung spasi';
                         return null;
                       },
                     ),
@@ -224,34 +241,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(message, style: const TextStyle(color: AppColors.error, fontSize: 13)),
-          ),
-        ],
       ),
     );
   }

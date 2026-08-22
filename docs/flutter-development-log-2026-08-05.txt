@@ -1,0 +1,154 @@
+CATATAN PENGEMBANGAN - 5 AGUSTUS 2026 (KVWallet Mobile)
+=========================================================
+Lanjutan dari docs/flutter-splash-login-register-implementation-log.txt
+(Splash, Login, Register). Dokumen ini merangkum apa yang dibangun & diubah
+hari ini: penyempurnaan Master Data, fitur Portfolio, struktur navigasi
+utama (bottom nav bar), dan 3 fitur inti - Dashboard, Ringkasan, Transaksi -
+beserta perbaikan-perbaikan teknis di sepanjang jalan.
+
+Detail lengkap proses debugging Dashboard/Summary/Transaksi (field API yang
+meleset dari tebakan awal) ada di dokumen terpisah:
+docs/flutter-dashboard-summary-transaksi-troubleshooting-log.txt
+
+
+BAGIAN 0 - RINGKASAN URUTAN KERJA HARI INI
+-----------------------------------------------
+1. Master Data: Kategori & Provider Investasi disederhanakan jadi
+   view-only; Siklus Gajian (Payroll) dibuatkan halaman baru yang bisa
+   diedit.
+2. Portfolio: fitur baru, full CRUD (beda dari Master Data karena ini data
+   milik user sendiri).
+3. Struktur navigasi utama: bottom nav bar 5 tab, gantikan HomePage
+   placeholder.
+4. Dashboard, Ringkasan (Summary), dan Transaksi: 3 fitur inti dibangun
+   dari nol, lalu disesuaikan berkali-kali setelah lihat response API asli.
+5. Beberapa perbaikan UX & bug lintas fitur (lihat BAGIAN 5).
+
+
+BAGIAN 1 - KEPUTUSAN BISNIS: MASTER DATA JADI READ-ONLY DI MOBILE
+------------------------------------------------------------------------
+Keputusan dari pemilik project: Kategori dan Provider Investasi TIDAK bisa
+lagi di-edit/dihapus/ditambah dari mobile - itu tetap dikelola admin lewat
+aplikasi web. Sebagai konsekuensinya:
+- CategoryRepository, CategoryListController: method create/update/delete
+  DIHAPUS (bukan cuma disembunyikan dari UI), begitu juga tombol FAB/edit/
+  hapus di CategoryListPage dan file category_form_page.dart yang jadi
+  tidak terpakai.
+- InvestmentRepository dibuat SEJAK AWAL sebagai read-only (cuma
+  getInvestments()), mengikuti pola yang sama.
+- Satu-satunya bagian Master Data yang TETAP bisa diedit dari mobile:
+  Siklus Gajian (key payroll_start_day, lewat POST /money-management/
+  settings). Dibuatkan halaman baru PayrollSettingsPage dengan custom
+  date-picker: tombol field yang membuka bottom sheet grid kalender
+  1-31 (gaya kalender), atau opsi toggle "pakai akhir bulan".
+- Sempat ada bug: nilai payroll_start_day yang tersimpan selalu tampil
+  balik ke default (25) - ternyata backend mengembalikan nilai ini sebagai
+  String ("10"), bukan int, dari tabel key-value generik. Diperbaiki
+  dengan parsing yang menerima int, num, ATAUPUN String.
+
+
+BAGIAN 2 - PORTFOLIO (FULL CRUD)
+-------------------------------------
+Beda dari Kategori/Provider Investasi, Portfolio adalah akun/dompet milik
+user sendiri (finance_portfolios) - jadi CRUD-nya tetap penuh (create,
+edit, hapus) dari mobile.
+- PortfolioFormPage: form dengan picker Provider Investasi (bottom sheet,
+  reuse data yang sudah difetch InvestmentListController), switch "Akun
+  investasi" (menentukan apakah dana masuk/keluar dicatat sebagai
+  deposit/withdrawal/profit/loss atau transaksi biasa), input nama & nomor
+  akun.
+- Saldo (balance) ditampilkan format Rupiah, warna hijau/merah sesuai
+  positif/negatif - tetap dihitung real-time oleh server, tidak pernah
+  di-cache di Flutter (sesuai prinsip di panduan API).
+
+
+BAGIAN 3 - STRUKTUR NAVIGASI UTAMA: BOTTOM NAV BAR
+-------------------------------------------------------
+HomePage placeholder diganti total dengan struktur navigasi permanen:
+- lib/routing/main_shell.dart (MainShell) - bottom nav bar pakai
+  NavigationBar (Material 3).
+- lib/routing/app_router.dart - direstrukturisasi pakai
+  StatefulShellRoute.indexedStack dari go_router, supaya tiap tab
+  (Dashboard/Transaksi/Ringkasan/Portfolio/Settings) punya stack navigasi
+  sendiri-sendiri - pindah tab tidak mereset posisi/scroll tab lain, dan
+  masuk ke sub-halaman (misal Settings > Kategori) lalu pindah tab lalu
+  balik lagi tetap di posisi yang sama.
+- Urutan final 5 tab: Dashboard, Transaksi, Ringkasan, Portfolio, Settings.
+- Catatan penting: urutan NavigationDestination di main_shell.dart HARUS
+  persis sama urutannya dengan urutan StatefulShellBranch di
+  app_router.dart, karena NavigationBar mencocokkan tab berdasarkan INDEX
+  posisi, bukan nama/label. Sempat kejadian kedua urutan ini tidak sinkron
+  (gara-gara salah satu diedit sendiri tanpa mengubah yang satu lagi),
+  akibatnya tab "Ringkasan" malah nampilin isi Portfolio dan sebaliknya.
+
+
+BAGIAN 4 - DASHBOARD, RINGKASAN, TRANSAKSI (FITUR INTI)
+--------------------------------------------------------------
+Dibangun berdasarkan deskripsi bisnis di panduan API (tidak ada contoh
+JSON persis untuk endpoint-endpoint ini, beda dengan Login) - jadi
+mayoritas nama field di model Dart awalnya cuma tebakan berdasar deskripsi.
+Setelah user kirim response JSON asli dari device, hampir semua field
+disesuaikan ulang. Detail lengkap ada di dokumen terpisah:
+docs/flutter-dashboard-summary-transaksi-troubleshooting-log.txt
+
+Ringkasan hasil akhir tiap halaman:
+- Dashboard: kartu Total Kekayaan Bersih, Saldo Kas vs Investasi,
+  Pemasukan/Pengeluaran siklus berjalan, daftar Semua Akun, Sumber
+  Pemasukan, Kategori Terbesar, Transaksi Terbaru.
+- Ringkasan: navigasi bulan/tahun (bottom sheet grid, bukan cuma panah),
+  kartu Total Kekayaan Bersih + Pemasukan/Pengeluaran/Untung Bersih, chart
+  Alokasi Aset & Breakdown Pengeluaran (pie), chart Tren Pemasukan vs
+  Pengeluaran (line, 2 garis + sumbu Rupiah), Smart Advisor.
+- Transaksi: filter tipe (Semua/Pemasukan/Pengeluaran), 3 kartu ringkasan
+  total (dari key 'summary' di response, bukan dihitung ulang di client),
+  form tambah/edit dengan date-picker, picker kategori (otomatis
+  terfilter sesuai tipe), picker akun (opsional).
+
+
+BAGIAN 5 - PERBAIKAN TEKNIS & UX LINTAS FITUR
+----------------------------------------------------
+1. Logging Dio di-chunk (lib/core/network/api_client.dart) - response
+   besar sekarang selalu tercetak utuh di log, tidak kepotong batas
+   panjang baris logcat Android (~4000 karakter).
+2. Semua showModalBottomSheet (picker tanggal Payroll, picker kategori &
+   akun di form Transaksi, picker provider investasi di form Portfolio,
+   picker bulan/tahun di Ringkasan) ditambahkan `isScrollControlled: true`.
+   Tanpa ini, Flutter membatasi tinggi bottom sheet default ~56% tinggi
+   layar, dan konten kita (drag handle + judul + list) bisa melebihi itu
+   -> muncul error "bottom overflowed by N pixels".
+3. Chart di Ringkasan disempurnakan bertahap:
+   - Tren Pemasukan vs Pengeluaran: dari bar chart jadi line chart 2 garis
+     (hijau pemasukan, merah pengeluaran), gaya sama seperti chart net
+     worth yang lama.
+   - Label bulan pada sumbu bawah dipersingkat ("Jan 2026" -> "Jan") biar
+     tidak overflow keluar card.
+   - Sumbu kiri ditambahkan dengan format Rupiah singkat (formatCompactRupiah:
+     "5jt", "500rb") plus garis grid horizontal tipis.
+4. Logout dipindah dari AppBar Dashboard ke halaman Settings (section
+   "Akun", dengan dialog konfirmasi sebelum benar-benar keluar). Sekalian
+   diperbaiki bug logout yang sebelumnya tidak benar-benar berpindah ke
+   halaman Login - dulu cuma mengandalkan redirect otomatis GoRouter
+   (refreshListenable) tanpa navigasi eksplisit, sekarang ditambahkan
+   `context.go('/login')` eksplisit setelah logout selesai, sama seperti
+   pola yang sudah dipakai Login/Register sejak awal.
+
+
+BAGIAN 6 - CATATAN UNTUK SESI BERIKUTNYA
+-----------------------------------------------
+- Fitur dari panduan API yang BELUM dibangun sama sekali: Transfer Antar
+  Akun, Transaksi Berulang (Recurring), Budget, IPO, Stock Tracking, BTC
+  Tracking. Semua endpoint itu SAMA SEKALI tidak punya contoh JSON di
+  panduan (persis seperti Dashboard/Summary/Transaksi tadi) - siapkan
+  alur kerja yang sama: bangun tebakan dengan parsing defensif -> user
+  test di device asli -> kirim log [Dio] -> sesuaikan model.
+- Session auth: token Sanctum TIDAK expired otomatis dari sisi mobile
+  (tersimpan permanen di secure storage, app tidak logout walau ditutup).
+  Kapan token benar-benar habis berlaku tergantung setting `expiration` di
+  config/sanctum.php milik project Laravel (kode_visual) - di luar
+  jangkauan repo Flutter ini untuk dicek langsung.
+- Permission gap yang masih berlaku (dari flutter-mobile-app-development-
+  guide.txt BAGIAN 3.5): role "Regular User" default cuma punya akses
+  dashboard, transactions, summary - TIDAK portfolio/settings. Kalau nanti
+  ada user selain admin yang login dan menu Portfolio/Settings-nya tidak
+  kelihatan berfungsi penuh, ini kemungkinan penyebabnya (butuh admin
+  tambah permission manual lewat web, bukan bug di kode mobile).
