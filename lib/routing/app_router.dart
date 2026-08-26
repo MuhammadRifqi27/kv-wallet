@@ -15,7 +15,9 @@ import '../features/master_data/presentation/category_list_page.dart';
 import '../features/master_data/presentation/investment_list_page.dart';
 import '../features/master_data/presentation/payroll_settings_page.dart';
 import '../features/master_data/presentation/settings_page.dart';
+import '../core/providers/core_providers.dart';
 import '../features/membership/presentation/membership_plans_page.dart';
+import '../features/onboarding/presentation/onboarding_page.dart';
 import '../features/pin/application/pin_controller.dart';
 import '../features/pin/presentation/set_pin_page.dart';
 import '../features/pin/presentation/verify_pin_page.dart';
@@ -56,6 +58,7 @@ class _AuthRouterRefresh extends ChangeNotifier {
   _AuthRouterRefresh(Ref ref) {
     ref.listen(authControllerProvider, (_, _) => notifyListeners());
     ref.listen(pinVerifiedProvider, (_, _) => notifyListeners());
+    ref.listen(hasSeenOnboardingProvider, (_, _) => notifyListeners());
   }
 }
 
@@ -67,6 +70,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      final onOnboarding = state.matchedLocation == '/onboarding';
+      if (!ref.read(hasSeenOnboardingProvider)) {
+        return onOnboarding ? null : '/onboarding';
+      }
+      if (onOnboarding) {
+        // Flag flipped (slides just finished) while still sitting on this
+        // route — move on to the normal auth-driven flow.
+        return '/splash';
+      }
+
       final authState = ref.read(authControllerProvider);
       final status = authState.status;
       final onAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
@@ -110,6 +123,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
     },
     routes: [
+      GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingPage()),
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../auth/application/auth_controller.dart';
 
-/// wa.me link expects international format, no leading zero.
-const _customerServiceWhatsApp = '6289628169104';
+const _customerServiceFormUrl = 'https://forms.gle/DsB5KK67qddKvUuM9';
+const _instagramUrl = 'https://www.instagram.com/kodevisual';
 
 /// Landing page for the "settings" permission — Master Data (kategori,
 /// provider investasi) & Pengaturan, per
@@ -42,11 +43,11 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Future<void> _contactCustomerService(BuildContext context) async {
-    final uri = Uri.parse('https://wa.me/$_customerServiceWhatsApp');
+    final uri = Uri.parse(_customerServiceFormUrl);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak dapat membuka WhatsApp.')),
+        const SnackBar(content: Text('Tidak dapat membuka form.')),
       );
     }
   }
@@ -92,7 +93,7 @@ class SettingsPage extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.support_agent_rounded,
             title: 'Hubungi Customer Service',
-            subtitle: 'Chat langsung lewat WhatsApp',
+            subtitle: 'Isi form bantuan',
             onTap: () => _contactCustomerService(context),
           ),
           const SizedBox(height: 24),
@@ -102,6 +103,74 @@ class SettingsPage extends ConsumerWidget {
             title: 'Keluar',
             subtitle: 'Logout dari akun ini',
             onTap: () => _confirmLogout(context, ref),
+          ),
+          const _AppFooter(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Version, social link, and copyright — standard "about" footer content.
+/// A Privacy Policy link belongs here too once one exists (Play Store
+/// requires it, see docs/flutter-playstore-deployment-guide.txt), left out
+/// for now rather than pointing at a URL that doesn't exist yet.
+class _AppFooter extends StatelessWidget {
+  const _AppFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      child: Column(
+        children: [
+          const SizedBox(height: 24),
+          Container(height: 1, color: AppColors.border),
+          const SizedBox(height: 24),
+          Image.asset('assets/branding/logo_mark.png', height: 26),
+          const SizedBox(height: 10),
+          const Text(
+            'Flowr',
+            style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
+          ),
+          const SizedBox(height: 3),
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final version = snapshot.data?.version ?? '1.0.0';
+              return Text(
+                'Versi $version',
+                style: const TextStyle(color: AppColors.textDisabled, fontSize: 10.5),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => launchUrl(Uri.parse(_instagramUrl), mode: LaunchMode.externalApplication),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.alternate_email_rounded, size: 13, color: AppColors.primary),
+                  SizedBox(width: 3),
+                  Text(
+                    'kodevisual',
+                    style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            '© 2026 Kodevisual. All rights reserved.',
+            style: TextStyle(color: AppColors.textDisabled, fontSize: 9.5),
           ),
         ],
       ),

@@ -15,8 +15,12 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
 - Fitur Membership: upgrade ke plan Member/Member Premium, lihat detail
   benefit tiap plan sebelum pilih, instruksi transfer manual, dan cek
   status verifikasi pembayaran.
-- Menu "Upgrade Membership" dan "Hubungi Customer Service" (langsung ke
-  WhatsApp) di halaman Settings.
+- Menu "Upgrade Membership" dan "Hubungi Customer Service" (buka form
+  bantuan) di halaman Settings.
+- Welcome/onboarding slides (4 slide perkenalan fitur), tampil sekali per
+  device sebelum halaman Login/Register.
+- Dokumentasi PDF: Developer Documentation (`docs/`) dan User Work
+  Instruction (`docs/WI/`).
 - Fitur Budget: atur batas anggaran per kategori pengeluaran per bulan,
   lihat progress pemakaian vs limit per kategori dan secara keseluruhan.
 - Notifikasi (lokal) saat pengeluaran suatu kategori melebihi budget yang
@@ -37,6 +41,10 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
   di belakangnya.
 - Data permission pengguna ikut ter-refresh otomatis begitu status
   pembayaran membership terkonfirmasi, tanpa perlu logout-login ulang.
+- Icon tab Budget diganti jadi kalkulator (sebelumnya celengan), diseragamkan
+  juga di slide onboarding & form tambah budget.
+- Menu "Hubungi Customer Service" diganti dari buka WhatsApp menjadi buka
+  form Google Forms.
 
 ### Diperbaiki
 - Login gagal karena nama field request salah (`email` seharusnya `login`).

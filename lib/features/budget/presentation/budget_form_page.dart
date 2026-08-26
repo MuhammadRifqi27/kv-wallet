@@ -144,7 +144,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                 AppTextField(
                   label: 'Jumlah Budget (Rp)',
                   controller: _amountController,
-                  icon: Icons.savings_outlined,
+                  icon: Icons.calculate_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.done,
                   errorText: _error?.errorFor('amount'),

@@ -14,6 +14,7 @@ import '../../data/repositories/transaction_repository.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../network/api_client.dart';
 import '../notifications/notification_service.dart';
+import '../storage/onboarding_service.dart';
 import '../storage/secure_storage_service.dart';
 
 final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
@@ -23,6 +24,15 @@ final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
+
+final onboardingServiceProvider = Provider<OnboardingService>((ref) {
+  return OnboardingService();
+});
+
+/// Overridden in main.dart with the real value read at startup (see
+/// OnboardingService) so the router redirect can read it synchronously;
+/// flipped to true once the user finishes/skips the slides.
+final hasSeenOnboardingProvider = StateProvider<bool>((ref) => false);
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(

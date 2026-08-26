@@ -46,8 +46,8 @@ const _navItems = [
   ),
   _NavItem(
     permission: 'budgets',
-    icon: Icons.savings_outlined,
-    selectedIcon: Icons.savings_rounded,
+    icon: Icons.calculate_outlined,
+    selectedIcon: Icons.calculate_rounded,
     label: 'Budget',
   ),
   _NavItem(
