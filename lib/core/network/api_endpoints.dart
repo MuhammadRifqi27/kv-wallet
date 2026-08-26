@@ -15,11 +15,18 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
-
-  /// Not live on the backend yet — self-registration is still admin-only
-  /// (see docs/flutter-mobile-app-development-guide.txt BAGIAN 2 & 7).
   static const String register = '/auth/register';
 
+  /// Set/change PIN (`current_pin` required only when changing an existing
+  /// one) — see docs/pin-and-membership-plan-api-reference.md.
+  static const String pin = '/auth/pin';
+  static const String verifyPin = '/auth/verify-pin';
+
+  static const String membershipPlans = '/membership/plans';
+  static const String membershipSelectPlan = '/membership/select-plan';
+  static const String membershipStatus = '/membership/status';
+
+  static const String budgets = '/money-management/budgets';
   static const String categories = '/money-management/categories';
   static const String investments = '/money-management/investments';
   static const String settings = '/money-management/settings';

@@ -8,11 +8,17 @@ import '../features/auth/application/auth_controller.dart';
 import '../features/auth/application/auth_state.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/register_page.dart';
+import '../features/budget/presentation/budget_form_page.dart';
+import '../features/budget/presentation/budget_list_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/master_data/presentation/category_list_page.dart';
 import '../features/master_data/presentation/investment_list_page.dart';
 import '../features/master_data/presentation/payroll_settings_page.dart';
 import '../features/master_data/presentation/settings_page.dart';
+import '../features/membership/presentation/membership_plans_page.dart';
+import '../features/pin/application/pin_controller.dart';
+import '../features/pin/presentation/set_pin_page.dart';
+import '../features/pin/presentation/verify_pin_page.dart';
 import '../features/portfolio/presentation/portfolio_form_page.dart';
 import '../features/portfolio/presentation/portfolio_list_page.dart';
 import '../features/splash/presentation/splash_page.dart';
@@ -22,10 +28,34 @@ import '../features/transactions/presentation/transaction_list_page.dart';
 import 'main_shell.dart';
 
 /// Bridges Riverpod state changes into something [GoRouter]'s
-/// `refreshListenable` understands, so login/logout re-triggers redirects.
+/// `refreshListenable` understands, so login/logout/pin-verify re-triggers
+/// redirects.
+/// Mirrors the permission keys in routing/main_shell.dart's `_navItems` —
+/// see docs/flutter-navbar-permission-gating-plan.txt BAGIAN 0.
+const _routePermissions = {
+  '/home': 'dashboard',
+  '/transactions': 'transactions',
+  '/summary': 'summary',
+  '/portfolio': 'portfolio',
+  '/budget': 'budgets',
+  '/settings': 'settings',
+};
+
+/// [_routePermissions] lookup that also covers nested routes under each
+/// branch (e.g. `/portfolio/form`, `/settings/categories`).
+String? _permissionFor(String location) {
+  for (final entry in _routePermissions.entries) {
+    if (location == entry.key || location.startsWith('${entry.key}/')) {
+      return entry.value;
+    }
+  }
+  return null;
+}
+
 class _AuthRouterRefresh extends ChangeNotifier {
   _AuthRouterRefresh(Ref ref) {
     ref.listen(authControllerProvider, (_, _) => notifyListeners());
+    ref.listen(pinVerifiedProvider, (_, _) => notifyListeners());
   }
 }
 
@@ -37,9 +67,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
-      final status = ref.read(authControllerProvider).status;
+      final authState = ref.read(authControllerProvider);
+      final status = authState.status;
       final onAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
       final onSplash = state.matchedLocation == '/splash';
+      final onPinSet = state.matchedLocation == '/pin/set';
+      final onPinVerify = state.matchedLocation == '/pin/verify';
 
       switch (status) {
         case AuthStatus.unknown:
@@ -50,7 +83,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // of bouncing through Splash mid-request.
           return null;
         case AuthStatus.authenticated:
-          return (onAuthPage || onSplash) ? '/home' : null;
+          // PIN app-lock gate — every authenticated session must pass
+          // through /pin/set (no PIN yet) or /pin/verify (has one, not
+          // unlocked this session) before reaching the rest of the app.
+          final hasPin = authState.user?.hasPin ?? false;
+          if (!hasPin) {
+            return onPinSet ? null : '/pin/set';
+          }
+          if (!ref.read(pinVerifiedProvider)) {
+            return onPinVerify ? null : '/pin/verify';
+          }
+          if (onAuthPage || onSplash || onPinSet || onPinVerify) {
+            return '/home';
+          }
+          // Defense-in-depth: MainShell already stops locked tabs from
+          // being tapped (see routing/main_shell.dart), this just catches
+          // anyone who lands on a locked route another way (deep link,
+          // stale navigation state after a plan downgrade, etc).
+          final requiredPermission = _permissionFor(state.matchedLocation);
+          if (requiredPermission != null && !(authState.user?.hasPermission(requiredPermission) ?? false)) {
+            return '/settings/membership';
+          }
+          return null;
         case AuthStatus.unauthenticated:
           return onAuthPage ? null : '/login';
       }
@@ -59,6 +113,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
+      GoRoute(path: '/pin/set', builder: (context, state) => const SetPinPage()),
+      GoRoute(path: '/pin/verify', builder: (context, state) => const VerifyPinPage()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) => MainShell(navigationShell: navigationShell),
         branches: [
@@ -100,12 +156,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/budget',
+                builder: (context, state) => const BudgetListPage(),
+                routes: [
+                  GoRoute(path: 'form', builder: (context, state) => const BudgetFormPage()),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsPage(),
                 routes: [
                   GoRoute(path: 'categories', builder: (context, state) => const CategoryListPage()),
                   GoRoute(path: 'investments', builder: (context, state) => const InvestmentListPage()),
                   GoRoute(path: 'payroll', builder: (context, state) => const PayrollSettingsPage()),
+                  GoRoute(path: 'membership', builder: (context, state) => const MembershipPlansPage()),
                 ],
               ),
             ],

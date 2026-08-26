@@ -45,54 +45,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           password: _passwordController.text,
         );
 
-    if (!mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Akun berhasil didaftarkan. Menunggu persetujuan admin.')),
-      );
-      context.go('/login');
-      return;
-    }
-
-    final error = ref.read(authControllerProvider).error;
-    if (error?.statusCode == 404) {
-      _showRegistrationUnavailableDialog();
-    }
-  }
-
-  void _showRegistrationUnavailableDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Registrasi mandiri belum aktif'),
-        content: const Text(
-          'Saat ini akun baru masih dibuat dan disetujui langsung oleh admin lewat '
-          'aplikasi web. Silakan hubungi admin untuk membuatkan akun Anda.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Mengerti'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/login');
-            },
-            child: const Text('Kembali ke Login'),
-          ),
-        ],
-      ),
-    );
+    // No explicit navigation on success — registration now auto-logs in,
+    // so the router redirect sends the new session straight to /pin/set.
+    if (!mounted || success) return;
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final error = authState.error;
-    final generalError = error != null && error.statusCode != 404 && error.fieldErrors == null;
+    final generalError = error != null && error.fieldErrors == null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -141,7 +103,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Akun baru butuh persetujuan admin sebelum bisa digunakan.',
+                              'Akun langsung aktif setelah daftar — Anda akan diminta membuat PIN 6 digit berikutnya.',
                               style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
                             ),
                           ),

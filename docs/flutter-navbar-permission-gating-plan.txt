@@ -1,0 +1,195 @@
+PLAN - NAVBAR & MENU SESUAI MONEY MANAGEMENT PERMISSIONS
+=================================================================
+Dibuat: 2026-08-25
+Update: 2026-08-25 (permission key final + ganti pendekatan jadi "lock &
+        blur", bukan sembunyikan tab)
+Status: DRAFT PLAN - belum diimplementasikan, siap eksekusi.
+
+Tujuan: tab di bottom navbar (Dashboard, Transaksi, Ringkasan, Portfolio,
+Settings) tetap semua kelihatan (konsisten, tidak menghilang), tapi tab yang
+tidak diizinkan permission user tampil ke-BLUR/dim + ada indikator lock, dan
+kalau di-tap diarahkan ke halaman Upgrade Membership alih-alih ke fitur
+aslinya. Ini pendekatan freemium yang umum: tunjukkan apa yang "hilang"
+biar user termotivasi upgrade, bukan sembunyikan begitu saja.
+
+Menu di dalam Settings (Kategori, Provider Investasi, Siklus Gajian) TIDAK
+digating sama sekali — tetap terbuka untuk semua user (keputusan eksplisit,
+lihat BAGIAN 0).
+
+Sumber data: `UserModel.moneyManagementPermissions` (List<String>) sudah
+ada & di-parse dari `money_management_permissions` di response
+`/auth/me`, `/auth/login`, `/auth/register` — tidak perlu API baru.
+`UserModel.hasPermission(String)` juga sudah ada
+(lib/data/models/user_model.dart).
+
+
+BAGIAN 0 - PERMISSION KEY (FINAL, DIKONFIRMASI USER 2026-08-25)
+======================================================================
+Daftar lengkap dari tabel Applications -> App Roles di admin panel:
+
+  name                     code
+  ------------------------ ------------------------------
+  View Dashboard           dashboard
+  Manage Transactions      transactions
+  Manage Budgets           budgets
+  View Financial Summary   summary
+  Manage Portfolio         portfolio
+  Manage Settings          settings
+  Internal Transfers       internal-transfers
+  Transaction Recurring    recurring
+  Bitcoin Tracking         btc-tracking
+  Master Category Expenses settings.category-expenses
+  Master Category Income   settings.category-income
+  Master Data Investment   settings.investment
+  Master Payroll           settings.payroll
+
+Yang dipakai untuk gating navbar (5 tab):
+  - "dashboard"    -> tab Dashboard
+  - "transactions" -> tab Transaksi
+  - "summary"      -> tab Ringkasan
+  - "portfolio"    -> tab Portfolio
+  - "settings"     -> tab Settings
+
+Keputusan eksplisit (2026-08-25): "Kategori", "Provider Investasi", dan
+"Siklus Gajian" di dalam halaman Settings TIDAK digating oleh
+settings.category-expenses / settings.category-income / settings.investment
+/ settings.payroll — biarkan ketiganya selalu terbuka untuk semua user,
+apapun permission-nya. (budgets, internal-transfers, recurring,
+btc-tracking belum dipakai di UI manapun saat ini — tidak relevan untuk
+plan ini.)
+
+Masih perlu dikonfirmasi (non-blocking, boleh diasumsikan dulu lalu
+diverifikasi pas testing manual): begitu admin "Mark Paid" atau user pilih
+plan baru, apakah `money_management_permissions` di `GET /auth/me`
+langsung ter-update di request berikutnya? Dashboard sudah manggil
+`checkAuthStatus()` cuma di splash (cold start) — kalau permission bisa
+berubah SAAT app masih terbuka (tanpa restart), perlu dipikirkan kapan
+app refetch `/auth/me` supaya status lock di navbar ikut update tanpa user
+harus restart app. Untuk v1, cukup asumsikan permission ter-refresh saat
+app dibuka ulang (konsisten dengan alur PIN app-lock yang juga jalan tiap
+cold start) — real-time update di tengah sesi jadi enhancement belakangan.
+
+
+BAGIAN 1 - PENDEKATAN TEKNIS
+==================================
+
+1.1. Kenapa bukan hapus branch dari StatefulShellRoute, dan bukan juga
+      sembunyikan destination dari NavigationBar
+------------------------------------------------------------------------
+`app_router.dart` pakai `StatefulShellRoute.indexedStack` dengan 5 branch
+tetap (lihat komentar di main_shell.dart: "note the branch order there must
+match the destination order here"). Karena keputusan produknya sekarang
+"tampilkan tapi kunci" (bukan sembunyikan), branch & destination TETAP 5
+selalu — tidak perlu index remapping atau filter sama sekali. Ini
+menyederhanakan implementasi dibanding rencana sebelumnya (yang sempat
+mempertimbangkan hide+remap).
+
+1.2. main_shell.dart - render locked state + intercept tap
+------------------------------------------------------------
+Ubah `MainShell` jadi `ConsumerWidget`, baca
+`ref.watch(authControllerProvider).user`. Definisikan daftar destinasi
+lengkap dengan permission key masing-masing (index harus tetap sinkron
+dengan urutan branch di app_router.dart, seperti sekarang):
+
+  const _destinations = [
+    (permission: 'dashboard', icon: Icons.dashboard_outlined, selectedIcon: Icons.dashboard_rounded, label: 'Dashboard'),
+    (permission: 'transactions', icon: Icons.receipt_long_outlined, selectedIcon: Icons.receipt_long_rounded, label: 'Transaksi'),
+    (permission: 'summary', icon: Icons.pie_chart_outline_rounded, selectedIcon: Icons.pie_chart_rounded, label: 'Ringkasan'),
+    (permission: 'portfolio', icon: Icons.account_balance_wallet_outlined, selectedIcon: Icons.account_balance_wallet_rounded, label: 'Portfolio'),
+    (permission: 'settings', icon: Icons.settings_outlined, selectedIcon: Icons.settings_rounded, label: 'Settings'),
+  ];
+
+Untuk tiap destination, cek `user.hasPermission(d.permission)`:
+  - Kalau diizinkan: `NavigationDestination` normal seperti sekarang.
+  - Kalau tidak: bungkus icon-nya pakai widget baru `_LockedNavIcon`
+    (Opacity ~0.4 + badge kecil ikon gembok di pojok kanan-atas icon, pakai
+    `Stack` + `Positioned`), label tetap ditampilkan (jangan ikut di-dim
+    total biar tetap kebaca ini fitur apa).
+
+`onDestinationSelected(index)`:
+  - Kalau `user.hasPermission(_destinations[index].permission)` true:
+    jalan seperti biasa — `navigationShell.goBranch(index, initialLocation:
+    index == navigationShell.currentIndex)`.
+  - Kalau false: JANGAN pindah branch (selectedIndex tetap di tab
+    sekarang). Tampilkan SnackBar singkat ("Fitur ini butuh upgrade
+    membership") lalu `context.push('/settings/membership')`.
+
+Catatan risiko: `/settings/membership` itu nested di bawah branch
+'/settings', yang route-nya sendiri butuh permission 'settings'. Karena
+'settings' SELALU ada di default permission free-user (lihat contoh di
+docs/pin-and-membership-plan-api-reference.md), jalur upgrade ini aman
+untuk kondisi normal. TAPI kalau suatu saat ada role yang bahkan tidak
+punya 'settings', user itu tidak akan pernah bisa reach halaman upgrade
+dari navbar manapun (tab Settings sendiri juga locked). Untuk v1 diasumsikan
+tidak terjadi (settings selalu granted by default); kalau ternyata bisa
+terjadi, perlu route upgrade yang berdiri sendiri di luar shell (misal
+top-level `/upgrade`, tidak nested di /settings).
+
+1.3. app_router.dart - redirect guard (defense-in-depth)
+------------------------------------------------------
+Tambah pengecekan permission di dalam `redirect` callback (bagian
+`AuthStatus.authenticated`, setelah PIN gate lolos), buat jaga-jaga kalau
+ada yang nyasar ke route locked lewat cara lain (deep link, state
+tersimpan sebelum plan berubah, dsb) — BUKAN jalur utama (jalur utama
+pencegahannya di 1.2, intercept sebelum `goBranch` dipanggil):
+
+  const _routePermissions = {
+    '/home': 'dashboard',
+    '/transactions': 'transactions',
+    '/summary': 'summary',
+    '/portfolio': 'portfolio',
+    '/settings': 'settings',
+  };
+  final requiredPermission = _routePermissions[state.matchedLocation];
+  if (requiredPermission != null && !(authState.user?.hasPermission(requiredPermission) ?? false)) {
+    return '/settings/membership';
+  }
+
+Catatan: kalau redirect ini kena pas user justru SEDANG di '/settings/...'
+(termasuk '/settings/membership' sendiri) dan ternyata tidak punya
+permission 'settings' — bisa infinite loop (redirect ke '/settings/
+membership' yang notabene juga di bawah '/settings'). Karena 'settings'
+diasumsikan selalu granted (lihat 1.2), risiko ini rendah untuk sekarang,
+tapi tetap dicatat sebagai risiko yang sama seperti di 1.2 — kalau nanti
+ternyata ada role tanpa 'settings', redirect guard ini juga perlu direvisi
+bareng dengan solusi route '/upgrade' top-level itu.
+
+1.4. settings_page.dart - TIDAK ADA PERUBAHAN
+------------------------------------------------
+Sesuai keputusan BAGIAN 0: "Kategori", "Provider Investasi", "Siklus
+Gajian", "Upgrade Membership", "Hubungi Customer Service", dan "Keluar"
+semuanya tetap seperti sekarang — selalu tampil, tidak digating permission
+apa pun. Tidak ada pekerjaan di file ini untuk plan ini.
+
+
+BAGIAN 2 - URUTAN IMPLEMENTASI
+====================================
+  Fase 1 - main_shell.dart: render locked state (_LockedNavIcon) + intercept
+           tap untuk destination yang locked (BAGIAN 1.2).
+  Fase 2 - app_router.dart: redirect guard defense-in-depth (BAGIAN 1.3).
+  Fase 3 - Testing manual: pakai/buat user dengan kombinasi permission
+           berbeda-beda (kosongin sebagian lewat admin panel Applications ->
+           App Roles), pastikan:
+             - Tab locked kelihatan jelas beda (blur + badge lock) tapi
+               tetap kebaca labelnya.
+             - Tap tab locked TIDAK pindah branch, muncul snackbar, lalu
+               ke halaman Upgrade Membership.
+             - Tab yang permitted tetap jalan normal seperti biasa.
+             - User yang cuma punya "dashboard" (tanpa "settings") — pastikan
+               tidak ada crash/infinite-loop walau jalur upgrade dari
+               navbar jadi tidak reachable untuknya (risiko yang sudah
+               dicatat di 1.2/1.3, cukup dipastikan tidak crash, bukan
+               diperbaiki penuh dulu di v1).
+
+
+CHECKLIST RINGKAS
+======================
+[ ] main_shell.dart: MainShell jadi permission-aware (ConsumerWidget)
+[ ] Widget _LockedNavIcon (icon blur + badge lock kecil)
+[ ] onDestinationSelected: intercept tab locked -> snackbar + push ke
+    /settings/membership, JANGAN goBranch
+[ ] app_router.dart: redirect guard defense-in-depth per branch
+[ ] Test manual dengan beberapa kombinasi permission berbeda (termasuk user
+    yang cuma punya sedikit permission)
+[ ] Pastikan tidak ada perubahan di settings_page.dart (semua tile di sana
+    tetap selalu terbuka sesuai keputusan)

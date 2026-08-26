@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
 import '../../../data/models/transaction_model.dart';
+import '../../budget/application/budget_controller.dart';
 
 /// Null means "all types".
 final transactionTypeFilterProvider = StateProvider<TransactionType?>((ref) => null);
@@ -42,6 +43,12 @@ class TransactionListController extends AsyncNotifier<TransactionListResult> {
           description: description,
         );
     await refresh();
+    if (type == TransactionType.expense) {
+      // Re-check budget immediately so a newly-crossed limit gets a
+      // notification right away, not just next time the Budget tab
+      // happens to reload (see docs/flutter-notifications-plan.txt).
+      await ref.read(budgetControllerProvider.notifier).refresh();
+    }
   }
 
   Future<void> editTransaction({
@@ -63,6 +70,9 @@ class TransactionListController extends AsyncNotifier<TransactionListResult> {
           description: description,
         );
     await refresh();
+    if (type == TransactionType.expense) {
+      await ref.read(budgetControllerProvider.notifier).refresh();
+    }
   }
 
   Future<void> removeTransaction(int id) async {

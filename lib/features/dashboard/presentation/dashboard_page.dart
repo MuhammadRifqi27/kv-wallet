@@ -31,7 +31,7 @@ class DashboardPage extends ConsumerWidget {
           children: [
             Image.asset('assets/branding/logo_mark.png', height: 22, fit: BoxFit.contain),
             const SizedBox(width: 8),
-            const Text('Wallet'),
+            const Text('Flowr'),
           ],
         ),
       ),

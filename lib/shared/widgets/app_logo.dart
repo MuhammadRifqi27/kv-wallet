@@ -19,7 +19,7 @@ class AppLogo extends StatelessWidget {
         if (showWordmark) ...[
           SizedBox(height: size * 0.14),
           Text(
-            'Wallet',
+            'Flowr',
             style: TextStyle(
               fontSize: size * 0.27,
               fontWeight: FontWeight.w700,

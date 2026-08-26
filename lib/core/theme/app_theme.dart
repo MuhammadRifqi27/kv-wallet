@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
 class AppTheme {
   AppTheme._();
+
+  /// Solid status bar look, independent of AppBar's transparent background
+  /// below — otherwise Flutter derives the status bar's own overlay style
+  /// from AppBar's `Colors.transparent`, letting whatever's on screen
+  /// (e.g. Dashboard's gradient card) show through the status bar area.
+  /// Applied both via [ThemeData.appBarTheme] (pages with an AppBar) and
+  /// globally in main.dart (Splash/Login/Register/PIN pages, which don't
+  /// have one).
+  static const statusBarStyle = SystemUiOverlayStyle(
+    statusBarColor: AppColors.background,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  );
 
   static ThemeData get light {
     final base = ThemeData(
@@ -28,6 +42,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: statusBarStyle,
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,

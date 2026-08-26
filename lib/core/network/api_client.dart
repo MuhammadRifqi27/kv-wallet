@@ -35,8 +35,26 @@ class ApiClient {
     );
 
     if (kDebugMode) {
+      // Redacted request-body logging instead of LogInterceptor's raw dump —
+      // PIN/password fields must never hit logcat/crash reports, even in
+      // debug builds on a tester's device.
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.data is Map) {
+              final redacted = Map<String, dynamic>.from(options.data as Map);
+              for (final field in _sensitiveFields) {
+                if (redacted.containsKey(field)) redacted[field] = '***';
+              }
+              debugPrint('[Dio] -> ${options.method} ${options.uri}');
+              debugPrint('[Dio] body: $redacted');
+            }
+            handler.next(options);
+          },
+        ),
+      );
       dio.interceptors.add(LogInterceptor(
-        requestBody: true,
+        requestBody: false,
         responseBody: true,
         logPrint: _logChunked,
       ));
@@ -46,6 +64,8 @@ class ApiClient {
   final Dio dio;
   final void Function()? onUnauthorized;
 }
+
+const _sensitiveFields = {'pin', 'pin_confirmation', 'current_pin', 'password', 'password_confirmation'};
 
 /// adb logcat truncates long single lines (~4000 chars), which was cutting
 /// off large JSON responses (Dashboard/Summary) mid-object. Slicing into

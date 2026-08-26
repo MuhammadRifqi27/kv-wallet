@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// KVWallet brand palette — modern fintech minimalist.
+/// Flowr brand palette — modern fintech minimalist.
 class AppColors {
   AppColors._();
 

@@ -1,0 +1,213 @@
+PLAN - NOTIFIKASI APP (BUDGET EXCEEDED & LAINNYA)
+=================================================================
+Dibuat: 2026-08-26
+Status: DRAFT PLAN - belum diimplementasikan.
+
+Permintaan: notifikasi untuk budget yang melebihi limit, plus rekomendasi
+notifikasi lain apa saja yang masuk akal untuk app ini.
+
+
+BAGIAN 0 - FILOSOFI & BATASAN PROJECT INI (PENTING)
+==========================================================
+Backend app ini secara eksplisit MENGHINDARI scheduler/cron server-side —
+lihat docs/money-management-alur-bisnis-database.txt bagian "TRANSAKSI
+BERULANG": proses recurring transaction cuma jalan "saat halaman dibuka",
+BUKAN lewat background job. Prinsip yang sama saya pakai untuk plan
+notifikasi ini: fokus ke notifikasi yang bisa di-trigger dari SISI APP
+(client-side, saat user memakai app), bukan notifikasi yang butuh server
+selalu "mengawasi" data dan push kapan saja kejadian.
+
+Ini otomatis membagi semua ide notifikasi jadi 2 kelompok besar — lihat
+BAGIAN 1.
+
+
+BAGIAN 1 - KLASIFIKASI KANDIDAT NOTIFIKASI
+=================================================
+
+1.1. BISA DIBANGUN SEKARANG (client-side, data sudah ada di app)
+------------------------------------------------------------------------
+Notifikasi lokal (local notification) yang dipicu oleh app itu sendiri
+saat dipakai — TIDAK butuh backend berubah, TIDAK butuh app jalan terus di
+background.
+
+  a. BUDGET TERLAMPAUI (permintaan utama)
+     Trigger: begitu user berhasil tambah transaksi pengeluaran, cek apakah
+     kategori itu sekarang melebihi budget bulan berjalan (data budget
+     sudah ada lewat BudgetController). Kalau iya -> tampilkan local
+     notification "Budget [kategori] terlampaui - terpakai Rp X dari Rp Y".
+     Juga bisa dicek ulang tiap kali halaman Budget dibuka/refresh, untuk
+     kasus lain (misal admin ubah data lewat web, atau budget baru dibuat
+     yang otomatis "terlampaui" dari transaksi lama yang sudah ada).
+
+  b. BUDGET HAMPIR HABIS (>=80% terpakai) - tambahan yang saya sarankan
+     Peringatan lebih awal sebelum benar-benar lewat, sama trigger-nya
+     dengan (a). Ambang 80% cuma saran, bisa disesuaikan.
+
+  c. TRANSAKSI BERULANG (recurring) OTOMATIS DIPROSES
+     Sesuai catatan di BAGIAN 0, proses ini jalan diam-diam saat halaman
+     Recurring dibuka. Notifikasi/toast singkat ("3 transaksi berulang
+     otomatis dibuat") bagus untuk transparansi, biar user tidak bingung
+     kenapa tiba-tiba ada transaksi baru yang tidak mereka input manual.
+
+  d. SALDO KAS RENDAH / NEGATIF - tambahan yang saya sarankan, prioritas
+     lebih rendah
+     Kalau total_liquid_cash dari Dashboard mendekati 0 atau negatif,
+     kasih peringatan. Perlu ambang batas yang masuk akal (persentase dari
+     income_pool? nominal tetap? perlu didiskusikan kalau mau dibangun).
+
+  CATATAN: PIN reminder untuk user lama yang belum set PIN SEHARUSNYA
+  TIDAK relevan lagi -- sudah diputuskan PIN itu wajib (forced) langsung
+  setelah register/login, bukan sekadar reminder (lihat
+  docs/flutter-pin-security-feature-plan.txt, sudah diimplementasikan
+  beda dari rencana awal). Tidak dimasukkan ke plan ini.
+
+1.2. BUTUH PERUBAHAN BACKEND DULU (server-triggered / push notification)
+--------------------------------------------------------------------------
+Ini kejadian yang terjadi DI LUAR sesi aktif user (admin klik sesuatu di
+panel web, atau proses di server) -- device user harus dikasih tahu
+walau app-nya sedang tertutup. Ini butuh:
+  - Firebase Cloud Messaging (atau setara) di-setup di backend Laravel.
+  - Backend fire push notification saat event terjadi.
+  - Flutter app cuma jadi penerima (pakai firebase_messaging), figure
+    keluar dari scope "local notification" di BAGIAN 1.1.
+Ini SATU PAKET pekerjaan yang jauh lebih besar (setup Firebase project,
+service account di backend, device token registration & penyimpanannya di
+tabel users, dsb) -- TIDAK termasuk scope plan ini, cuma dicatat sebagai
+kandidat untuk plan terpisah kalau memang mau dikerjakan nanti:
+
+  a. MEMBERSHIP TERVERIFIKASI ADMIN
+     "Selamat! Membership Member Premium Anda sudah aktif." -- ini yang
+     paling berdampak ke UX, karena sekarang user harus buka app & tap
+     "cek status" manual buat tau statusnya berubah (lihat
+     docs/pin-and-membership-plan-api-reference.md & fitur yang sudah
+     dibangun). Push notification di sini idealnya dikerjakan bareng kalau
+     nanti ada waktu untuk setup FCM.
+
+  b. HASIL PENJATAHAN IPO SIAP
+     Sesuai alur di docs/money-management-alur-bisnis-database.txt bagian
+     "IPO" -- user submit order, nunggu hasil penjatahan dari admin/sistem.
+
+  c. LOGIN DARI DEVICE BARU (keamanan)
+     Notifikasi keamanan standar, prioritas rendah untuk app personal
+     seperti ini.
+
+Rekomendasi: BAGIAN 1.1 dulu (fokus ke Budget, sesuai request), BAGIAN 1.2
+didiskusikan terpisah kalau nanti mau investasi waktu setup FCM.
+
+
+BAGIAN 2 - DESAIN: NOTIFIKASI BUDGET TERLAMPAUI (FOKUS UTAMA)
+====================================================================
+
+2.1. Kapan notifikasi muncul
+---------------------------------
+  - Titik utama: tepat setelah `BudgetController`/`TransactionListController`
+    berhasil nambah transaksi TIPE PENGELUARAN (expense). Setelah
+    `addTransaction()` sukses, cek budget kategori itu untuk periode
+    berjalan -- kalau `spent > amount` (dan sebelumnya belum), tampilkan
+    notifikasi.
+  - Titik sekunder: setiap kali `BudgetController.build()`/`refresh()`
+    mengembalikan data baru (misal user buka/refresh halaman Budget),
+    bandingkan dengan snapshot sebelumnya -- kategori yang BARU jadi
+    over-budget (bukan yang dari kemarin sudah over-budget) juga
+    di-notifikasi.
+
+2.2. Cegah notifikasi berulang-ulang untuk kondisi yang sama
+------------------------------------------------------------------
+  Tanpa penanganan, user bisa dapat notifikasi yang sama berkali-kali tiap
+  kali buka halaman Budget padahal belum ada transaksi baru. Perlu state
+  "sudah pernah dinotifikasi" per kombinasi kategori+bulan+tahun, disimpan
+  in-memory (Set<String> dengan key semacam "categoryId-month-year") --
+  cukup untuk 1 sesi app (reset tiap restart, dianggap oke untuk v1, mirip
+  keputusan yang sama dipakai untuk PIN app-lock: reset per sesi, bukan
+  disimpan permanen).
+
+2.3. Isi notifikasi
+-------------------------
+  Judul   : "Budget [Nama Kategori] Terlampaui"
+  Isi     : "Terpakai Rp {spent} dari budget Rp {amount} bulan
+             {bulan tahun}."
+  Tap notifikasi -> buka app langsung ke halaman Budget (`/budget`).
+
+
+BAGIAN 3 - SETUP TEKNIS
+==============================
+
+3.1. Dependency baru
+-------------------------
+  flutter_local_notifications (belum pernah dipakai di project ini --
+  package baru, beda dari flutter_secure_storage/dio yang sudah ada).
+
+3.2. Setup native
+---------------------
+  Android:
+    - Notification channel (wajib Android 8+), misal channel id
+      "budget_alerts".
+    - Runtime permission POST_NOTIFICATIONS (wajib diminta eksplisit di
+      Android 13+/API 33+) -- jangan minta izin ini di awal buka app,
+      minta pas relevan (misal begitu user pertama kali menyentuh budget
+      pertama kali dibuat, atau saat pertama kali kena kondisi
+      over-budget).
+  iOS:
+    - Permission request lewat plugin ini juga (alert, badge, sound).
+    - Tambahan konfigurasi di AppDelegate/Info.plist sesuai dokumentasi
+      package.
+
+3.3. Struktur kode yang disarankan
+----------------------------------------
+  lib/core/notifications/notification_service.dart
+    - Wrapper tipis di atas flutter_local_notifications: init(),
+      requestPermission(), showBudgetExceededNotification({
+      required String categoryName, required double spent,
+      required double amount}).
+    - Didaftarkan sebagai Provider (notificationServiceProvider) di
+      core_providers.dart, sama pola dengan service lain di app ini.
+
+  lib/features/budget/application/budget_controller.dart
+    - Tambah logic bandingkan snapshot lama vs baru (BAGIAN 2.2) di
+      dalam `refresh()`/`build()`, panggil `notificationServiceProvider`
+      kalau ada kategori yang baru over-budget.
+
+  lib/features/transactions/application/transaction_list_controller.dart
+    - Setelah `addTransaction()` sukses untuk transaksi expense, invalidate
+      `budgetControllerProvider` biar data budget ke-refresh dan logic di
+      atas jalan otomatis (bukan hardcode logic budget di sini, biar tetap
+      satu sumber kebenaran di BudgetController).
+
+
+BAGIAN 4 - URUTAN IMPLEMENTASI
+====================================
+  Fase 1 - Tambah flutter_local_notifications, setup native Android/iOS,
+           bikin NotificationService dasar (init + 1 method notifikasi
+           generik dulu untuk testing).
+  Fase 2 - Wiring logic "budget baru over-budget" di BudgetController
+           (BAGIAN 2.1 & 2.2) + trigger dari TransactionListController
+           setelah tambah transaksi expense.
+  Fase 3 - Tap notifikasi -> buka halaman Budget (deep link/navigator).
+  Fase 4 - Testing manual: tambah transaksi sampai lewat budget, pastikan
+           notifikasi muncul sekali (bukan berkali-kali tiap buka
+           halaman), coba juga skenario buka halaman Budget langsung
+           (tanpa lewat form tambah transaksi) saat kondisi sudah
+           over-budget dari sebelumnya.
+  Fase 5 (opsional, scope terpisah) - BAGIAN 1.2: setup FCM untuk
+           notifikasi yang butuh trigger dari backend (membership
+           verified, dst) -- didiskusikan lebih lanjut kalau mau
+           dikerjakan.
+
+
+CHECKLIST RINGKAS
+======================
+[ ] Tambah dependency flutter_local_notifications
+[ ] Setup notification channel Android + permission POST_NOTIFICATIONS
+[ ] Setup permission iOS
+[ ] Buat NotificationService (core/notifications/)
+[ ] Logic deteksi "kategori baru over-budget" di BudgetController
+    (bandingkan snapshot lama vs baru, in-memory per sesi)
+[ ] Trigger notifikasi budget dari 2 titik: abis tambah transaksi expense,
+    & abis refresh/buka halaman Budget
+[ ] Tap notifikasi buka halaman /budget
+[ ] Test manual: notifikasi cuma muncul sekali per kategori+bulan sampai
+    kondisinya berubah
+[ ] (Opsional) Notifikasi "budget hampir habis" (>=80%)
+[ ] (Opsional) Toast/notifikasi "N transaksi berulang otomatis diproses"
+[ ] (Opsional, scope terpisah/besar) Setup FCM untuk notifikasi
+    server-triggered (membership verified, IPO allotment, dst)

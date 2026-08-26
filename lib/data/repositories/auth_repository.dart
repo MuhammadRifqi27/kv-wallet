@@ -31,23 +31,28 @@ class AuthRepository {
     }
   }
 
-  /// Not live on the backend yet (self-registration is still admin-only).
-  /// Kept ready so the register page starts working the moment
-  /// `POST /auth/register` ships — see docs BAGIAN 2 & 7.
-  Future<void> register({
+  /// Self-registration — auto-login, no admin approval wall (see
+  /// docs/pin-and-membership-plan-api-reference.md). PIN is set separately
+  /// right after, via [PinRepository.setPin].
+  Future<UserModel> register({
     required String name,
     required String username,
     required String email,
     required String password,
+    required String deviceName,
   }) async {
     try {
-      await _apiClient.dio.post(ApiEndpoints.register, data: {
+      final response = await _apiClient.dio.post(ApiEndpoints.register, data: {
         'name': name,
         'username': username,
         'email': email,
         'password': password,
         'password_confirmation': password,
+        'device_name': deviceName,
       });
+      final token = response.data['token'] as String;
+      await _storage.saveToken(token);
+      return UserModel.fromJson(response.data['user'] as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

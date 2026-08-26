@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../auth/application/auth_controller.dart';
+
+/// wa.me link expects international format, no leading zero.
+const _customerServiceWhatsApp = '6289628169104';
 
 /// Landing page for the "settings" permission — Master Data (kategori,
 /// provider investasi) & Pengaturan, per
@@ -37,6 +41,16 @@ class SettingsPage extends ConsumerWidget {
     if (context.mounted) context.go('/login');
   }
 
+  Future<void> _contactCustomerService(BuildContext context) async {
+    final uri = Uri.parse('https://wa.me/$_customerServiceWhatsApp');
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak dapat membuka WhatsApp.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -66,6 +80,20 @@ class SettingsPage extends ConsumerWidget {
             title: 'Siklus Gajian',
             subtitle: 'Atur tanggal mulai periode gajian',
             onTap: () => context.push('/settings/payroll'),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.workspace_premium_outlined,
+            title: 'Upgrade Membership',
+            subtitle: 'Naik ke Member atau Member Premium',
+            onTap: () => context.push('/settings/membership'),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.support_agent_rounded,
+            title: 'Hubungi Customer Service',
+            subtitle: 'Chat langsung lewat WhatsApp',
+            onTap: () => _contactCustomerService(context),
           ),
           const SizedBox(height: 24),
           const _SectionLabel('Akun'),

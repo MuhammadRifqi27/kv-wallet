@@ -1,0 +1,375 @@
+PLAN - FITUR PIN KEAMANAN (SET PIN & VERIFY PIN ALA M-BANKING)
+=================================================================
+Dibuat: 2026-08-25
+Update: 2026-08-25 (BAGIAN 0 sudah dikonfirmasi, alur register direvisi)
+Status: DRAFT PLAN - belum diimplementasikan.
+
+Ringkasan permintaan (dari user):
+  - Backend baru menambahkan API set-pin & verify-pin.
+  - Saat user register, user diminta set PIN baru.
+  - Tujuan: layer keamanan tambahan login mirip aplikasi m-banking (setelah
+    login, atau saat buka app lagi, harus masukkan PIN).
+  - User yang SUDAH terlanjur login sebelum fitur ini ada (belum punya PIN)
+    harus diingatkan untuk set PIN -- lewat notification dan/atau tampilan
+    di Dashboard. Ini sifatnya REMINDER, bukan blocking.
+  - Tambahan hasil diskusi: proses approval admin sebelum user bisa login
+    RENCANANYA DIHILANGKAN (lihat BAGIAN 0.2 -- ini keputusan besar, ada
+    prasyarat perubahan di backend).
+
+
+BAGIAN 0 - KONTRAK API (SUDAH DIKONFIRMASI)
+===================================================
+
+0.1. Endpoint PIN (dari user, 2026-08-25)
+  - POST /api/v1/auth/pin           -> set / ganti PIN, auth:sanctum
+  - POST /api/v1/auth/verify-pin    -> verify PIN saat unlock, auth:sanctum
+  - GET  /api/v1/auth/me            -> sekarang juga balikin field "has_pin"
+
+  Field request/response detail (jumlah digit, nama field body, dst) BELUM
+  dikonfirmasi persis -- asumsi kerja sementara sampai dicek Postman/kode
+  backend:
+    POST /auth/pin        body: { "pin": "123456", "pin_confirmation": "123456" }
+    POST /auth/verify-pin body: { "pin": "123456" }
+    GET  /auth/me          response tambahan: { ..., "has_pin": true|false }
+  ASUMSI: PIN 6 digit numerik (sesuai instruksi user "6digit pin"). Kalau
+  ternyata backend validasi beda (misal 4 digit), tinggal sesuaikan
+  validator di UI, tidak mengubah struktur lainnya.
+
+  Masih perlu dicek pas mulai coding (bukan blocking buat lanjutin plan,
+  tapi blocking sebelum implementasi beneran jalan):
+  - Apakah POST /auth/pin dipakai SAMA untuk "set pertama kali" dan "ganti
+    PIN yang sudah ada", atau ganti PIN butuh kirim PIN lama juga untuk
+    verifikasi? (kalau endpoint-nya sama, kemungkinan besar backend cuma
+    overwrite -- perlu app sendiri yang menjaga UX "masukkan PIN lama dulu"
+    sebelum ke halaman ganti PIN, dengan cara panggil verify-pin dulu baru
+    baru munculkan halaman set PIN baru).
+  - Response sukses verify-pin: apakah cuma 200 OK, atau ada payload lain?
+  - Rate limiting percobaan salah di endpoint verify-pin: ada di backend
+    atau tidak? (client-side tetap akan ditambah sebagai defense-in-depth,
+    lihat BAGIAN 4).
+
+0.2. Keputusan: hilangkan approval admin sebelum login
+  Konteks: saat ini register cuma daftar, akun butuh di-approve admin dulu
+  sebelum bisa login (lihat komentar lama di api_endpoints.dart & docs
+  flutter-mobile-app-development-guide.txt BAGIAN 2 & 7). Ini bikin flow
+  "register -> langsung set PIN" tidak mungkin secara teknis, karena
+  POST /auth/pin butuh Bearer token (auth:sanctum), sementara user yang
+  belum di-approve tidak pernah dapat token.
+
+  Keputusan (disetujui user, 2026-08-25): PISAHKAN "bisa bikin akun & login"
+  dari "bisa akses data finansial (money-management permissions)".
+    - Register jadi self-service: begitu submit, akun langsung aktif DAN
+      langsung dapat token Sanctum (auto-login), sama seperti abis login
+      manual.
+    - Akun baru default TANPA money_management_permissions (kosong []) --
+      field ini sudah ada di UserModel & sudah default `[]`, tidak perlu
+      migrasi data. Admin tetap yang assign permission lewat web panel,
+      TAPI belakangan, bukan syarat untuk login pertama kali.
+    - User baru yang belum dikasih permission apa pun akan lihat
+      Dashboard/menu kosong sampai admin kasih akses -- app perlu pesan
+      yang jelas untuk kondisi ini (lihat BAGIAN 3.5, di luar scope inti
+      fitur PIN tapi disebut di sini karena satu paket keputusan).
+
+  *** PRASYARAT BACKEND (DI LUAR REPO FLUTTER INI) ***
+  Perubahan ini ada di Laravel backend, BUKAN sesuatu yang bisa dikerjakan
+  dari project Flutter:
+    1. POST /auth/register harus diubah supaya langsung balikin token
+       Sanctum di response (auto-login), bukan cuma pesan "menunggu
+       approval".
+    2. Hapus/nonaktifkan gate approval admin sebelum login (atau minimal
+       pastikan default status akun baru = langsung bisa login).
+    3. Pastikan default money_management_permissions user baru = array
+       kosong (kemungkinan sudah begitu by default, tinggal dipastikan).
+  Flutter app BARU bisa mengasumsikan auto-login setelah register kalau
+  ketiga hal di atas sudah live di backend. Sebelum itu live, register
+  tetap pakai flow lama (tidak auto-login, tidak langsung ke set-pin).
+
+
+BAGIAN 1 - ALUR PENGGUNA (USER FLOW, REVISI)
+=================================================
+
+Prinsip pembeda kapan PIN diminta secara PAKSA (blocking, lewat router
+redirect) vs cuma DIINGATKAN (reminder, banner Dashboard):
+  - PAKSA: setiap kali ada AUTH EVENT baru yang menghasilkan token baru
+    (register sukses / login manual sukses) DAN has_pin == false.
+  - REMINDER SAJA (tidak paksa): app dibuka lagi (cold start) pakai token
+    LAMA yang sudah tersimpan (bukan auth event baru, cuma restore sesi
+    lewat GET /auth/me) DAN has_pin == false. Ini kasus utama "user yang
+    sudah terlanjur login sebelum fitur ini ada".
+  - VERIFY (lock screen): setiap kali ada sesi aktif (baik auth event baru
+    ATAUPUN restore sesi cold start) DAN has_pin == true DAN PIN belum
+    diverifikasi di sesi berjalan ini -> WAJIB masukkan PIN dulu.
+
+1.1. User baru daftar (register) -- FLOW WAJIB (blocking)
+------------------------------------------------------------
+  Isi form register (nama, username, email, password) di register_page.dart
+    -> submit -> POST /auth/register sukses -> response sekarang include
+       token (lihat BAGIAN 0.2) -> simpan token seperti abis login biasa.
+    -> has_pin pasti false (akun baru) -> app arahkan paksa ke "/pin/set",
+       TIDAK ke Dashboard dulu, tidak ada tombol back/skip.
+    -> User input PIN 6 digit + konfirmasi -> submit ke POST /auth/pin ->
+       sukses -> lanjut ke Dashboard (kemungkinan kosong kalau admin belum
+       kasih permission, lihat BAGIAN 3.5).
+
+1.2. User login manual (existing account, password) -- FLOW WAJIB (blocking)
+--------------------------------------------------------------------------------
+  Isi form login (email/username + password) di login_page.dart
+    -> submit -> POST /auth/login sukses -> dapat token & data user
+       (termasuk has_pin dari response /auth/login ATAU dari GET /auth/me
+       susulan -- perlu dicek user_model.dart & auth_repository.dart mana
+       yang jadi sumber field has_pin, karena /auth/login response body
+       belum tentu sama dengan /auth/me).
+    -> has_pin == true  -> arahkan paksa ke "/pin/verify" (masukkan PIN
+       yang sudah ada) sebelum ke Dashboard.
+    -> has_pin == false -> arahkan paksa ke "/pin/set" (user lama yang
+       login ulang tapi belum pernah bikin PIN -- disamakan dengan flow
+       1.1, sekalian "memaksa" migrasi ke sistem PIN begitu mereka login
+       ulang secara eksplisit).
+
+1.3. User yang sesi-nya masih tersimpan (cold start, TIDAK login ulang)
+-----------------------------------------------------------------------------
+  App dibuka dari awal (splash_page.dart -> checkAuthStatus() -> GET
+  /auth/me pakai token yang sudah tersimpan di secure storage)
+    -> token valid, dapat data user termasuk has_pin
+    -> has_pin == true  -> arahkan ke "/pin/verify" (lock screen, WAJIB,
+       ini yang bikin app kerasa kayak m-banking tiap dibuka).
+    -> has_pin == false -> LANGSUNG ke Dashboard seperti biasa (TIDAK
+       dipaksa ke /pin/set), tapi muncul banner reminder di Dashboard
+       (BAGIAN 3.3) karena ini persis kasus "user sudah terlanjur login
+       sebelum fitur PIN ada".
+
+  Catatan scope v1: PIN cuma dicek ulang saat COLD START (splash jalan
+  dari awal), BUKAN tiap kali app di-resume dari background dalam sesi
+  yang sama. Re-lock saat resume dari background didaftarkan sebagai
+  enhancement fase belakangan (BAGIAN 6).
+
+1.4. Verify PIN gagal / lupa PIN
+------------------------------------
+  Di halaman /pin/verify: salah PIN -> tampilkan error dari API, biarkan
+  coba lagi (dengan batas percobaan lokal, lihat BAGIAN 4). Ada opsi
+  "Bukan Anda? Keluar" -> logout paksa -> balik ke /login (fallback kalau
+  PIN lupa atau HP dipakai orang lain -- user harus login ulang pakai
+  password, lalu dari situ mengikuti flow 1.2 lagi, yaitu diminta set PIN
+  baru kalau memang belum ada mekanisme reset-PIN terpisah di backend).
+
+1.5. Ganti PIN (fase belakangan, dari Settings)
+------------------------------------------------
+  Settings -> menu baru "Ubah PIN" -> verify PIN lama dulu (panggil
+  POST /auth/verify-pin) -> baru munculkan halaman set PIN baru (POST
+  /auth/pin). Detail exact UX menyesuaikan jawaban BAGIAN 0.1 soal apakah
+  endpoint set-pin butuh bukti PIN lama atau tidak.
+
+
+BAGIAN 2 - PERUBAHAN DATA & STATE LAYER
+=============================================
+
+2.1. lib/core/network/api_endpoints.dart
+  Tambah:
+    static const String pin = '/auth/pin';
+    static const String verifyPin = '/auth/verify-pin';
+
+2.2. lib/data/models/user_model.dart
+  Tambah field: final bool hasPin;
+  Parse dari json['has_pin'] (nama field sudah dikonfirmasi user, tinggal
+  pastikan field ini juga muncul di response /auth/login, bukan cuma
+  /auth/me -- kalau ternyata /auth/login TIDAK menyertakan has_pin, app
+  perlu panggil GET /auth/me susulan sesaat setelah login sebelum bisa
+  memutuskan redirect ke /pin/set atau /pin/verify).
+
+2.3. lib/data/repositories/auth_repository.dart
+  - register(): ubah dari Future<void> jadi Future<UserModel> (pola sama
+    seperti login()), simpan token dari response (lihat BAGIAN 0.2).
+
+2.4. Repository baru: lib/data/repositories/pin_repository.dart
+  - Future<void> setPin({required String pin, required String pinConfirmation})
+    -> POST ApiEndpoints.pin
+  - Future<bool> verifyPin({required String pin})
+    -> POST ApiEndpoints.verifyPin
+  Pola sama seperti auth_repository.dart (pakai ApiClient yang sudah ada,
+  auto-attach Bearer token, lempar ApiException.fromDioException di catch).
+
+2.5. State session-scoped baru (in-memory, BUKAN secure storage -- harus
+      reset tiap cold start supaya app-lock beneran jalan tiap buka app):
+  lib/features/pin/application/pin_controller.dart:
+    final pinVerifiedProvider = StateProvider<bool>((ref) => false);
+  Di-set true setelah verify-pin sukses ATAU setelah set-pin sukses (biar
+  tidak diminta verify lagi di detik yang sama abis set PIN baru). Reset
+  ke false otomatis tiap app restart (in-memory, tidak perlu logic manual).
+
+2.6. lib/routing/app_router.dart -- redirect logic
+  Tambah route:
+    GoRoute(path: '/pin/set', builder: ...)
+    GoRoute(path: '/pin/verify', builder: ...)
+
+  Redirect tambahan (dievaluasi setelah status == authenticated, SEBELUM
+  logic onAuthPage/onSplash yang sudah ada):
+    final hasPin = ref.read(authControllerProvider).user?.hasPin ?? false;
+    final pinVerified = ref.read(pinVerifiedProvider);
+    final onPinSet = state.matchedLocation == '/pin/set';
+    final onPinVerify = state.matchedLocation == '/pin/verify';
+
+    - authenticated && !hasPin && <baru saja lewat auth event register/
+      login, BUKAN cold-start restore> && !onPinSet
+        -> redirect '/pin/set'
+    - authenticated && hasPin && !pinVerified && !onPinVerify
+        -> redirect '/pin/verify'
+    - selain itu -> lanjut logic redirect yang sudah ada sekarang
+
+  Perlu penanda "baru saja lewat auth event" vs "cold-start restore" di
+  AuthState -- lihat BAGIAN 2.7.
+
+2.7. lib/features/auth/application/auth_state.dart & auth_controller.dart
+  Tambah flag baru di AuthState, misal `bool justAuthenticated` (default
+  false):
+    - login() & register() sukses -> set justAuthenticated: true
+    - checkAuthStatus() (dipanggil dari splash, restore sesi lama) -> TIDAK
+      set justAuthenticated (tetap false)
+    - Router baca flag ini untuk bedain flow 1.1/1.2 (paksa /pin/set) vs
+      1.3 (reminder saja, tidak redirect).
+    - Flag ini di-reset ke false lagi setelah redirect ke /pin/set atau
+      setelah berhasil sampai Dashboard, supaya tidak nyangkut true selamanya
+      dalam sesi yang sama.
+
+
+BAGIAN 3 - LAYAR / UI BARU
+================================
+
+3.1. lib/features/pin/presentation/set_pin_page.dart
+  - Numeric keypad custom ATAU beberapa TextField kotak-kotak (PIN input
+    umum, 6 digit, auto-advance antar digit).
+  - Dua tahap: input PIN -> konfirmasi PIN (harus sama) -> submit ke
+    POST /auth/pin.
+  - showBackButton: bool -- true kalau dipanggil dari Settings/reminder
+    (1.5, dari banner Dashboard), false kalau dipanggil paksa dari
+    register/login (1.1, 1.2).
+
+3.2. lib/features/pin/presentation/verify_pin_page.dart
+  - Numeric keypad sama seperti set_pin_page, tapi cuma 1 tahap input.
+  - Tampilkan nama/avatar user (opsional, biar berasa "lock screen").
+  - Link/tombol kecil "Bukan Anda? Keluar" -> logout, balik ke /login.
+  - Handle error salah PIN dari API (tampilkan pesan, hitung percobaan
+    lokal untuk cooldown -- lihat BAGIAN 4).
+
+3.3. Dashboard reminder banner (flow 1.3, user lama tanpa PIN)
+  Di lib/features/dashboard/presentation/dashboard_page.dart, dalam
+  _DashboardBody, tambah widget baru (posisi: di atas _NetWorthCard) yang
+  cuma tampil kalau `!user.hasPin`:
+    Card warna beda (kuning/oranye) dari card lain biar menonjol sebagai
+    alert, icon shield/lock, teks "Amankan akun Anda dengan PIN", tombol
+    "Atur Sekarang" -> context.push('/pin/set') (showBackButton: true).
+  Style referensi: mirip container info kuning di register_page.dart
+  ("Akun baru butuh persetujuan admin...").
+
+3.4. Settings -> menu "Ubah PIN" (fase belakangan, flow 1.5)
+  Tambah _SettingsTile baru di settings_page.dart, section "Akun".
+
+3.5. (Di luar scope inti PIN, tapi satu paket dari BAGIAN 0.2) Pesan
+      "menunggu permission dari admin"
+  Kalau user baru login/register tapi money_management_permissions masih
+  kosong, Dashboard/menu-menu lain kemungkinan kosong total. Perlu state
+  kosong yang jelas ("Akun Anda aktif, tapi belum ada akses menu -- hubungi
+  admin") supaya tidak kelihatan seperti bug. Detail UI-nya didesain
+  terpisah, disebut di sini cuma sebagai pengingat dampak dari BAGIAN 0.2.
+
+
+BAGIAN 4 - KEAMANAN (PENTING, JANGAN DI-SKIP)
+====================================================
+  - PIN TIDAK PERNAH disimpan di local storage (secure storage ataupun
+    biasa) dalam bentuk apapun -- baik plaintext maupun hashed. Verifikasi
+    PIN selalu tembak ke backend tiap kali, backend yang jadi source of
+    truth. Ini beda dengan token Sanctum yang memang harus disimpan lokal.
+  - api_client.dart pakai LogInterceptor(requestBody: true) di kDebugMode
+    (lihat lib/core/network/api_client.dart) -- ini bakal nge-log PIN
+    mentah ke console tiap kali set-pin/verify-pin dipanggil selama
+    development. Perlu tambah masking untuk field "pin"/"pin_confirmation"
+    sebelum log, atau exclude endpoint pin dari logging body.
+  - Batasi percobaan verify-PIN salah di sisi client (misal: setelah 5x
+    salah berturut-turut dalam satu sesi verify_pin_page, kasih cooldown
+    beberapa detik atau paksa logout) sebagai defense-in-depth, TAPI
+    validasi utama & pembatasan sungguhan idealnya di backend (lihat
+    BAGIAN 0.1) karena client-side counter gampang di-bypass (reinstall
+    app, clear state, dst).
+  - Endpoint verify-pin & set-pin sudah dikonfirmasi pakai auth:sanctum
+    (butuh Bearer token valid), jadi tidak bisa diakses publik -- aman
+    dari sisi itu.
+
+
+BAGIAN 5 - REMINDER NOTIFICATION (FASE STRETCH, OPSIONAL DI AWAL)
+========================================================================
+  MVP (fase 1, wajib): banner di Dashboard (BAGIAN 3.3) sudah cukup untuk
+  reminder pertama kali, tidak butuh dependency baru & tidak butuh izin
+  notifikasi dari OS.
+
+  Fase 2 (opsional, kalau mau lebih agresif ngingetin): local notification
+  pakai package `flutter_local_notifications`.
+    - Android 13+ & iOS butuh runtime permission request (POST_
+      NOTIFICATIONS) -- perlu UX terpisah untuk minta izin ini, jangan
+      langsung minta izin saat app pertama dibuka.
+    - Trigger: dijadwalkan sekali per hari (atau cukup sekali saja per
+      app-install) selama has_pin masih false, auto-cancel begitu user set
+      PIN.
+    - Ini nambah setup native (AndroidManifest permission, iOS
+      Info.plist/AppDelegate) -- effort lebih besar dari sekadar banner,
+      sengaja dipisah jadi fase terpisah supaya MVP (banner) bisa selesai
+      duluan dan dites.
+
+
+BAGIAN 6 - ENHANCEMENT SETELAH V1 (TIDAK DIKERJAKAN DULU)
+================================================================
+  - Re-lock otomatis setelah app di-background beberapa menit (pakai
+    WidgetsBindingObserver, AppLifecycleState.paused/resumed + timestamp),
+    bukan cuma re-lock saat cold start.
+  - Biometric unlock (fingerprint/face) sebagai alternatif PIN, pakai
+    package local_auth -- fallback ke PIN kalau biometric gagal/tidak
+    tersedia.
+  - "Lupa PIN" self-service tanpa perlu logout total (misal verifikasi
+    lewat OTP email).
+
+
+BAGIAN 7 - URUTAN IMPLEMENTASI (TAHAPAN)
+==============================================
+  Fase -1 - BLOCKING, DI LUAR REPO INI: backend Laravel ubah /auth/register
+            supaya auto-login (BAGIAN 0.2). Flutter belum bisa mulai fase 2
+            di bawah sebelum ini live (fase 0-1 tetap bisa jalan duluan).
+  Fase 0 - Cek detail body request/response set-pin & verify-pin yang
+           masih asumsi (BAGIAN 0.1), sesuaikan kalau beda.
+  Fase 1 - Data layer: ApiEndpoints, UserModel.hasPin, PinRepository,
+           pinVerifiedProvider, AuthState.justAuthenticated.
+  Fase 2 - auth_repository.register() jadi auto-login (butuh Fase -1 live).
+  Fase 3 - UI set-pin (set_pin_page.dart) + wiring paksa setelah register/
+           login (flow 1.1 & 1.2) via router redirect.
+  Fase 4 - UI verify-pin (verify_pin_page.dart) + wiring app-lock tiap
+           cold start (flow 1.3) via router redirect.
+  Fase 5 - Dashboard reminder banner untuk user lama tanpa PIN (flow 1.3
+           bagian reminder, BAGIAN 3.3).
+  Fase 6 - Settings: menu "Ubah PIN" (flow 1.5).
+  Fase 7 (opsional/stretch) - Local notification reminder (BAGIAN 5 fase 2).
+  Fase 8 (opsional/stretch) - Enhancement BAGIAN 6.
+
+  Rekomendasi urutan kerja: fase 0-1 bisa mulai SEKARANG (tidak bergantung
+  backend register), fase 2-3 baru jalan begitu backend register sudah
+  auto-login, fase 4-5 bisa paralel karena cuma butuh has_pin dari
+  /auth/me yang sudah live sekarang.
+
+
+CHECKLIST RINGKAS
+======================
+[ ] (Backend) /auth/register auto-login + permission default kosong
+[ ] Cek detail body request/response set-pin & verify-pin (digit PIN,
+    nama field, apakah ganti-PIN butuh PIN lama)
+[ ] Tambah ApiEndpoints.pin & verifyPin
+[ ] Tambah UserModel.hasPin
+[ ] Tambah AuthState.justAuthenticated
+[ ] auth_repository.register() -> Future<UserModel>, simpan token
+[ ] Buat PinRepository (setPin, verifyPin)
+[ ] Buat pinVerifiedProvider (session-scoped, in-memory)
+[ ] Buat set_pin_page.dart
+[ ] Buat verify_pin_page.dart
+[ ] Wiring router: /pin/set (paksa, flow 1.1 & 1.2) & /pin/verify (paksa,
+    flow 1.3)
+[ ] Mask/exclude field "pin" dari LogInterceptor debug log
+[ ] Dashboard reminder banner untuk user lama tanpa PIN (flow 1.3, tanpa
+    justAuthenticated)
+[ ] Pesan "menunggu permission admin" untuk akun baru tanpa permission
+[ ] (Opsional) Settings -> menu Ubah PIN
+[ ] (Opsional/stretch) Local notification reminder
