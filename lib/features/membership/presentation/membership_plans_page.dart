@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/membership_plan_model.dart';
 import '../../../data/models/membership_status_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
@@ -45,7 +46,7 @@ class MembershipPlansPage extends ConsumerWidget {
         color: AppColors.primary,
         onRefresh: () => _refreshMembership(ref),
         child: statusAsync.when(
-          loading: () => scrollableCenter(const CircularProgressIndicator(color: AppColors.primary)),
+          loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
               message: error is ApiException ? error.message : 'Gagal memuat status membership.',

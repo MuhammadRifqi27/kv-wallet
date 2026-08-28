@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/named_amount.dart';
 import '../../../data/models/summary_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/month_period_selector.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/summary_controller.dart';
@@ -34,7 +35,7 @@ class SummaryPage extends ConsumerWidget {
               color: AppColors.primary,
               onRefresh: controller.refresh,
               child: summaryAsync.when(
-                loading: () => scrollableCenter(const CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
                     message: error is ApiException ? error.message : 'Gagal memuat ringkasan.',
@@ -175,11 +176,14 @@ class _NetWorthCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total Kekayaan Bersih', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text(
+            'Total Kekayaan Bersih',
+            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
+          ),
           const SizedBox(height: 8),
           Text(
             formatRupiah(amount),
-            style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800),
+            style: const TextStyle(color: AppColors.primaryDark, fontSize: 26, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -232,7 +236,7 @@ class _BreakdownChart extends StatelessWidget {
     AppColors.accent,
     AppColors.success,
     AppColors.error,
-    Color(0xFF6366F1),
+    Color(0xFFE2B4BD),
     Color(0xFF0EA5A4),
   ];
 

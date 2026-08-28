@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../application/payroll_settings_controller.dart';
@@ -20,7 +21,7 @@ class PayrollSettingsPage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Siklus Gajian')),
       body: settingsAsync.when(
-        loading: () => scrollableCenter(const CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => scrollableCenter(const AppLoadingIndicator()),
         error: (error, _) => scrollableCenter(
           ListErrorState(
             message: error is ApiException ? error.message : 'Gagal memuat pengaturan.',

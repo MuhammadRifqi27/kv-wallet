@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
-/// Flowr brand palette — modern fintech minimalist.
+/// Flowr brand palette — dusty-rose accents anchored by a deep rose
+/// interactive color, so buttons/spinners/focus states read as the same
+/// hue family as the [primaryGradient] cards instead of a disconnected
+/// neutral gray.
 class AppColors {
   AppColors._();
 
-  static const Color primary = Color(0xFF4F46E5);
-  static const Color primaryDark = Color(0xFF3730A3);
-  static const Color primaryLight = Color(0xFFEEF2FF);
+  /// Deep, saturated shade of [primaryGradient]'s rose (`#E2B4BD`) — same
+  /// hue, just darker/more saturated so it has enough contrast for white
+  /// button text and reads as "interactive" rather than decorative.
+  static const Color primary = Color(0xFF9E3A50);
+  static const Color primaryDark = Color(0xFF333333);
+  static const Color primaryLight = Color(0xFFF7D6D0);
 
   static const Color accent = Color(0xFFF59E0B);
 
@@ -22,7 +28,11 @@ class AppColors {
   static const Color error = Color(0xFFDC2626);
 
   static const List<Color> primaryGradient = [
-    Color(0xFF4F46E5),
-    Color(0xFF6366F1),
+    Color(0xFFE2B4BD),
+    Color(0xFFF7D6D0),
   ];
+
+  /// Palest tint from the same dusty-rose family — not wired into any
+  /// token above, available for subtle section backgrounds.
+  static const Color blushTint = Color(0xFFFFF5F5);
 }

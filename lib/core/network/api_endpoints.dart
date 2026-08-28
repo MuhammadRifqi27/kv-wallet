@@ -17,6 +17,14 @@ class ApiEndpoints {
   static const String me = '/auth/me';
   static const String register = '/auth/register';
 
+  /// Admin-mediated password reset — no email/SMS provider, see
+  /// docs/password-reset-request-flow.md. Both are public (no bearer token
+  /// needed, user isn't logged in at this point). Setting the new password
+  /// itself happens on the web `reset-password` page the admin sends via
+  /// WhatsApp/telepon, not through this API — the app only tracks the ticket.
+  static const String passwordResetRequest = '/auth/password-reset-request';
+  static const String passwordResetRequestStatus = '/auth/password-reset-request/status';
+
   /// Set/change PIN (`current_pin` required only when changing an existing
   /// one) — see docs/pin-and-membership-plan-api-reference.md.
   static const String pin = '/auth/pin';
@@ -34,4 +42,9 @@ class ApiEndpoints {
   static const String dashboard = '/money-management/dashboard';
   static const String summary = '/money-management/summary';
   static const String transactions = '/money-management/transactions';
+
+  /// See TransferModel's schema-verification note — request body confirmed
+  /// against docs/flutter-mobile-app-development-guide.txt, response shape
+  /// unverified.
+  static const String transfers = '/money-management/transfers';
 }

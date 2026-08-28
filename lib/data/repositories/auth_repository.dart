@@ -4,6 +4,7 @@ import '../../core/network/api_client.dart';
 import '../../core/network/api_endpoints.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/storage/secure_storage_service.dart';
+import '../models/password_reset_ticket_model.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
@@ -76,6 +77,42 @@ class AuthRepository {
       return UserModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) return null;
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Submits a password-reset ticket for an admin to process manually — see
+  /// docs/password-reset-request-flow.md. `phone` is required (admin's only
+  /// way to reach the user back).
+  Future<PasswordResetTicket> requestPasswordReset({
+    required String identifier,
+    required String phone,
+    String? note,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(ApiEndpoints.passwordResetRequest, data: {
+        'identifier': identifier,
+        'phone': phone,
+        if (note != null && note.isNotEmpty) 'note': note,
+      });
+      return PasswordResetTicket.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Polls the latest ticket status for an identifier — `pending` until an
+  /// admin clicks "Proses" in the web panel, then `processed` (or
+  /// `rejected`). `processed` only means the admin generated the link, not
+  /// that the user has finished resetting their password yet.
+  Future<PasswordResetTicket> passwordResetRequestStatus({required String identifier}) async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.passwordResetRequestStatus,
+        queryParameters: {'identifier': identifier},
+      );
+      return PasswordResetTicket.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }
   }

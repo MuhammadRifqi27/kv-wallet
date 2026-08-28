@@ -109,13 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Hubungi admin untuk reset kata sandi.'),
-                            ),
-                          );
-                        },
+                        onPressed: () => context.push('/forgot-password'),
                         child: const Text('Lupa kata sandi?'),
                       ),
                     ),

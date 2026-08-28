@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/dashboard_model.dart';
 import '../../../data/models/named_amount.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/dashboard_controller.dart';
@@ -39,7 +40,7 @@ class DashboardPage extends ConsumerWidget {
         color: AppColors.primary,
         onRefresh: controller.refresh,
         child: dashboardAsync.when(
-          loading: () => scrollableCenter(const CircularProgressIndicator(color: AppColors.primary)),
+          loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
               message: error is ApiException ? error.message : 'Gagal memuat dashboard.',
@@ -188,23 +189,30 @@ class _NetWorthCard extends ConsumerWidget {
         children: [
           Text(
             'Halo, ${userName ?? ''}',
-            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
+            style: const TextStyle(color: AppColors.primaryDark, fontSize: 15, fontWeight: FontWeight.w700),
           ),
           if (cycleStart != null && cycleEnd != null) ...[
             const SizedBox(height: 4),
             Text(
               'Siklus ${formatIndonesianDate(cycleStart!)} — ${formatIndonesianDate(cycleEnd!)}',
-              style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.primaryDark.withValues(alpha: 0.65),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
           const SizedBox(height: 16),
-          const Text('Total Kekayaan Bersih', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text(
+            'Total Kekayaan Bersih',
+            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
               Text(
                 maskRupiah(amount, hide: hideNominal),
-                style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800),
+                style: const TextStyle(color: AppColors.primaryDark, fontSize: 26, fontWeight: FontWeight.w800),
               ),
               const SizedBox(width: 8),
               InkWell(
@@ -214,7 +222,7 @@ class _NetWorthCard extends ConsumerWidget {
                   padding: const EdgeInsets.all(4),
                   child: Icon(
                     hideNominal ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                    color: Colors.white70,
+                    color: AppColors.primaryDark.withValues(alpha: 0.65),
                     size: 20,
                   ),
                 ),
@@ -382,11 +390,25 @@ class _AmountBar extends StatelessWidget {
         const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: fraction,
-            minHeight: 6,
-            backgroundColor: AppColors.background,
-            color: AppColors.primary,
+          child: SizedBox(
+            height: 6,
+            child: Stack(
+              children: [
+                Container(color: AppColors.background),
+                FractionallySizedBox(
+                  widthFactor: fraction,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: AppColors.primaryGradient,
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

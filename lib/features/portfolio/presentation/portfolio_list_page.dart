@@ -7,9 +7,29 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/investment_model.dart';
 import '../../../data/models/portfolio_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../auth/application/auth_controller.dart';
 import '../../master_data/application/investment_list_controller.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../application/portfolio_list_controller.dart';
+
+/// "Transfer Antar Akun" is a premium-only feature (see
+/// docs/flutter-navbar-permission-gating-plan.txt — granted by the
+/// `internal-transfers` permission, not on the default Member plan). Mirrors
+/// the "locked tab" UX in routing/main_shell.dart: always tappable, but a
+/// user without the permission gets bounced to the upgrade screen instead
+/// of the feature.
+void _openTransfers(BuildContext context, WidgetRef ref) {
+  final user = ref.read(authControllerProvider).user;
+  if (user?.hasPermission('internal-transfers') ?? false) {
+    context.push('/portfolio/transfers');
+    return;
+  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
+  );
+  context.push('/settings/membership');
+}
 
 class PortfolioListPage extends ConsumerWidget {
   const PortfolioListPage({super.key});
@@ -27,7 +47,16 @@ class PortfolioListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Portfolio')),
+      appBar: AppBar(
+        title: const Text('Portfolio'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.swap_horiz_rounded),
+            tooltip: 'Transfer Antar Akun',
+            onPressed: () => _openTransfers(context, ref),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/portfolio/form'),
         backgroundColor: AppColors.primary,
@@ -38,7 +67,7 @@ class PortfolioListPage extends ConsumerWidget {
         onRefresh: controller.refresh,
         child: portfoliosAsync.when(
           loading: () => scrollableCenter(
-            const CircularProgressIndicator(color: AppColors.primary),
+            const AppLoadingIndicator(),
           ),
           error: (error, _) => scrollableCenter(
             ListErrorState(

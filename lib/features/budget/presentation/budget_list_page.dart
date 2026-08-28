@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/budget_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/month_period_selector.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/budget_controller.dart';
@@ -37,7 +38,7 @@ class BudgetListPage extends ConsumerWidget {
               color: AppColors.primary,
               onRefresh: controller.refresh,
               child: budgetAsync.when(
-                loading: () => scrollableCenter(const CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
                     message: error is ApiException ? error.message : 'Gagal memuat budget.',
@@ -114,11 +115,11 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total Budget', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text('Total Budget', style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13)),
           const SizedBox(height: 6),
           Text(
             formatRupiah(summary.totalBudget),
-            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800),
+            style: const TextStyle(color: AppColors.primaryDark, fontSize: 24, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 14),
           ClipRRect(
@@ -126,14 +127,14 @@ class _SummaryCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: summary.totalBudget <= 0 ? 0 : (summary.totalSpent / summary.totalBudget).clamp(0, 1),
               minHeight: 6,
-              backgroundColor: Colors.white24,
-              color: overBudget ? AppColors.error : Colors.white,
+              backgroundColor: AppColors.primaryDark.withValues(alpha: 0.15),
+              color: overBudget ? AppColors.error : AppColors.primaryDark,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Terpakai ${formatRupiah(summary.totalSpent)}',
-            style: const TextStyle(color: Colors.white70, fontSize: 12.5),
+            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 12.5),
           ),
         ],
       ),

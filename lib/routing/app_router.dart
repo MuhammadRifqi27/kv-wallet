@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../data/models/portfolio_model.dart';
 import '../data/models/transaction_model.dart';
+import '../data/models/transfer_model.dart';
 import '../features/auth/application/auth_controller.dart';
 import '../features/auth/application/auth_state.dart';
+import '../features/auth/presentation/forgot_password_page.dart';
 import '../features/auth/presentation/login_page.dart';
+import '../features/auth/presentation/password_reset_status_page.dart';
 import '../features/auth/presentation/register_page.dart';
 import '../features/budget/presentation/budget_form_page.dart';
 import '../features/budget/presentation/budget_list_page.dart';
@@ -27,6 +30,8 @@ import '../features/splash/presentation/splash_page.dart';
 import '../features/summary/presentation/summary_page.dart';
 import '../features/transactions/presentation/transaction_form_page.dart';
 import '../features/transactions/presentation/transaction_list_page.dart';
+import '../features/transfers/presentation/transfer_form_page.dart';
+import '../features/transfers/presentation/transfer_list_page.dart';
 import 'main_shell.dart';
 
 /// Bridges Riverpod state changes into something [GoRouter]'s
@@ -34,10 +39,15 @@ import 'main_shell.dart';
 /// redirects.
 /// Mirrors the permission keys in routing/main_shell.dart's `_navItems` —
 /// see docs/flutter-navbar-permission-gating-plan.txt BAGIAN 0.
+/// Order matters — [_permissionFor] returns the first matching entry, so
+/// `/portfolio/transfers` must be listed before the more general
+/// `/portfolio` or it would incorrectly inherit the `portfolio` permission
+/// instead of `internal-transfers`.
 const _routePermissions = {
   '/home': 'dashboard',
   '/transactions': 'transactions',
   '/summary': 'summary',
+  '/portfolio/transfers': 'internal-transfers',
   '/portfolio': 'portfolio',
   '/budget': 'budgets',
   '/settings': 'settings',
@@ -83,6 +93,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authControllerProvider);
       final status = authState.status;
       final onAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+      // Admin-mediated reset ticket + tracking (docs/password-reset-request-flow.md)
+      // — reachable pre-login, same as /login and /register. Actually setting
+      // the new password happens on the web link the admin sends via
+      // WhatsApp/telepon, outside the app.
+      final onPasswordResetFlow =
+          state.matchedLocation == '/forgot-password' || state.matchedLocation == '/forgot-password/status';
       final onSplash = state.matchedLocation == '/splash';
       final onPinSet = state.matchedLocation == '/pin/set';
       final onPinVerify = state.matchedLocation == '/pin/verify';
@@ -106,7 +122,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           if (!ref.read(pinVerifiedProvider)) {
             return onPinVerify ? null : '/pin/verify';
           }
-          if (onAuthPage || onSplash || onPinSet || onPinVerify) {
+          if (onAuthPage || onSplash || onPinSet || onPinVerify || onPasswordResetFlow) {
             return '/home';
           }
           // Defense-in-depth: MainShell already stops locked tabs from
@@ -119,7 +135,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           }
           return null;
         case AuthStatus.unauthenticated:
-          return onAuthPage ? null : '/login';
+          return (onAuthPage || onPasswordResetFlow) ? null : '/login';
       }
     },
     routes: [
@@ -127,6 +143,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (context, state) => const SplashPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
+      GoRoute(path: '/forgot-password', builder: (context, state) => const ForgotPasswordPage()),
+      GoRoute(
+        path: '/forgot-password/status',
+        builder: (context, state) => PasswordResetStatusPage(initialIdentifier: state.extra as String?),
+      ),
       GoRoute(path: '/pin/set', builder: (context, state) => const SetPinPage()),
       GoRoute(path: '/pin/verify', builder: (context, state) => const VerifyPinPage()),
       StatefulShellRoute.indexedStack(
@@ -162,6 +183,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'form',
                     builder: (context, state) => PortfolioFormPage(portfolio: state.extra as PortfolioModel?),
+                  ),
+                  GoRoute(
+                    path: 'transfers',
+                    builder: (context, state) => const TransferListPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'form',
+                        builder: (context, state) => TransferFormPage(transfer: state.extra as TransferModel?),
+                      ),
+                    ],
                   ),
                 ],
               ),

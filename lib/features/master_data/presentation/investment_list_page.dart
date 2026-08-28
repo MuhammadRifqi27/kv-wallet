@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/investment_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../application/investment_list_controller.dart';
 import 'category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 
@@ -25,7 +26,7 @@ class InvestmentListPage extends ConsumerWidget {
         onRefresh: controller.refresh,
         child: investmentsAsync.when(
           loading: () => scrollableCenter(
-            const CircularProgressIndicator(color: AppColors.primary),
+            const AppLoadingIndicator(),
           ),
           error: (error, _) => scrollableCenter(
             ListErrorState(

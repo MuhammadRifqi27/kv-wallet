@@ -117,6 +117,126 @@ dibuka untuk sinkronisasi state.
 
 ---
 
+## Password Reset (Tanpa Email)
+
+App ini **tidak** mengirim email/SMS/WhatsApp otomatis untuk reset password
+— belum ada provider transactional email yang siap dipakai. Sebagai
+gantinya, alurnya **admin-mediated**: user submit tiket, admin proses manual
+lewat panel web, lalu admin sendiri yang mengirim link ke user via
+WhatsApp/telepon. Detail rasional & alur lengkapnya di
+[docs/password-reset-request-flow.md](password-reset-request-flow.md).
+
+Alur untuk mobile:
+
+1. User isi form "lupa password" di app → `POST /auth/password-reset-request`.
+2. (Opsional) App polling `GET /auth/password-reset-request/status` untuk
+   nampilin status "menunggu admin" / "sudah diproses".
+3. Admin proses tiket dari panel web, dapat link, kirim manual ke user lewat
+   WhatsApp/telepon — **di luar app**, tidak ada API untuk langkah ini.
+4. User buka link itu. Kalau linknya format web (`https://.../reset-password/{token}?email=...`),
+   deep-link/intercept URL itu di app lalu ambil `token` & `email` dari
+   query-nya, lanjut ke langkah 5 — atau biarkan saja terbuka di browser
+   (halaman web-nya sudah lengkap, tidak butuh app sama sekali).
+5. Kalau mau diselesaikan di dalam app (bukan browser): `POST /auth/password-reset`
+   dengan token+email dari link tadi + password baru.
+
+Ketiga endpoint di bawah **tidak butuh** `Authorization` header — user
+belum bisa login di titik ini.
+
+### `POST /auth/password-reset-request`
+Submit tiket pengajuan reset password.
+
+**Request:**
+```json
+{
+  "identifier": "budi@example.com",
+  "phone": "081234567890",
+  "note": "Sudah tidak bisa akses email lama"
+}
+```
+`identifier` bisa email atau username. `note` opsional. `phone` dipakai
+admin untuk menghubungi balik — wajib diisi.
+
+**Response `201`:**
+```json
+{
+  "success": "Pengajuan reset password sudah dikirim. Admin akan menghubungimu lewat WhatsApp/telepon untuk proses selanjutnya.",
+  "ticket_id": 4,
+  "status": "pending"
+}
+```
+
+**Error `422`** kalau `identifier` tidak ketemu:
+```json
+{
+  "message": "Email atau username tidak ditemukan.",
+  "errors": { "identifier": ["Email atau username tidak ditemukan."] }
+}
+```
+
+---
+
+### `GET /auth/password-reset-request/status`
+Cek status tiket **terbaru** untuk sebuah identifier — dipakai untuk
+polling di layar "menunggu admin".
+
+```
+GET /auth/password-reset-request/status?identifier=budi@example.com
+```
+
+**Response `200`:**
+```json
+{
+  "ticket_id": 4,
+  "status": "pending",
+  "submitted_at": "2026-08-28T01:47:58.000000Z",
+  "processed_at": null
+}
+```
+`status` salah satu dari `pending` / `processed` / `rejected`. Begitu jadi
+`processed`, itu artinya admin **sudah generate link** dan (harusnya) sudah
+mengirimkannya manual — bukan berarti user sudah selesai ganti password.
+
+**Response `404`** kalau belum pernah ada tiket untuk identifier itu:
+```json
+{ "message": "Belum ada pengajuan reset password untuk identifier ini." }
+```
+
+---
+
+### `POST /auth/password-reset`
+Selesaikan reset password pakai token dari link yang dikirim admin —
+alternatif buat app yang mau handle ini in-app (deep link) alih-alih
+membuka browser ke halaman web `reset-password`.
+
+**Request:**
+```json
+{
+  "token": "19e04d8212568ce01f3cc447e00662583384f5d87bb7c5019cd7a54545ccac74",
+  "email": "budi@example.com",
+  "password": "passwordBaru123",
+  "password_confirmation": "passwordBaru123"
+}
+```
+`token` & `email` diambil dari query string link yang dikirim admin
+(`.../reset-password/{token}?email=...`). Token **sekali pakai** dan
+kedaluwarsa 60 menit sejak dibuat admin.
+
+**Response `200`:**
+```json
+{ "success": "Password berhasil direset. Silakan masuk dengan password barumu." }
+```
+
+**Error `422`** kalau token sudah dipakai/kedaluwarsa/salah:
+```json
+{
+  "message": "Link reset password tidak valid atau sudah kedaluwarsa.",
+  "errors": { "email": ["Link reset password tidak valid atau sudah kedaluwarsa."] }
+}
+```
+
+---
+
 ## PIN
 
 PIN 6-digit untuk lock screen mobile app — dicek **setelah** login (login

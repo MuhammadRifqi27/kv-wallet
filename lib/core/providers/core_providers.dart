@@ -11,6 +11,7 @@ import '../../data/repositories/portfolio_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/summary_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
+import '../../data/repositories/transfer_repository.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../network/api_client.dart';
 import '../notifications/notification_service.dart';
@@ -86,4 +87,8 @@ final summaryRepositoryProvider = Provider<SummaryRepository>((ref) {
 
 final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   return TransactionRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final transferRepositoryProvider = Provider<TransferRepository>((ref) {
+  return TransferRepository(apiClient: ref.read(apiClientProvider));
 });

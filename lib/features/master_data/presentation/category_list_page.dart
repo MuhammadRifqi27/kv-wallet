@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/category_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../application/category_list_controller.dart';
 
 /// Read-only — master data (kategori, provider investasi) is managed by
@@ -25,7 +26,7 @@ class CategoryListPage extends ConsumerWidget {
         onRefresh: controller.refresh,
         child: categoriesAsync.when(
           loading: () => scrollableCenter(
-            const CircularProgressIndicator(color: AppColors.primary),
+            const AppLoadingIndicator(),
           ),
           error: (error, _) => scrollableCenter(
             ListErrorState(

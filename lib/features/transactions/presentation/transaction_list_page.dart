@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/transaction_model.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../application/transaction_list_controller.dart';
 
@@ -46,7 +47,7 @@ class TransactionListPage extends ConsumerWidget {
               color: AppColors.primary,
               onRefresh: controller.refresh,
               child: transactionsAsync.when(
-                loading: () => scrollableCenter(const CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
                     message: error is ApiException ? error.message : 'Gagal memuat transaksi.',

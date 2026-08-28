@@ -160,7 +160,7 @@ class _SlideView extends StatelessWidget {
               ),
               shape: BoxShape.circle,
             ),
-            child: Icon(slide.icon, color: Colors.white, size: 64),
+            child: Icon(slide.icon, color: AppColors.primaryDark, size: 64),
           ),
           const SizedBox(height: 40),
           Text(
