@@ -29,6 +29,7 @@ class TransferModel {
     this.portfolioName,
     this.destinationPortfolioName,
     this.description,
+    this.asset,
   });
 
   factory TransferModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +44,7 @@ class TransferModel {
       portfolioName: portfolio?['account_name'] as String?,
       destinationPortfolioName: destinationPortfolio?['account_name'] as String?,
       description: json['description'] as String?,
+      asset: json['asset'] as String?,
     );
   }
 
@@ -66,4 +68,9 @@ class TransferModel {
   final String? destinationPortfolioName;
 
   final String? description;
+
+  /// Crypto/stock symbol this transfer was tagged with (e.g. `BTC`) — null
+  /// for a plain cash transfer. See docs/mobile-api-reference.md's BTC
+  /// Tracking section.
+  final String? asset;
 }

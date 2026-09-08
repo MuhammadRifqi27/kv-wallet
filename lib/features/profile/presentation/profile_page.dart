@@ -5,18 +5,20 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/user_model.dart';
+import '../../../shared/widgets/settings_tile.dart';
 import '../../auth/application/auth_controller.dart';
 
 const _customerServiceFormUrl = 'https://forms.gle/DsB5KK67qddKvUuM9';
 const _instagramUrl = 'https://www.instagram.com/kodevisual';
 
-/// Landing page for the "settings" permission — Master Data (kategori,
-/// provider investasi) & Pengaturan, per
-/// docs/flutter-mobile-app-development-guide.txt BAGIAN 3.6. Master data is
-/// view-only here (admin manages it via the web app); only Siklus Gajian
-/// is editable from mobile.
-class SettingsPage extends ConsumerWidget {
-  const SettingsPage({super.key});
+/// Landing page for the "settings" permission — framed as the user's
+/// account/profile hub: profile info + membership status up top, then
+/// Portfolio, Master Data (kategori, provider investasi — view-only, admin
+/// manages it via the web app) and other settings below, per
+/// docs/flutter-mobile-app-development-guide.txt BAGIAN 3.6.
+class ProfilePage extends ConsumerWidget {
+  const ProfilePage({super.key});
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
@@ -54,57 +56,171 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authControllerProvider).user;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Pengaturan')),
+      appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (user != null) _ProfileHeader(user: user),
+          const SizedBox(height: 24),
+          const _SectionLabel('Portfolio'),
+          SettingsTile(
+            icon: Icons.account_balance_wallet_outlined,
+            title: 'Portfolio Saya',
+            subtitle: 'Akun, dompet, dan investasi Anda',
+            onTap: () => context.push('/portfolio'),
+          ),
+          const SizedBox(height: 24),
           const _SectionLabel('Master Data'),
-          _SettingsTile(
+          SettingsTile(
             icon: Icons.category_outlined,
             title: 'Kategori',
             subtitle: 'Kategori pemasukan & pengeluaran',
-            onTap: () => context.push('/settings/categories'),
+            onTap: () => context.push('/profile/categories'),
           ),
           const SizedBox(height: 8),
-          _SettingsTile(
+          SettingsTile(
             icon: Icons.account_balance_outlined,
             title: 'Provider Investasi',
             subtitle: 'Bank, exchange, dan broker',
-            onTap: () => context.push('/settings/investments'),
+            onTap: () => context.push('/profile/investments'),
           ),
           const SizedBox(height: 24),
           const _SectionLabel('Lainnya'),
-          _SettingsTile(
+          SettingsTile(
             icon: Icons.tune_rounded,
             title: 'Siklus Gajian',
             subtitle: 'Atur tanggal mulai periode gajian',
-            onTap: () => context.push('/settings/payroll'),
+            onTap: () => context.push('/profile/payroll'),
           ),
           const SizedBox(height: 8),
-          _SettingsTile(
-            icon: Icons.workspace_premium_outlined,
-            title: 'Upgrade Membership',
-            subtitle: 'Naik ke Member atau Member Premium',
-            onTap: () => context.push('/settings/membership'),
-          ),
-          const SizedBox(height: 8),
-          _SettingsTile(
+          SettingsTile(
             icon: Icons.support_agent_rounded,
             title: 'Hubungi Customer Service',
             subtitle: 'Isi form bantuan',
             onTap: () => _contactCustomerService(context),
           ),
           const SizedBox(height: 24),
+          const _SectionLabel('Keamanan'),
+          SettingsTile(
+            icon: Icons.lock_outline_rounded,
+            title: 'Ubah Password',
+            subtitle: 'Ganti password akun Anda',
+            onTap: () => context.push('/profile/change-password'),
+          ),
+          const SizedBox(height: 8),
+          SettingsTile(
+            icon: Icons.pin_outlined,
+            title: 'Ubah PIN',
+            subtitle: 'Ganti PIN 6 digit untuk membuka aplikasi',
+            onTap: () => context.push('/profile/change-pin'),
+          ),
+          const SizedBox(height: 24),
           const _SectionLabel('Akun'),
-          _SettingsTile(
+          SettingsTile(
             icon: Icons.logout_rounded,
             title: 'Keluar',
             subtitle: 'Logout dari akun ini',
             onTap: () => _confirmLogout(context, ref),
           ),
           const _AppFooter(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Avatar, name/username/email, and a tappable membership badge (→ Upgrade
+/// Membership) up top of the Profile page. Avatar is read-only — there's no
+/// upload endpoint on the backend — falls back to the user's initial.
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.user});
+
+  final UserModel user;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : '?';
+    final avatarUrl = user.avatarUrl;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: AppColors.primaryLight,
+                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                child: avatarUrl == null
+                    ? Text(
+                        initial,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: AppColors.primary),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textPrimary),
+                    ),
+                    if (user.username != null && user.username!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text('@${user.username}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+                    ],
+                    const SizedBox(height: 2),
+                    Text(user.email, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 20),
+                tooltip: 'Edit Profil',
+                onPressed: () => context.push('/profile/edit'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(height: 1, color: AppColors.border),
+          const SizedBox(height: 14),
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => context.push('/profile/membership'),
+            child: Row(
+              children: [
+                Icon(
+                  user.isPaidMember ? Icons.workspace_premium_rounded : Icons.workspace_premium_outlined,
+                  color: user.isPaidMember ? AppColors.success : AppColors.textSecondary,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    user.isPaidMember
+                        ? (user.membershipPlan?.name ?? 'Member')
+                        : 'Free — belum upgrade membership',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -195,35 +311,3 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({required this.icon, required this.title, required this.subtitle, required this.onTap});
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: ListTile(
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, color: AppColors.primary, size: 20),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
-        trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
-      ),
-    );
-  }
-}

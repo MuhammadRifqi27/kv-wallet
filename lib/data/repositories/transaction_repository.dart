@@ -12,11 +12,19 @@ class TransactionRepository {
 
   final ApiClient _apiClient;
 
-  Future<TransactionListResult> getTransactions({TransactionType? type}) async {
+  Future<TransactionListResult> getTransactions({
+    TransactionType? type,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     try {
       final response = await _apiClient.dio.get(
         ApiEndpoints.transactions,
-        queryParameters: type != null ? {'type': type.name} : null,
+        queryParameters: {
+          if (type != null) 'type': type.name,
+          if (startDate != null) 'start_date': DateFormat('yyyy-MM-dd').format(startDate),
+          if (endDate != null) 'end_date': DateFormat('yyyy-MM-dd').format(endDate),
+        },
       );
       return TransactionListResult.fromResponse(response.data);
     } on DioException catch (e) {

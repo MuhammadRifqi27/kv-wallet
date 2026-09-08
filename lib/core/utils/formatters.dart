@@ -4,6 +4,19 @@ final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', deci
 
 String formatRupiah(num amount) => _rupiahFormat.format(amount);
 
+final _usdFormat = NumberFormat.currency(locale: 'en_US', symbol: r'$', decimalDigits: 2);
+
+/// Crypto prices need cents (a $0 vs $0.03 coin looks identical otherwise,
+/// unlike Rupiah amounts which are never fractional in this app).
+String formatUsd(num amount) => _usdFormat.format(amount);
+
+final _cryptoQuantityFormat = NumberFormat('#,##0.########', 'en_US');
+
+/// Coin quantity implied by a Rupiah value at a given price (e.g. "you hold
+/// ~0.00601917 BTC") — up to 8 decimal places, trailing zeros trimmed, since
+/// unlike Rupiah, fractional coin amounts are the norm, not an edge case.
+String formatCryptoQuantity(double quantity) => _cryptoQuantityFormat.format(quantity);
+
 /// Masked stand-in for [formatRupiah] when the user has hidden nominal
 /// values (e.g. dashboard privacy toggle) — fixed-width regardless of the
 /// underlying amount so it doesn't leak the digit count.

@@ -25,6 +25,13 @@ class ApiEndpoints {
   static const String passwordResetRequest = '/auth/password-reset-request';
   static const String passwordResetRequestStatus = '/auth/password-reset-request/status';
 
+  /// Partial update (name/username/email/avatar) — see docs/mobile-api-reference.md.
+  static const String profile = '/auth/profile';
+
+  /// For a user who's still logged in and knows their current password —
+  /// not the admin-mediated "forgot password" flow above.
+  static const String changePassword = '/auth/change-password';
+
   /// Set/change PIN (`current_pin` required only when changing an existing
   /// one) — see docs/pin-and-membership-plan-api-reference.md.
   static const String pin = '/auth/pin';
@@ -42,6 +49,17 @@ class ApiEndpoints {
   static const String dashboard = '/money-management/dashboard';
   static const String summary = '/money-management/summary';
   static const String transactions = '/money-management/transactions';
+
+  /// `GET` here has a side effect — it processes any due recurring template
+  /// into a real transaction before returning the list (see
+  /// docs/flutter-mobile-app-development-guide.txt "RECURRING otomatis
+  /// diproses..."). `/process` is for triggering that same processing from
+  /// a screen that doesn't otherwise call the list endpoint (Dashboard).
+  static const String recurring = '/money-management/recurring';
+  static const String recurringProcess = '/money-management/recurring/process';
+
+  static const String btcTracking = '/money-management/btc-tracking';
+  static const String btcTrackingActivity = '/money-management/btc-tracking/activity';
 
   /// See TransferModel's schema-verification note — request body confirmed
   /// against docs/flutter-mobile-app-development-guide.txt, response shape

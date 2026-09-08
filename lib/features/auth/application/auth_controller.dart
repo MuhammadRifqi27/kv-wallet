@@ -104,4 +104,18 @@ class AuthController extends StateNotifier<AuthState> {
     if (user == null) return;
     state = state.copyWith(user: user.copyWith(hasPin: true));
   }
+
+  /// Persists profile changes via `POST /auth/profile` and updates the
+  /// cached user from the response (which already reflects the new
+  /// values). Left un-guarded like other form-backed mutations — see
+  /// [TransactionListController.addTransaction] — so the calling page can
+  /// catch [ApiException] itself and show field-level validation errors.
+  Future<void> updateProfile({String? name, String? username, String? email}) async {
+    final updated = await _ref.read(authRepositoryProvider).updateProfile(
+          name: name,
+          username: username,
+          email: email,
+        );
+    state = state.copyWith(user: updated);
+  }
 }

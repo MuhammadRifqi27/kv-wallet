@@ -7,6 +7,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/dashboard_model.dart';
 import '../../../data/models/named_amount.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/dashboard_controller.dart';
@@ -23,6 +24,7 @@ class DashboardPage extends ConsumerWidget {
     final dashboardAsync = ref.watch(dashboardControllerProvider);
     final controller = ref.read(dashboardControllerProvider.notifier);
     final hideNominal = ref.watch(hideNominalProvider);
+    final selectedPeriod = ref.watch(selectedDashboardPeriodProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -36,19 +38,41 @@ class DashboardPage extends ConsumerWidget {
           ],
         ),
       ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: controller.refresh,
-        child: dashboardAsync.when(
-          loading: () => scrollableCenter(const AppLoadingIndicator()),
-          error: (error, _) => scrollableCenter(
-            ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat dashboard.',
-              onRetry: controller.refresh,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: CyclePeriodFilterBar(
+              period: selectedPeriod ?? DateTime.now(),
+              onChanged: (value) {
+                final now = DateTime.now();
+                // Picking the actual current month resets to null ("current
+                // payroll cycle") instead of pinning an explicit month/year —
+                // keeps the original default behavior for anyone who taps
+                // back to "Bulan Ini" instead of leaving a redundant explicit
+                // selection sitting in state.
+                final isCurrentCycle = value.year == now.year && value.month == now.month;
+                ref.read(selectedDashboardPeriodProvider.notifier).state = isCurrentCycle ? null : value;
+              },
             ),
           ),
-          data: (dashboard) => _DashboardBody(dashboard: dashboard, hideNominal: hideNominal),
-        ),
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: controller.refresh,
+              child: dashboardAsync.when(
+                loading: () => scrollableCenter(const AppLoadingIndicator()),
+                error: (error, _) => scrollableCenter(
+                  ListErrorState(
+                    message: error is ApiException ? error.message : 'Gagal memuat dashboard.',
+                    onRetry: controller.refresh,
+                  ),
+                ),
+                data: (dashboard) => _DashboardBody(dashboard: dashboard, hideNominal: hideNominal),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -59,6 +83,12 @@ class _DashboardBody extends StatelessWidget {
 
   final DashboardModel dashboard;
   final bool hideNominal;
+
+  List<DashboardPortfolioItem> get _dailyAccounts =>
+      dashboard.portfolios.where((p) => !p.isInvestment).toList();
+
+  List<DashboardPortfolioItem> get _investmentAccounts =>
+      dashboard.portfolios.where((p) => p.isInvestment).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -114,14 +144,26 @@ class _DashboardBody extends StatelessWidget {
             ),
           ],
         ),
-        if (dashboard.portfolios.isNotEmpty) ...[
+        if (_dailyAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
           const Text(
-            'Semua Akun',
+            'Akun Harian',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
-          for (final portfolio in dashboard.portfolios) ...[
+          for (final portfolio in _dailyAccounts) ...[
+            _AccountTile(portfolio: portfolio, hideNominal: hideNominal),
+            const SizedBox(height: 8),
+          ],
+        ],
+        if (_investmentAccounts.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          const Text(
+            'Akun Investasi',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 10),
+          for (final portfolio in _investmentAccounts) ...[
             _AccountTile(portfolio: portfolio, hideNominal: hideNominal),
             const SizedBox(height: 8),
           ],

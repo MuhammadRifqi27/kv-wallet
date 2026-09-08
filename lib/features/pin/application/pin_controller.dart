@@ -46,6 +46,22 @@ class PinController extends StateNotifier<PinState> {
     }
   }
 
+  /// Changing an existing PIN (requires proof of the old one) — distinct
+  /// from [setPin], which is only for the first-time, no-PIN-yet case and
+  /// also flips [pinVerifiedProvider]/`markPinSet` for the app-lock gate.
+  /// Those don't apply here since the user is already past that gate.
+  Future<bool> changePin({required String currentPin, required String pin, required String pinConfirmation}) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _ref.read(pinRepositoryProvider).changePin(currentPin: currentPin, pin: pin, pinConfirmation: pinConfirmation);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e);
+      return false;
+    }
+  }
+
   Future<bool> verifyPin({required String pin}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {

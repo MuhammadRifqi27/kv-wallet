@@ -7,7 +7,10 @@ import '../../data/repositories/dashboard_repository.dart';
 import '../../data/repositories/investment_repository.dart';
 import '../../data/repositories/membership_repository.dart';
 import '../../data/repositories/pin_repository.dart';
+import '../../data/repositories/btc_tracking_repository.dart';
+import '../../data/repositories/crypto_price_repository.dart';
 import '../../data/repositories/portfolio_repository.dart';
+import '../../data/repositories/recurring_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/summary_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
@@ -75,6 +78,18 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 
 final portfolioRepositoryProvider = Provider<PortfolioRepository>((ref) {
   return PortfolioRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final recurringRepositoryProvider = Provider<RecurringRepository>((ref) {
+  return RecurringRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final btcTrackingRepositoryProvider = Provider<BtcTrackingRepository>((ref) {
+  return BtcTrackingRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final cryptoPriceRepositoryProvider = Provider<CryptoPriceRepository>((ref) {
+  return CryptoPriceRepository();
 });
 
 final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {

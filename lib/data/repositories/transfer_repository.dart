@@ -31,12 +31,19 @@ class TransferRepository {
     }
   }
 
+  /// `asset` tags which crypto/stock symbol this transfer moved (e.g.
+  /// `BTC`) — only meaningful when the destination account is an
+  /// investment-type account; leave null for a plain cash transfer. See
+  /// docs/mobile-api-reference.md's BTC Tracking section: a transfer tagged
+  /// this way shows up in that feature's activity feed and per-asset
+  /// balance breakdown as a `source_type: "transfer"` row.
   Future<TransferModel> createTransfer({
     required DateTime date,
     required int fromAccountId,
     required int toAccountId,
     required double amount,
     String? description,
+    String? asset,
   }) async {
     try {
       final response = await _apiClient.dio.post(ApiEndpoints.transfers, data: {
@@ -45,6 +52,7 @@ class TransferRepository {
         'to_account_id': toAccountId,
         'amount': amount,
         'description': description,
+        'asset': asset,
       });
       return TransferModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -62,6 +70,7 @@ class TransferRepository {
     required int toAccountId,
     required double amount,
     String? description,
+    String? asset,
   }) async {
     try {
       final response = await _apiClient.dio.put('${ApiEndpoints.transfers}/$id', data: {
@@ -70,6 +79,7 @@ class TransferRepository {
         'to_account_id': toAccountId,
         'amount': amount,
         'description': description,
+        'asset': asset,
       });
       return TransferModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

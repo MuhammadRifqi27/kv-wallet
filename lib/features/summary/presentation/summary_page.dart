@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,9 +9,17 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/named_amount.dart';
 import '../../../data/models/summary_model.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../../shared/widgets/month_period_selector.dart';
+import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/summary_controller.dart';
+
+/// Percent change from [previous] to [current]. Null when [previous] is 0 —
+/// "infinite % change" isn't a meaningful badge, so that case just shows no
+/// comparison instead.
+double? _percentChange(double current, double previous) {
+  if (previous == 0) return null;
+  return (current - previous) / previous.abs() * 100;
+}
 
 class SummaryPage extends ConsumerWidget {
   const SummaryPage({super.key});
@@ -26,9 +35,12 @@ class SummaryPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Ringkasan')),
       body: Column(
         children: [
-          MonthPeriodSelector(
-            period: period,
-            onChanged: (value) => ref.read(selectedSummaryPeriodProvider.notifier).state = value,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: CyclePeriodFilterBar(
+              period: period,
+              onChanged: (value) => ref.read(selectedSummaryPeriodProvider.notifier).state = value,
+            ),
           ),
           Expanded(
             child: RefreshIndicator(
@@ -52,18 +64,24 @@ class SummaryPage extends ConsumerWidget {
   }
 }
 
-class _SummaryBody extends StatelessWidget {
+class _SummaryBody extends ConsumerWidget {
   const _SummaryBody({required this.summary});
 
   final SummaryModel summary;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final previous = ref.watch(previousMonthSummaryProvider).valueOrNull;
+    final savingsRate = summary.totalIncome > 0 ? (summary.netProfit / summary.totalIncome * 100) : null;
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
-        _NetWorthCard(amount: summary.totalNetWorth),
+        _NetWorthCard(
+          amount: summary.totalNetWorth,
+          previousAmount: previous?.totalNetWorth,
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -72,6 +90,9 @@ class _SummaryBody extends StatelessWidget {
                 label: 'Pemasukan',
                 value: formatRupiah(summary.totalIncome),
                 color: AppColors.success,
+                percentChange: previous != null ? _percentChange(summary.totalIncome, previous.totalIncome) : null,
+                // Income going up is good.
+                higherIsBetter: true,
               ),
             ),
             const SizedBox(width: 10),
@@ -80,6 +101,9 @@ class _SummaryBody extends StatelessWidget {
                 label: 'Pengeluaran',
                 value: formatRupiah(summary.totalExpense),
                 color: AppColors.error,
+                percentChange: previous != null ? _percentChange(summary.totalExpense, previous.totalExpense) : null,
+                // Expense going up is bad.
+                higherIsBetter: false,
               ),
             ),
             const SizedBox(width: 10),
@@ -88,10 +112,18 @@ class _SummaryBody extends StatelessWidget {
                 label: 'Untung Bersih',
                 value: formatRupiah(summary.netProfit),
                 color: summary.netProfit >= 0 ? AppColors.primary : AppColors.error,
+                percentChange: previous != null ? _percentChange(summary.netProfit, previous.netProfit) : null,
+                higherIsBetter: true,
               ),
             ),
           ],
         ),
+        if (savingsRate != null) ...[
+          const SizedBox(height: 10),
+          _SavingsRateCard(rate: savingsRate),
+        ],
+        const SizedBox(height: 16),
+        const _BudgetHealthCard(),
         if (summary.assetAllocation.isNotEmpty) ...[
           const SizedBox(height: 24),
           const _SectionTitle('Alokasi Aset'),
@@ -156,12 +188,15 @@ class _ChartCard extends StatelessWidget {
 }
 
 class _NetWorthCard extends StatelessWidget {
-  const _NetWorthCard({required this.amount});
+  const _NetWorthCard({required this.amount, this.previousAmount});
 
   final double amount;
+  final double? previousAmount;
 
   @override
   Widget build(BuildContext context) {
+    final delta = previousAmount != null ? amount - previousAmount! : null;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -185,6 +220,17 @@ class _NetWorthCard extends StatelessWidget {
             formatRupiah(amount),
             style: const TextStyle(color: AppColors.primaryDark, fontSize: 26, fontWeight: FontWeight.w800),
           ),
+          if (delta != null && delta != 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              '${delta > 0 ? '+' : '-'} ${formatRupiah(delta.abs())} dari bulan lalu',
+              style: TextStyle(
+                color: AppColors.primaryDark.withValues(alpha: 0.65),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -192,11 +238,25 @@ class _NetWorthCard extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.color});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    this.percentChange,
+    this.higherIsBetter = true,
+  });
 
   final String label;
   final String value;
   final Color color;
+
+  /// From [_percentChange] — null when there's no prior-month figure to
+  /// compare against (fetch failed/still loading, or previous was 0).
+  final double? percentChange;
+
+  /// Whether a positive change is good news for this metric (income) or bad
+  /// news (expense) — flips the badge's color, not its arrow direction.
+  final bool higherIsBetter;
 
   @override
   Widget build(BuildContext context) {
@@ -218,8 +278,157 @@ class _StatCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
           ),
+          if (percentChange != null) ...[
+            const SizedBox(height: 4),
+            _ChangeBadge(percentChange: percentChange!, higherIsBetter: higherIsBetter),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// "▲ 12% dari bulan lalu" style badge — green when the direction of change
+/// is good for this metric, red when bad, gray for ~0%.
+class _ChangeBadge extends StatelessWidget {
+  const _ChangeBadge({required this.percentChange, required this.higherIsBetter});
+
+  final double percentChange;
+  final bool higherIsBetter;
+
+  @override
+  Widget build(BuildContext context) {
+    final isFlat = percentChange.abs() < 0.5;
+    final isGood = percentChange > 0 ? higherIsBetter : !higherIsBetter;
+    final color = isFlat ? AppColors.textSecondary : (isGood ? AppColors.success : AppColors.error);
+    final icon = isFlat
+        ? Icons.remove_rounded
+        : (percentChange > 0 ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 11, color: color),
+        const SizedBox(width: 2),
+        Flexible(
+          child: Text(
+            '${percentChange.abs().toStringAsFixed(0)}% vs lalu',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SavingsRateCard extends StatelessWidget {
+  const _SavingsRateCard({required this.rate});
+
+  /// Net profit as a percentage of total income — can be negative when
+  /// expenses exceeded income this period.
+  final double rate;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = rate >= 0 ? AppColors.success : AppColors.error;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(Icons.savings_outlined, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Rasio Menabung',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
+            ),
+          ),
+          Text(
+            '${rate.toStringAsFixed(0)}%',
+            style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Cross-links to the Budget feature — how many categories are over budget
+/// this period, using [summaryBudgetHealthProvider] (a period-matched fetch,
+/// not the Budget tab's own controller — see that provider's doc comment).
+/// Silently hides itself on loading/error since it's supplementary info,
+/// not core to the Summary page.
+class _BudgetHealthCard extends ConsumerWidget {
+  const _BudgetHealthCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final budgetAsync = ref.watch(summaryBudgetHealthProvider);
+
+    return budgetAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (summary) {
+        if (summary.categories.isEmpty) return const SizedBox.shrink();
+
+        final overBudgetCount = summary.categories.where((c) => c.isOverBudget).length;
+        final allOk = overBudgetCount == 0;
+        final color = allOk ? AppColors.success : AppColors.error;
+
+        return Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => context.push('/budget'),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+                    child: Icon(
+                      allOk ? Icons.check_circle_outline_rounded : Icons.warning_amber_rounded,
+                      color: color,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      allOk
+                          ? 'Semua kategori masih dalam budget'
+                          : '$overBudgetCount dari ${summary.categories.length} kategori melebihi budget',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

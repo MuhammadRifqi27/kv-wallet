@@ -1,4 +1,4 @@
-# Referensi API Mobile (Auth, PIN, Membership)
+# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking)
 
 Referensi lengkap untuk tim Flutter — semua endpoint yang dibangun untuk
 mobile app di sesi ini. Untuk endpoint Money Management lainnya (dashboard,
@@ -114,6 +114,81 @@ Ambil data user + status membership terkini — panggil ini tiap kali app
 dibuka untuk sinkronisasi state.
 
 **Response `200`:** shape sama seperti `user` object di `register`/`login`.
+
+---
+
+### `POST /auth/profile` 🔒
+Update profil user: `name`, `username`, `email`, dan/atau `avatar`. Ini
+**partial update** — kirim cuma field yang mau diubah, field lain tidak
+disentuh. Password dan PIN **tidak** ditangani di sini — lihat
+`POST /auth/change-password` untuk ganti password (user tahu password
+lama) dan `POST /auth/pin` untuk PIN. Untuk user yang lupa password
+(tidak bisa login sama sekali), pakai alur [Password Reset](#password-reset-tanpa-email)
+admin-mediated di bawah.
+
+**Request** (`multipart/form-data` — dipakai kalau upload file avatar):
+| Field | Tipe | Wajib | Keterangan |
+|---|---|---|---|
+| `name` | string | tidak | max 255 |
+| `username` | string | tidak | max 255, alpha-dash (`a-z`, `0-9`, `-`, `_`), harus unik |
+| `email` | string | tidak | format email, harus unik |
+| `avatar` | file | tidak | image, max 2MB. Pakai field ini kalau kirim `multipart/form-data` |
+| `avatar_base64` | string | tidak | alternatif `avatar` tanpa multipart — data URI, contoh: `data:image/png;base64,iVBORw0KG...`. Dipakai kalau app mau kirim JSON biasa (mis. hasil crop di app) |
+| `remove_avatar` | boolean | tidak | `true` untuk hapus avatar yang ada tanpa ganti yang baru |
+
+Kalau `avatar` (file) dan `avatar_base64` sama-sama dikirim, `avatar` (file)
+yang dipakai. `remove_avatar` diabaikan kalau salah satu dari keduanya
+dikirim.
+
+Contoh request JSON biasa (tanpa ganti avatar, cuma update nama & email):
+```json
+{ "name": "Budi Santoso Baru", "email": "budi.baru@example.com" }
+```
+
+**Response `200`:** shape sama seperti `user` object di `register`/`login`
+(sudah termasuk `avatar_url` terbaru).
+
+**Error `422`** kalau `username`/`email` sudah dipakai user lain, atau
+`avatar_base64` formatnya tidak valid:
+```json
+{
+  "message": "The email has already been taken.",
+  "errors": { "email": ["The email has already been taken."] }
+}
+```
+
+---
+
+### `POST /auth/change-password` 🔒
+Ganti password — dipakai user yang **masih bisa login** dan tahu password
+lamanya (mis. dari layar "Edit Profile" / "Keamanan"). Kalau user lupa
+password (tidak bisa login sama sekali), ini bukan endpoint yang tepat —
+arahkan ke alur [Password Reset](#password-reset-tanpa-email) di bawah.
+
+**Request:**
+```json
+{
+  "current_password": "password123",
+  "password": "passwordBaru123",
+  "password_confirmation": "passwordBaru123"
+}
+```
+
+**Response `200`:**
+```json
+{ "message": "Password berhasil diperbarui." }
+```
+
+**Error `422`** kalau `current_password` salah:
+```json
+{
+  "message": "Password saat ini salah.",
+  "errors": { "current_password": ["Password saat ini salah."] }
+}
+```
+
+Token Sanctum yang sedang dipakai **tidak** ikut di-revoke setelah ganti
+password — device ini (dan device lain yang masih login) tetap login.
 
 ---
 
@@ -364,6 +439,276 @@ menunggu admin klik "Mark Paid".
 `app_role_code` nilai yang mungkin: `free-user`, `member-user`,
 `member-premium-user` — gunakan `is_paid_member` + `membership_expires_at`
 untuk logic UI (badge, warning "akan habis"), bukan `app_role_code` mentah.
+
+---
+
+## Recurring Transactions
+
+Base path: `/money-management/recurring` (gate permission
+`money-management.recurring`). Dipakai untuk automasi transaksi berulang
+(mis. langganan bulanan) — sistem generate `FinanceTransaction` beneran
+setiap kali template jatuh tempo.
+
+### `GET /money-management/recurring` 🔒
+List semua template recurring milik user. Sebelum list diambil, endpoint
+ini otomatis menjalankan proses "generate transaksi untuk yang jatuh
+tempo" dulu (sama seperti `POST /recurring/process` di bawah) — jadi list
+yang dikembalikan (termasuk `next_date`) selalu sudah up-to-date, tidak
+perlu dipanggil terpisah tiap kali buka layar ini.
+
+**Response `200`:**
+```json
+[
+  {
+    "id": 3,
+    "user_id": 10,
+    "name": "Langganan Netflix",
+    "type": "expense",
+    "finance_category_id": 1,
+    "finance_investment_id": 1,
+    "amount": "65000.00",
+    "frequency": "monthly",
+    "start_date": "2026-08-05",
+    "next_date": "2026-09-05",
+    "description": "Testing dari Postman",
+    "is_active": true,
+    "created_at": "2026-08-05T02:10:00.000000Z",
+    "updated_at": "2026-08-05T02:10:00.000000Z",
+    "category": { "id": 1, "name": "Subscription", "type": "expense" },
+    "portfolio": { "id": 1, "account_name": "BCA Utama" }
+  }
+]
+```
+
+---
+
+### `POST /money-management/recurring` 🔒
+Buat template recurring baru. `next_date` otomatis di-set sama dengan
+`start_date`, dan `is_active` otomatis `true` — tidak ada field ini di
+request.
+
+**Request:**
+```json
+{
+  "name": "Langganan Netflix",
+  "type": "expense",
+  "finance_category_id": 1,
+  "finance_investment_id": 1,
+  "amount": 65000,
+  "frequency": "monthly",
+  "start_date": "2026-08-05",
+  "description": "Opsional"
+}
+```
+| Field | Tipe | Wajib | Keterangan |
+|---|---|---|---|
+| `name` | string | ya | max 255 |
+| `type` | string | ya | `income` atau `expense` |
+| `finance_category_id` | integer | ya | harus milik user (`finance_categories`) |
+| `finance_investment_id` | integer | ya | akun/portofolio tujuan, harus milik user |
+| `amount` | numeric | ya | min `0.01` |
+| `frequency` | string | ya | `daily`, `weekly`, `monthly`, atau `yearly` |
+| `start_date` | date | ya | tanggal mulai/generate pertama |
+| `description` | string | tidak | — |
+
+**Response `201`:** object recurring yang baru dibuat (shape sama seperti item di `GET /recurring`, tanpa relasi `category`/`portfolio` di-load).
+
+---
+
+### `PUT /money-management/recurring/{id}` 🔒
+Edit template recurring yang sudah ada. Body **sama persis** dengan
+`POST` di atas — semua field tetap wajib dikirim (bukan partial update).
+Cuma bisa edit milik sendiri (404 kalau `id` bukan milik user).
+
+⚠️ **Soal `next_date`**: kalau template ini **belum pernah diproses sama
+sekali** (`next_date` di database masih sama dengan `start_date` lama),
+mengubah `start_date` di request ini otomatis ikut menggeser `next_date`
+supaya tetap sinkron. Tapi kalau template **sudah pernah** jalan
+(`next_date` sudah maju melewati `start_date` awal), maka `next_date`
+**tidak disentuh** — `start_date` di titik itu jadi murni catatan
+historis kapan automasi ini pertama kali dibuat.
+
+**Response `200`:** object recurring yang sudah diperbarui.
+
+**Error `404`** kalau `id` tidak ditemukan / bukan milik user.
+**Error `422`** kalau validasi gagal (format sama seperti `POST`).
+
+---
+
+### `DELETE /money-management/recurring/{id}` 🔒
+Hapus template recurring. Transaksi yang **sudah** ter-generate sebelumnya
+tetap ada — cuma template automasinya yang hilang, tidak ada penambahan
+transaksi baru lagi ke depannya.
+
+**Response `200`:**
+```json
+{ "success": "Recurring transaction berhasil dihapus" }
+```
+
+---
+
+### `POST /money-management/recurring/process` 🔒
+Trigger manual proses "generate transaksi untuk semua template yang jatuh
+tempo" (`next_date <= hari ini` dan `is_active`), lalu majukan `next_date`
+tiap template sesuai `frequency`-nya. Biasanya **tidak perlu dipanggil
+manual** dari mobile karena `GET /recurring` sudah melakukan ini
+otomatis setiap kali dipanggil — endpoint ini disediakan untuk kasus
+kalau app butuh trigger proses tanpa sekalian minta list-nya.
+
+**Response `200`:**
+```json
+{ "processed": 2 }
+```
+`processed` = jumlah template yang baru saja digenerate jadi transaksi
+beneran pada request ini (bisa `0` kalau tidak ada yang jatuh tempo).
+
+⚠️ Tidak ada endpoint untuk pause/resume (`is_active`) tanpa hapus —
+"pause" saat ini cuma bisa dilakukan dengan `DELETE` template-nya.
+
+---
+
+## BTC Tracking
+
+Base path: `/money-management/btc-tracking` (gate permission
+`money-management.btc-tracking`). Ini **versi sederhana** untuk tracking
+aset crypto — cuma deposit/withdrawal/profit/loss (seperti ledger akun
+biasa di Portfolio), **tidak ada** fitur buy/sell/trade dengan harga
+per-unit seperti Stock Tracking.
+
+Setiap entry di sini sebenarnya adalah baris `FinanceInvestmentTransaction`
+yang tersimpan terhadap sebuah akun Portofolio ber-tipe **crypto** — semua
+endpoint `store`/`update` di bawah otomatis memvalidasi bahwa
+`finance_investment_id` yang dikirim itu benar milik user **dan** tipe
+investasinya `crypto` (404 kalau tidak, mis. kalau id itu akun bank biasa
+atau akun broker saham).
+
+### `GET /money-management/btc-tracking` 🔒
+Ringkasan/overview — dipakai buat kartu total value + breakdown saldo per
+aset di layar utama BTC Tracking. **Bukan** daftar transaksi baris-per-baris
+— untuk itu pakai `GET /btc-tracking/activity` di bawah.
+
+**Response `200`:**
+```json
+{
+  "btc_portfolios": [
+    { "id": 1, "user_id": 10, "finance_investment_id": 2, "account_name": "Indodax", "account_number": null, "description": null, "account_investment": true, "..." : "field lain sama seperti item di GET /portfolios" }
+  ],
+  "total_btc_value": 15000000,
+  "asset_balances": [
+    { "asset": "BTC", "balance": 12000000 },
+    { "asset": "ETH", "balance": 3000000 }
+  ]
+}
+```
+`total_btc_value` = jumlah `balance` semua akun crypto (dalam Rupiah).
+`asset_balances` = breakdown per simbol aset (`BTC`, `ETH`, dst — string
+bebas yang diisi user sendiri lewat field `asset`, bukan daftar tetap).
+
+---
+
+### `GET /money-management/btc-tracking/activity` 🔒
+Feed gabungan semua aktivitas crypto milik user, digabung dari dua sumber
+dan diurutkan terbaru dulu — dipakai untuk layar "History" BTC Tracking
+(setara datatable di web):
+- `source_type: "investment"` — entry deposit/withdrawal/profit/loss yang
+  dibuat lewat `POST /btc-tracking` di bawah (atau lewat halaman Portfolio).
+- `source_type: "transfer"` — sisi transfer antar akun yang di-tag aset
+  crypto (dibuat lewat endpoint Transfers, **bukan** dari sini). Baris jenis
+  ini **tidak bisa** di-`PUT`/`DELETE` lewat BTC Tracking — kelola dari
+  endpoint `/transfers`.
+
+**Response `200`:**
+```json
+[
+  {
+    "id": 5,
+    "finance_investment_id": 2,
+    "asset": "BTC",
+    "lot": null,
+    "date": "2026-09-01",
+    "type": "deposit",
+    "amount": "1500000.00",
+    "description": "Beli BTC",
+    "source_type": "investment",
+    "portfolio": { "id": 2, "account_name": "Indodax" }
+  },
+  {
+    "id": 41,
+    "finance_investment_id": 2,
+    "asset": "BTC",
+    "date": "2026-08-20",
+    "type": "transfer",
+    "amount": "500000.00",
+    "description": "Transfer dari BCA Utama",
+    "source_type": "transfer"
+  }
+]
+```
+
+---
+
+### `POST /money-management/btc-tracking` 🔒
+Catat entry deposit/withdrawal/profit/loss baru terhadap salah satu akun
+crypto milik user.
+
+**Request:**
+```json
+{
+  "finance_investment_id": 2,
+  "asset": "BTC",
+  "date": "2026-09-08",
+  "type": "deposit",
+  "amount": 1500000,
+  "description": "Opsional"
+}
+```
+| Field | Tipe | Wajib | Keterangan |
+|---|---|---|---|
+| `finance_investment_id` | integer | ya | id akun Portfolio, harus milik user & tipe investasinya `crypto` |
+| `asset` | string | ya | simbol aset, mis. `BTC`, `ETH` — **wajib** di sini (beda dari ledger Portfolio biasa yang boleh kosong), supaya selalu muncul di breakdown `asset_balances` |
+| `date` | date | ya | — |
+| `type` | string | ya | `deposit`, `withdrawal`, `profit`, atau `loss` |
+| `amount` | numeric | ya | min `0`, dalam Rupiah |
+| `description` | string | tidak | — |
+
+**Response `201`:** object transaksi yang baru dibuat.
+
+**Error `404`** kalau `finance_investment_id` bukan milik user atau bukan
+akun bertipe crypto.
+
+---
+
+### `PUT /money-management/btc-tracking/{id}` 🔒
+Edit entry deposit/withdrawal/profit/loss yang sudah ada. Body sama
+seperti `POST` **tanpa** `finance_investment_id` (akun tujuan tidak bisa
+diganti lewat sini — hapus lalu buat ulang kalau perlu pindah akun).
+
+```json
+{
+  "asset": "BTC",
+  "date": "2026-09-08",
+  "type": "deposit",
+  "amount": 1750000,
+  "description": "Opsional"
+}
+```
+
+**Response `200`:** object transaksi yang sudah diperbarui.
+
+**Error `404`** kalau `id` bukan milik user, atau bukan entry di akun
+bertipe crypto (mis. `id` itu sebenarnya baris `source_type: "transfer"` —
+baris itu tidak dikelola dari sini sama sekali, lihat catatan di
+`GET /activity` di atas).
+
+---
+
+### `DELETE /money-management/btc-tracking/{id}` 🔒
+Hapus satu baris entry dari tracking.
+
+**Response `200`:**
+```json
+{ "success": "Transaction removed from tracking" }
+```
 
 ---
 

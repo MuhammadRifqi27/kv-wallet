@@ -28,7 +28,7 @@ void _openTransfers(BuildContext context, WidgetRef ref) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
   );
-  context.push('/settings/membership');
+  context.push('/profile/membership');
 }
 
 class PortfolioListPage extends ConsumerWidget {
@@ -47,57 +47,114 @@ class PortfolioListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Portfolio'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.swap_horiz_rounded),
-            tooltip: 'Transfer Antar Akun',
-            onPressed: () => _openTransfers(context, ref),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Portfolio')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/portfolio/form'),
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: controller.refresh,
-        child: portfoliosAsync.when(
-          loading: () => scrollableCenter(
-            const AppLoadingIndicator(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _TransferMenuTile(onTap: () => _openTransfers(context, ref)),
           ),
-          error: (error, _) => scrollableCenter(
-            ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat portfolio.',
-              onRetry: controller.refresh,
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: controller.refresh,
+              child: portfoliosAsync.when(
+                loading: () => scrollableCenter(
+                  const AppLoadingIndicator(),
+                ),
+                error: (error, _) => scrollableCenter(
+                  ListErrorState(
+                    message: error is ApiException ? error.message : 'Gagal memuat portfolio.',
+                    onRetry: controller.refresh,
+                  ),
+                ),
+                data: (portfolios) {
+                  if (portfolios.isEmpty) {
+                    return scrollableCenter(
+                      const ListEmptyState(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: 'Belum ada akun',
+                        subtitle: 'Tekan tombol + untuk menambah akun/dompet pertama Anda.',
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                    itemCount: portfolios.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final portfolio = portfolios[index];
+                      return _PortfolioTile(
+                        portfolio: portfolio,
+                        providerName: investmentsById[portfolio.financeInvestmentId]?.name,
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
-          data: (portfolios) {
-            if (portfolios.isEmpty) {
-              return scrollableCenter(
-                const ListEmptyState(
-                  icon: Icons.account_balance_wallet_outlined,
-                  title: 'Belum ada akun',
-                  subtitle: 'Tekan tombol + untuk menambah akun/dompet pertama Anda.',
+        ],
+      ),
+    );
+  }
+}
+
+/// Replaces the old AppBar icon-only entry point for "Transfer Antar Akun"
+/// — a bare icon button was too easy to miss, this reads as an actual menu
+/// item. Permission gating (premium-only feature) happens in [_openTransfers].
+class _TransferMenuTile extends StatelessWidget {
+  const _TransferMenuTile({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Transfer Antar Akun',
+                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Pindahkan dana antar akun/dompet Anda',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    ),
+                  ],
                 ),
-              );
-            }
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              itemCount: portfolios.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final portfolio = portfolios[index];
-                return _PortfolioTile(
-                  portfolio: portfolio,
-                  providerName: investmentsById[portfolio.financeInvestmentId]?.name,
-                );
-              },
-            );
-          },
+              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            ],
+          ),
         ),
       ),
     );

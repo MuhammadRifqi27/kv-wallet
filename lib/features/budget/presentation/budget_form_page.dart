@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../data/models/budget_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -13,7 +14,14 @@ import '../../master_data/application/category_list_controller.dart';
 import '../application/budget_controller.dart';
 
 class BudgetFormPage extends ConsumerStatefulWidget {
-  const BudgetFormPage({super.key});
+  const BudgetFormPage({super.key, this.budget});
+
+  /// Null means "create new"; non-null means "edit this category's budget".
+  /// There's no separate update endpoint on the backend — both cases call
+  /// [BudgetController.addBudget], which upserts by category + period (see
+  /// docs/flutter-mobile-app-development-guide.txt BAGIAN "BUDGET": the
+  /// same `POST /money-management/budgets` is used for both).
+  final BudgetCategoryItem? budget;
 
   @override
   ConsumerState<BudgetFormPage> createState() => _BudgetFormPageState();
@@ -21,11 +29,15 @@ class BudgetFormPage extends ConsumerStatefulWidget {
 
 class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
+  late final _amountController = TextEditingController(
+    text: widget.budget != null ? widget.budget!.amount.toStringAsFixed(0) : '',
+  );
 
-  int? _selectedCategoryId;
+  late int? _selectedCategoryId = widget.budget?.categoryId;
   bool _isSubmitting = false;
   ApiException? _error;
+
+  bool get _isEditing => widget.budget != null;
 
   @override
   void dispose() {
@@ -78,9 +90,20 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
     final period = ref.watch(selectedBudgetPeriodProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
 
+    // Categories that already have a budget this period shouldn't be
+    // pickable from "Tambah Budget" — re-adding one there would silently
+    // overwrite it (same upsert endpoint) instead of visibly editing it.
+    // Editing an existing one happens by tapping its card in the list
+    // instead, which opens this form with `budget` set and the category
+    // locked in.
+    final alreadyBudgetedIds = _isEditing
+        ? const <int>{}
+        : (ref.watch(budgetControllerProvider).valueOrNull?.categories.map((c) => c.categoryId).toSet() ??
+            const <int>{});
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Tambah Budget')),
+      appBar: AppBar(title: Text(_isEditing ? 'Edit Budget' : 'Tambah Budget')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -110,15 +133,20 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                     style: TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (categories) {
-                    final expenseCategories = categories.where((c) => c.type == CategoryType.expense).toList();
-                    final selected = expenseCategories.where((c) => c.id == _selectedCategoryId).firstOrNull;
+                    final expenseCategories = categories
+                        .where((c) => c.type == CategoryType.expense)
+                        .where((c) => _isEditing || !alreadyBudgetedIds.contains(c.id))
+                        .toList();
+                    final selected = categories.where((c) => c.id == _selectedCategoryId).firstOrNull;
                     return InkWell(
                       borderRadius: BorderRadius.circular(14),
-                      onTap: expenseCategories.isEmpty ? null : () => _openCategoryPicker(expenseCategories),
+                      onTap: _isEditing || expenseCategories.isEmpty
+                          ? null
+                          : () => _openCategoryPicker(expenseCategories),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: _isEditing ? AppColors.background : AppColors.surface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: AppColors.border),
                         ),
@@ -129,11 +157,12 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                             Expanded(
                               child: Text(
                                 selected?.name ??
-                                    (expenseCategories.isEmpty ? 'Belum ada kategori pengeluaran' : 'Pilih kategori'),
+                                    (expenseCategories.isEmpty ? 'Semua kategori sudah punya budget' : 'Pilih kategori'),
                                 style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
                               ),
                             ),
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+                            if (!_isEditing)
+                              const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
                           ],
                         ),
                       ),
@@ -158,7 +187,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: 'Tambah Budget',
+                  label: _isEditing ? 'Simpan Perubahan' : 'Tambah Budget',
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),

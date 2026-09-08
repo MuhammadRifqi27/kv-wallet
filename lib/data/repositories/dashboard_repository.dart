@@ -10,9 +10,13 @@ class DashboardRepository {
 
   final ApiClient _apiClient;
 
-  Future<DashboardModel> getDashboard() async {
+  /// Null [month]/[year] means "current payroll cycle" (backend default).
+  Future<DashboardModel> getDashboard({int? month, int? year}) async {
     try {
-      final response = await _apiClient.dio.get(ApiEndpoints.dashboard);
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.dashboard,
+        queryParameters: month != null && year != null ? {'month': month, 'year': year} : null,
+      );
       return DashboardModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);

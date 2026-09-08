@@ -7,7 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/budget_model.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../../shared/widgets/month_period_selector.dart';
+import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/budget_controller.dart';
 
@@ -29,9 +29,12 @@ class BudgetListPage extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          MonthPeriodSelector(
-            period: period,
-            onChanged: (value) => ref.read(selectedBudgetPeriodProvider.notifier).state = value,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: CyclePeriodFilterBar(
+              period: period,
+              onChanged: (value) => ref.read(selectedBudgetPeriodProvider.notifier).state = value,
+            ),
           ),
           Expanded(
             child: RefreshIndicator(
@@ -81,6 +84,11 @@ class _BudgetBody extends StatelessWidget {
         const Text(
           'Per Kategori',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Tap salah satu untuk mengubah jumlah budget-nya.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
         const SizedBox(height: 10),
         for (final category in summary.categories) ...[
@@ -152,49 +160,58 @@ class _BudgetCategoryCard extends StatelessWidget {
     final overBudget = item.isOverBudget;
     final barColor = overBudget ? AppColors.error : AppColors.primary;
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        onTap: () => context.push('/budget/form', extra: item),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  item.categoryName,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.categoryName,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+                    ),
+                  ),
+                  Text(
+                    formatRupiah(item.amount),
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 16),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: item.progress,
+                  minHeight: 6,
+                  backgroundColor: AppColors.background,
+                  color: barColor,
                 ),
               ),
+              const SizedBox(height: 6),
               Text(
-                formatRupiah(item.amount),
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                overBudget
+                    ? 'Terpakai ${formatRupiah(item.spent)} — melebihi budget'
+                    : 'Terpakai ${formatRupiah(item.spent)} dari ${formatRupiah(item.amount)}',
+                style: TextStyle(color: overBudget ? AppColors.error : AppColors.textSecondary, fontSize: 12),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: item.progress,
-              minHeight: 6,
-              backgroundColor: AppColors.background,
-              color: barColor,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            overBudget
-                ? 'Terpakai ${formatRupiah(item.spent)} — melebihi budget'
-                : 'Terpakai ${formatRupiah(item.spent)} dari ${formatRupiah(item.amount)}',
-            style: TextStyle(color: overBudget ? AppColors.error : AppColors.textSecondary, fontSize: 12),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -37,6 +37,7 @@ class TransferListController extends AsyncNotifier<List<TransferModel>> {
     required int toAccountId,
     required double amount,
     String? description,
+    String? asset,
   }) async {
     await ref.read(transferRepositoryProvider).createTransfer(
           date: date,
@@ -44,6 +45,7 @@ class TransferListController extends AsyncNotifier<List<TransferModel>> {
           toAccountId: toAccountId,
           amount: amount,
           description: description,
+          asset: asset,
         );
     await refresh();
     await _syncRelatedData();
@@ -56,6 +58,7 @@ class TransferListController extends AsyncNotifier<List<TransferModel>> {
     required int toAccountId,
     required double amount,
     String? description,
+    String? asset,
   }) async {
     await ref.read(transferRepositoryProvider).updateTransfer(
           id: id,
@@ -64,6 +67,7 @@ class TransferListController extends AsyncNotifier<List<TransferModel>> {
           toAccountId: toAccountId,
           amount: amount,
           description: description,
+          asset: asset,
         );
     await refresh();
     await _syncRelatedData();

@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../data/models/btc_tracking_model.dart';
 import '../../../data/models/portfolio_model.dart';
 import '../../../data/models/transfer_model.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../master_data/application/investment_list_controller.dart';
 import '../../portfolio/application/portfolio_list_controller.dart';
 import '../application/transfer_list_controller.dart';
 
@@ -29,6 +31,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
     text: widget.transfer != null ? widget.transfer!.amount.toStringAsFixed(0) : '',
   );
   late final _descriptionController = TextEditingController(text: widget.transfer?.description);
+  late final _assetController = TextEditingController(text: widget.transfer?.asset);
 
   late DateTime _date = widget.transfer?.date ?? DateTime.now();
   // Local form state is named to match the create/update request
@@ -48,6 +51,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
   void dispose() {
     _amountController.dispose();
     _descriptionController.dispose();
+    _assetController.dispose();
     super.dispose();
   }
 
@@ -61,6 +65,22 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// Whether either side of the transfer is a crypto-type investment
+  /// account — decides if the Aset field shows up at all. Covers both
+  /// directions: topping up a crypto account (destination is crypto) *and*
+  /// withdrawing from one (source is crypto, e.g. cashing out profit to a
+  /// bank account) — missing the withdrawal direction was the original bug
+  /// here: a crypto withdrawal went out untagged, so it silently vanished
+  /// from BTC Tracking's per-asset breakdown (`asset_balances`) even though
+  /// the account's real balance (computed from *all* transactions
+  /// regardless of tag) was already correct.
+  bool _involvesCrypto() {
+    final portfolios = ref.read(portfolioListControllerProvider).valueOrNull ?? const [];
+    final investments = ref.read(investmentListControllerProvider).valueOrNull ?? const [];
+    final cryptoIds = filterCryptoPortfolios(portfolios, investments).map((p) => p.id).toSet();
+    return cryptoIds.contains(_fromAccountId) || cryptoIds.contains(_toAccountId);
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_fromAccountId == null || _toAccountId == null) {
@@ -69,6 +89,12 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
     }
     if (_fromAccountId == _toAccountId) {
       setState(() => _accountError = 'Akun asal dan tujuan tidak boleh sama.');
+      return;
+    }
+    final involvesCrypto = _involvesCrypto();
+    final asset = _assetController.text.trim();
+    if (involvesCrypto && asset.isEmpty) {
+      setState(() => _accountError = 'Isi simbol aset (mis. BTC) — salah satu akun tipe crypto.');
       return;
     }
     setState(() => _accountError = null);
@@ -92,6 +118,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
           toAccountId: _toAccountId!,
           amount: amount,
           description: description.isEmpty ? null : description,
+          asset: involvesCrypto ? asset.toUpperCase() : null,
         );
       } else {
         await controller.addTransfer(
@@ -100,6 +127,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
           toAccountId: _toAccountId!,
           amount: amount,
           description: description.isEmpty ? null : description,
+          asset: involvesCrypto ? asset.toUpperCase() : null,
         );
       }
       if (mounted) context.pop();
@@ -113,7 +141,13 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
   @override
   Widget build(BuildContext context) {
     final portfoliosAsync = ref.watch(portfolioListControllerProvider);
+    final investmentsAsync = ref.watch(investmentListControllerProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
+    final cryptoIds = filterCryptoPortfolios(
+      portfoliosAsync.valueOrNull ?? const [],
+      investmentsAsync.valueOrNull ?? const [],
+    ).map((p) => p.id).toSet();
+    final involvesCrypto = cryptoIds.contains(_fromAccountId) || cryptoIds.contains(_toAccountId);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -178,6 +212,24 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                 if (_accountError != null) ...[
                   const SizedBox(height: 8),
                   Text(_accountError!, style: const TextStyle(color: AppColors.error, fontSize: 12.5)),
+                ],
+                if (involvesCrypto) ...[
+                  const SizedBox(height: 16),
+                  const Text('Aset', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Salah satu akun tipe crypto — isi simbol asetnya supaya masuk breakdown per-aset di Investment '
+                    '(topup maupun withdrawal/profit taking).',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  AppTextField(
+                    label: 'Simbol aset (mis. BTC)',
+                    controller: _assetController,
+                    icon: Icons.currency_bitcoin_rounded,
+                    textInputAction: TextInputAction.next,
+                    errorText: _error?.errorFor('asset'),
+                  ),
                 ],
                 const SizedBox(height: 16),
                 AppTextField(

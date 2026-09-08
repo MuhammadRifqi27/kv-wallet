@@ -18,7 +18,10 @@ class _NavItem {
 /// Index order must match the branch order in app_router.dart's
 /// StatefulShellRoute (NavigationBar matches by index) — reorder both
 /// together. Permission keys per
-/// docs/flutter-navbar-permission-gating-plan.txt BAGIAN 0.
+/// docs/flutter-navbar-permission-gating-plan.txt BAGIAN 0. Portfolio isn't
+/// a tab here — it's reached via a menu tile on the Profile page — but its
+/// route still carries the `portfolio` permission (see app_router.dart's
+/// `_routePermissions`) so a direct/deep link into it still gets gated.
 const _navItems = [
   _NavItem(
     permission: 'dashboard',
@@ -39,26 +42,26 @@ const _navItems = [
     label: 'Ringkasan',
   ),
   _NavItem(
-    permission: 'portfolio',
-    icon: Icons.account_balance_wallet_outlined,
-    selectedIcon: Icons.account_balance_wallet_rounded,
-    label: 'Portfolio',
-  ),
-  _NavItem(
     permission: 'budgets',
     icon: Icons.calculate_outlined,
     selectedIcon: Icons.calculate_rounded,
     label: 'Budget',
   ),
   _NavItem(
+    permission: 'btc-tracking',
+    icon: Icons.currency_bitcoin_outlined,
+    selectedIcon: Icons.currency_bitcoin_rounded,
+    label: 'Investment',
+  ),
+  _NavItem(
     permission: 'settings',
-    icon: Icons.settings_outlined,
-    selectedIcon: Icons.settings_rounded,
-    label: 'Settings',
+    icon: Icons.person_outline_rounded,
+    selectedIcon: Icons.person_rounded,
+    label: 'Profile',
   ),
 ];
 
-/// Bottom nav shell for the 5 top-level destinations. Tabs the user's
+/// Bottom nav shell for the 6 top-level destinations. Tabs the user's
 /// `money_management_permissions` doesn't cover stay visible but locked
 /// (dimmed + lock badge) — tapping one redirects to Upgrade Membership
 /// instead of navigating, per
@@ -80,7 +83,7 @@ class MainShell extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
     );
-    context.push('/settings/membership');
+    context.push('/profile/membership');
   }
 
   @override

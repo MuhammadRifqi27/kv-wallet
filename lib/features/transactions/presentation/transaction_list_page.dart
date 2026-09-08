@@ -7,8 +7,27 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/filter_pill_bar.dart';
+import '../../auth/application/auth_controller.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../application/transaction_list_controller.dart';
+
+/// "Transaksi Berulang" is a premium-only feature (see
+/// docs/flutter-navbar-permission-gating-plan.txt — granted by the
+/// `recurring` permission). Mirrors the "locked tile" UX used for Transfer
+/// Antar Akun in portfolio_list_page.dart: always tappable, but a user
+/// without the permission gets bounced to the upgrade screen instead.
+void _openRecurring(BuildContext context, WidgetRef ref) {
+  final user = ref.read(authControllerProvider).user;
+  if (user?.hasPermission('recurring') ?? false) {
+    context.push('/transactions/recurring');
+    return;
+  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
+  );
+  context.push('/profile/membership');
+}
 
 class TransactionListPage extends ConsumerWidget {
   const TransactionListPage({super.key});
@@ -17,7 +36,6 @@ class TransactionListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionListControllerProvider);
     final controller = ref.read(transactionListControllerProvider.notifier);
-    final typeFilter = ref.watch(transactionTypeFilterProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -30,16 +48,16 @@ class TransactionListPage extends ConsumerWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: SegmentedButton<TransactionType?>(
-              segments: const [
-                ButtonSegment(value: null, label: Text('Semua')),
-                ButtonSegment(value: TransactionType.income, label: Text('Pemasukan')),
-                ButtonSegment(value: TransactionType.expense, label: Text('Pengeluaran')),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _DateFilterBar(),
+                const SizedBox(height: 8),
+                const _TypeFilterBar(),
+                const SizedBox(height: 12),
+                _RecurringMenuTile(onTap: () => _openRecurring(context, ref)),
               ],
-              selected: {typeFilter},
-              onSelectionChanged: (selection) =>
-                  ref.read(transactionTypeFilterProvider.notifier).state = selection.first,
             ),
           ),
           Expanded(
@@ -267,6 +285,166 @@ class _TransactionTile extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Entry point for "Transaksi Berulang" — a full menu tile instead of a
+/// bare AppBar icon (same lesson learned from Transfer Antar Akun in
+/// portfolio_list_page.dart: an icon-only button was too easy to miss).
+class _RecurringMenuTile extends StatelessWidget {
+  const _RecurringMenuTile({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.autorenew_rounded, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Transaksi Berulang',
+                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Kelola tagihan/pemasukan otomatis berkala',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Date shortcuts (+ a custom range picker) — replaces having no date
+/// filter at all. A horizontal chip row instead of a dropdown so the common
+/// cases ("bulan ini", "bulan lalu") are one tap, not two. "Bulan Ini"/
+/// "Bulan Lalu" resolve to the real payroll cycle, not the 1st–end of the
+/// calendar month — see [resolveTransactionDateRange].
+class _DateFilterBar extends ConsumerWidget {
+  const _DateFilterBar();
+
+  Future<void> _pickCustomRange(BuildContext context, WidgetRef ref) async {
+    final now = DateTime.now();
+    final existing = ref.read(transactionCustomRangeProvider);
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 5),
+      lastDate: now,
+      initialDateRange: existing != null
+          ? DateTimeRange(start: existing.start, end: existing.end)
+          : DateTimeRange(start: now.subtract(const Duration(days: 6)), end: now),
+    );
+    if (picked == null) return;
+
+    ref.read(transactionCustomRangeProvider.notifier).state = DateRange(start: picked.start, end: picked.end);
+    ref.read(transactionDateShortcutProvider.notifier).state = TransactionDateShortcut.custom;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shortcut = ref.watch(transactionDateShortcutProvider);
+    final customRange = ref.watch(transactionCustomRangeProvider);
+
+    void select(TransactionDateShortcut value) => ref.read(transactionDateShortcutProvider.notifier).state = value;
+
+    final customLabel = shortcut == TransactionDateShortcut.custom && customRange != null
+        ? '${formatIndonesianDateShort(customRange.start)} - ${formatIndonesianDateShort(customRange.end)}'
+        : 'Pilih Tanggal';
+
+    return FilterPillBar(
+      pills: [
+        FilterPillSpec(
+          label: 'Semua',
+          selected: shortcut == TransactionDateShortcut.all,
+          onTap: () => select(TransactionDateShortcut.all),
+        ),
+        FilterPillSpec(
+          label: 'Bulan Ini',
+          selected: shortcut == TransactionDateShortcut.thisMonth,
+          onTap: () => select(TransactionDateShortcut.thisMonth),
+        ),
+        FilterPillSpec(
+          label: 'Bulan Lalu',
+          selected: shortcut == TransactionDateShortcut.lastMonth,
+          onTap: () => select(TransactionDateShortcut.lastMonth),
+        ),
+        FilterPillSpec(
+          label: '7 Hari Terakhir',
+          selected: shortcut == TransactionDateShortcut.last7Days,
+          onTap: () => select(TransactionDateShortcut.last7Days),
+        ),
+        FilterPillSpec(
+          label: '30 Hari Terakhir',
+          selected: shortcut == TransactionDateShortcut.last30Days,
+          onTap: () => select(TransactionDateShortcut.last30Days),
+        ),
+        FilterPillSpec(
+          icon: Icons.calendar_today_outlined,
+          label: customLabel,
+          selected: shortcut == TransactionDateShortcut.custom,
+          onTap: () => _pickCustomRange(context, ref),
+        ),
+      ],
+    );
+  }
+}
+
+/// Compact pill toggle for Semua/Pemasukan/Pengeluaran — replaces the old
+/// full-width 3-way SegmentedButton, which stretched the whole row for what
+/// is really just a secondary filter.
+class _TypeFilterBar extends ConsumerWidget {
+  const _TypeFilterBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final typeFilter = ref.watch(transactionTypeFilterProvider);
+
+    void select(TransactionType? value) => ref.read(transactionTypeFilterProvider.notifier).state = value;
+
+    return FilterPillBar(
+      pills: [
+        FilterPillSpec(label: 'Semua', selected: typeFilter == null, onTap: () => select(null)),
+        FilterPillSpec(
+          label: 'Pemasukan',
+          selected: typeFilter == TransactionType.income,
+          onTap: () => select(TransactionType.income),
+        ),
+        FilterPillSpec(
+          label: 'Pengeluaran',
+          selected: typeFilter == TransactionType.expense,
+          onTap: () => select(TransactionType.expense),
+        ),
+      ],
     );
   }
 }
