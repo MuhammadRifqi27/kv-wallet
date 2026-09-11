@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/auth_repository.dart';
@@ -17,17 +18,56 @@ import '../../data/repositories/summary_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../data/repositories/transfer_repository.dart';
 import '../../features/auth/application/auth_controller.dart';
+import '../auth/biometric_service.dart';
 import '../network/api_client.dart';
 import '../notifications/notification_service.dart';
+import '../ocr/receipt_scanner.dart';
+import '../storage/biometric_preference_service.dart';
+import '../storage/biometric_prompt_service.dart';
 import '../storage/onboarding_service.dart';
 import '../storage/secure_storage_service.dart';
+import '../storage/theme_preference_service.dart';
 
 final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService();
 });
 
+final biometricServiceProvider = Provider<BiometricService>((ref) {
+  return BiometricService();
+});
+
+final biometricPreferenceServiceProvider = Provider<BiometricPreferenceService>((ref) {
+  return BiometricPreferenceService();
+});
+
+final biometricPromptServiceProvider = Provider<BiometricPromptService>((ref) {
+  return BiometricPromptService();
+});
+
+/// Overridden in main.dart with the real value read at startup (same
+/// pattern as [hasSeenOnboardingProvider]) so VerifyPinPage can decide
+/// synchronously whether to prompt biometrics, instead of adding a loading
+/// state to wait on. Flipped at runtime by the toggle in ProfilePage.
+final biometricEnabledProvider = StateProvider<bool>((ref) => false);
+
+final themePreferenceServiceProvider = Provider<ThemePreferenceService>((ref) {
+  return ThemePreferenceService();
+});
+
+/// Overridden in main.dart with the persisted value read at startup, same
+/// pattern as [hasSeenOnboardingProvider]/[biometricEnabledProvider]. Set
+/// from ProfilePage's theme picker via [ThemePreferenceService.setThemeMode]
+/// + this provider together — see `_setThemeMode` there.
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
+});
+
+final receiptScannerProvider = Provider<ReceiptScanner>((ref) {
+  final scanner = ReceiptScanner();
+  ref.onDispose(scanner.dispose);
+  return scanner;
 });
 
 final onboardingServiceProvider = Provider<OnboardingService>((ref) {

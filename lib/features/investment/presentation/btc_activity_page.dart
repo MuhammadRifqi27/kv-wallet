@@ -138,7 +138,7 @@ class _ActivityTile extends ConsumerWidget {
               children: [
                 Text(
                   '${item.asset} · ${_labelFor(item.type)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -149,7 +149,7 @@ class _ActivityTile extends ConsumerWidget {
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 if (item.description != null && item.description!.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -157,7 +157,7 @@ class _ActivityTile extends ConsumerWidget {
                     item.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                   ),
                 ],
               ],
@@ -170,7 +170,7 @@ class _ActivityTile extends ConsumerWidget {
           ),
           if (item.isFromTransfer)
             IconButton(
-              icon: const Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary, size: 18),
+              icon: Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary, size: 18),
               tooltip: 'Kelola dari Transfer Antar Akun',
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Entry ini dari Transfer — kelola dari menu Transfer Antar Akun.')),
@@ -178,11 +178,11 @@ class _ActivityTile extends ConsumerWidget {
             )
           else ...[
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 18),
+              icon: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 18),
               onPressed: () => context.push('/investment/entry-form', extra: item),
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 18),
+              icon: Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 18),
               onPressed: () => _confirmDelete(context, ref),
             ),
           ],

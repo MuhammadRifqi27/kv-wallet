@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/named_amount.dart';
@@ -29,6 +30,9 @@ class SummaryPage extends ConsumerWidget {
     final summaryAsync = ref.watch(summaryControllerProvider);
     final controller = ref.read(summaryControllerProvider.notifier);
     final period = ref.watch(selectedSummaryPeriodProvider);
+    // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
+    // + MainShell's note on why this needs an explicit watch.
+    ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -163,7 +167,7 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary));
+    return Text(text, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary));
   }
 }
 
@@ -270,7 +274,7 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
           const SizedBox(height: 4),
           Text(
             value,
@@ -351,7 +355,7 @@ class _SavingsRateCard extends StatelessWidget {
             child: Icon(Icons.savings_outlined, color: color, size: 18),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Rasio Menabung',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
@@ -419,10 +423,10 @@ class _BudgetHealthCard extends ConsumerWidget {
                       allOk
                           ? 'Semua kategori masih dalam budget'
                           : '$overBudgetCount dari ${summary.categories.length} kategori melebihi budget',
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+                  Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
                 ],
               ),
             ),
@@ -440,14 +444,14 @@ class _BreakdownChart extends StatelessWidget {
 
   final List<NamedAmount> items;
 
-  static const _palette = [
-    AppColors.primary,
-    AppColors.accent,
-    AppColors.success,
-    AppColors.error,
-    Color(0xFFE2B4BD),
-    Color(0xFF0EA5A4),
-  ];
+  static List<Color> get _palette => [
+        AppColors.primary,
+        AppColors.accent,
+        AppColors.success,
+        AppColors.error,
+        const Color(0xFFE2B4BD),
+        const Color(0xFF0EA5A4),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -496,12 +500,12 @@ class _BreakdownChart extends StatelessWidget {
                         item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 11.5, color: AppColors.textPrimary),
+                        style: TextStyle(fontSize: 11.5, color: AppColors.textPrimary),
                       ),
                     ),
                     Text(
                       '${percentage.toStringAsFixed(0)}%',
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -538,7 +542,7 @@ class _MonthlyTrendChart extends StatelessWidget {
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: false,
-                getDrawingHorizontalLine: (value) => const FlLine(color: AppColors.border, strokeWidth: 1),
+                getDrawingHorizontalLine: (value) => FlLine(color: AppColors.border, strokeWidth: 1),
               ),
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
@@ -550,7 +554,7 @@ class _MonthlyTrendChart extends StatelessWidget {
                     reservedSize: 40,
                     getTitlesWidget: (value, meta) => Text(
                       formatCompactRupiah(value),
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 9.5),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 9.5),
                     ),
                   ),
                 ),
@@ -568,7 +572,7 @@ class _MonthlyTrendChart extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
                           shortLabel,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 9.5),
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 9.5),
                         ),
                       );
                     },
@@ -612,7 +616,7 @@ class _LegendDot extends StatelessWidget {
       children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
+        Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
       ],
     );
   }
@@ -634,7 +638,7 @@ class _AdvisorTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 18),
+          Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Text(tip, style: const TextStyle(color: AppColors.primaryDark, fontSize: 13)),

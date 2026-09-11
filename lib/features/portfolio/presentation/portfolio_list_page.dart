@@ -133,10 +133,10 @@ class _TransferMenuTile extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 20),
+                child: Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -152,7 +152,7 @@ class _TransferMenuTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
             ],
           ),
         ),
@@ -209,7 +209,7 @@ class _PortfolioTile extends ConsumerWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
             child: Icon(
               portfolio.isInvestmentAccount ? Icons.trending_up_rounded : Icons.account_balance_wallet_outlined,
               color: AppColors.primary,
@@ -223,14 +223,14 @@ class _PortfolioTile extends ConsumerWidget {
               children: [
                 Text(
                   portfolio.accountName,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   providerName ?? 'Provider #${portfolio.financeInvestmentId}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 if (balance != null) ...[
                   const SizedBox(height: 4),
@@ -247,7 +247,7 @@ class _PortfolioTile extends ConsumerWidget {
             ),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+            icon: Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
             onSelected: (value) {
               if (value == 'edit') {
                 context.push('/portfolio/form', extra: portfolio);

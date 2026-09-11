@@ -178,7 +178,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Tenggat (opsional)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Tenggat (opsional)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
@@ -192,17 +192,17 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.event_outlined, color: AppColors.textSecondary, size: 20),
+                        Icon(Icons.event_outlined, color: AppColors.textSecondary, size: 20),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             _targetDate != null ? formatIndonesianDate(_targetDate!) : 'Tanpa tenggat',
-                            style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                            style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                           ),
                         ),
                         if (_targetDate != null)
                           IconButton(
-                            icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
+                            icon: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
                             onPressed: () => setState(() => _targetDate = null),
                           ),
                       ],
@@ -210,11 +210,11 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Akun sumber dana (opsional)',
+                Text('Akun sumber dana (opsional)',
                     style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat daftar akun.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -231,23 +231,23 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.account_balance_wallet_outlined, color: AppColors.textSecondary, size: 20),
+                          Icon(Icons.account_balance_wallet_outlined, color: AppColors.textSecondary, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               selectedPortfolioName ??
                                   (portfolios.isEmpty ? 'Belum ada akun' : 'Tidak diikat ke akun manapun'),
-                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                              style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                             ),
                           ),
-                          const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+                          Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
                         ],
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Warna', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Warna', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
@@ -262,7 +262,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Text('Ikon', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Ikon', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
@@ -368,7 +368,7 @@ class _PortfolioPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Pilih akun sumber dana', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('Pilih akun sumber dana', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -387,7 +387,7 @@ class _PortfolioPickerSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: selectedId == null ? AppColors.primary : AppColors.border),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
                             Expanded(
                               child: Text(
@@ -418,11 +418,11 @@ class _PortfolioPickerSheet extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   portfolio.accountName,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                               ),
                               if (portfolio.id == selectedId)
-                                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                                Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                             ],
                           ),
                         ),

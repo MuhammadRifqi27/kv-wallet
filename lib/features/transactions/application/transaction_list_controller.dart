@@ -8,6 +8,27 @@ import '../../budget/application/budget_controller.dart';
 /// Null means "all types".
 final transactionTypeFilterProvider = StateProvider<TransactionType?>((ref) => null);
 
+/// Free-text search over the currently-loaded transactions — client-side
+/// only (no backend `search`/`q` param documented for `GET /transactions`),
+/// same scope limitation the date/type filters above already have: it only
+/// searches whatever page the server returned for the current date/type
+/// filter, not the user's entire history. Empty string means "no search".
+final transactionSearchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Matches on category name, description/note, and account name — the
+/// fields actually shown on each [_TransactionTile] row, so a match always
+/// explains itself visually once found.
+List<TransactionModel> filterTransactionsByQuery(List<TransactionModel> transactions, String query) {
+  final trimmed = query.trim().toLowerCase();
+  if (trimmed.isEmpty) return transactions;
+
+  return transactions.where((transaction) {
+    return (transaction.categoryName?.toLowerCase().contains(trimmed) ?? false) ||
+        (transaction.description?.toLowerCase().contains(trimmed) ?? false) ||
+        (transaction.portfolioName?.toLowerCase().contains(trimmed) ?? false);
+  }).toList();
+}
+
 /// Framework-agnostic stand-in for Flutter's `DateTimeRange` — kept out of
 /// this application-layer file so it doesn't need a `material.dart` import.
 /// [end] is inclusive.

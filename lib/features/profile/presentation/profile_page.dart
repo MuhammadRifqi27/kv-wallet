@@ -4,13 +4,74 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/auth/biometric_enroll.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_model.dart';
 import '../../../shared/widgets/settings_tile.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../pin/presentation/confirm_pin_sheet.dart';
 
 const _customerServiceFormUrl = 'https://forms.gle/DsB5KK67qddKvUuM9';
 const _instagramUrl = 'https://www.instagram.com/kodevisual';
+
+/// Turning biometric login on/off — see BiometricService's doc comment for
+/// why this is `biometricOnly` (no device-credential fallback) and
+/// SecureStorageService.saveCachedPin for why a PIN needs caching at all.
+/// Disabling never needs re-confirmation: wiping the cached PIN is always
+/// safe, there's nothing destructive about it.
+Future<void> _setBiometricEnabled(BuildContext context, WidgetRef ref, bool enabled) async {
+  if (!enabled) {
+    await ref.read(secureStorageServiceProvider).deleteCachedPin();
+    await ref.read(biometricPreferenceServiceProvider).setEnabled(false);
+    ref.read(biometricEnabledProvider.notifier).state = false;
+    return;
+  }
+
+  if (!await ref.read(biometricServiceProvider).isSupported()) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Perangkat ini tidak mendukung atau belum mendaftarkan biometrik.')),
+      );
+    }
+    return;
+  }
+  if (!context.mounted) return;
+
+  // Need the plaintext PIN once, to cache it — nothing else in the app
+  // holds it in memory at the point this toggle is flipped.
+  final confirmedPin = await showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.surface,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+    builder: (context) => const ConfirmPinSheet(),
+  );
+  if (confirmedPin == null || !context.mounted) return;
+
+  final enrolled = await enrollBiometricLogin(
+    ref,
+    pin: confirmedPin,
+    reason: 'Aktifkan login biometrik untuk Flowr',
+  );
+  if (!context.mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        enrolled
+            ? 'Biometrik aktif. Mulai sekarang cukup tap "Gunakan Biometrik" di layar kunci untuk masuk tanpa PIN.'
+            : 'Verifikasi biometrik gagal atau dibatalkan.',
+      ),
+      duration: const Duration(seconds: 5),
+    ),
+  );
+}
+
+Future<void> _setThemeMode(WidgetRef ref, ThemeMode mode) async {
+  ref.read(themeModeProvider.notifier).state = mode;
+  await ref.read(themePreferenceServiceProvider).setThemeMode(mode);
+}
 
 /// Landing page for the "settings" permission — framed as the user's
 /// account/profile hub: profile info + membership status up top, then
@@ -81,6 +142,12 @@ class ProfilePage extends ConsumerWidget {
             onTap: () => context.push('/savings-goals'),
           ),
           const SizedBox(height: 24),
+          const _SectionLabel('Tampilan'),
+          _ThemeModeTile(
+            mode: ref.watch(themeModeProvider),
+            onChanged: (mode) => _setThemeMode(ref, mode),
+          ),
+          const SizedBox(height: 24),
           const _SectionLabel('Master Data'),
           SettingsTile(
             icon: Icons.category_outlined,
@@ -124,6 +191,11 @@ class ProfilePage extends ConsumerWidget {
             title: 'Ubah PIN',
             subtitle: 'Ganti PIN 6 digit untuk membuka aplikasi',
             onTap: () => context.push('/profile/change-pin'),
+          ),
+          const SizedBox(height: 8),
+          _BiometricToggleTile(
+            enabled: ref.watch(biometricEnabledProvider),
+            onChanged: (value) => _setBiometricEnabled(context, ref, value),
           ),
           const SizedBox(height: 24),
           const _SectionLabel('Akun'),
@@ -173,7 +245,7 @@ class _ProfileHeader extends StatelessWidget {
                 child: avatarUrl == null
                     ? Text(
                         initial,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: AppColors.primary),
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: AppColors.primary),
                       )
                     : null,
               ),
@@ -184,19 +256,19 @@ class _ProfileHeader extends StatelessWidget {
                   children: [
                     Text(
                       user.name,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textPrimary),
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.textPrimary),
                     ),
                     if (user.username != null && user.username!.isNotEmpty) ...[
                       const SizedBox(height: 2),
-                      Text('@${user.username}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+                      Text('@${user.username}', style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
                     ],
                     const SizedBox(height: 2),
-                    Text(user.email, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+                    Text(user.email, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 20),
+                icon: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 20),
                 tooltip: 'Edit Profil',
                 onPressed: () => context.push('/profile/edit'),
               ),
@@ -221,10 +293,10 @@ class _ProfileHeader extends StatelessWidget {
                     user.isPaidMember
                         ? (user.membershipPlan?.name ?? 'Member')
                         : 'Free — belum upgrade membership',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
                   ),
                 ),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+                Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
               ],
             ),
           ),
@@ -250,9 +322,12 @@ class _AppFooter extends StatelessWidget {
           const SizedBox(height: 24),
           Container(height: 1, color: AppColors.border),
           const SizedBox(height: 24),
-          Image.asset('assets/branding/logo_mark.png', height: 26),
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(AppColors.textPrimary, BlendMode.srcIn),
+            child: Image.asset('assets/branding/logo_mark.png', height: 26),
+          ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Flowr',
             style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
           ),
@@ -263,7 +338,7 @@ class _AppFooter extends StatelessWidget {
               final version = snapshot.data?.version ?? '1.0.0';
               return Text(
                 'Versi $version',
-                style: const TextStyle(color: AppColors.textDisabled, fontSize: 10.5),
+                style: TextStyle(color: AppColors.textDisabled, fontSize: 10.5),
               );
             },
           ),
@@ -277,7 +352,7 @@ class _AppFooter extends StatelessWidget {
                 color: AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.alternate_email_rounded, size: 13, color: AppColors.primary),
@@ -291,9 +366,86 @@ class _AppFooter extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          const Text(
+          Text(
             '© 2026 Kodevisual. All rights reserved.',
             style: TextStyle(color: AppColors.textDisabled, fontSize: 9.5),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Same tappable-card look as [SettingsTile], but with a [Switch] instead
+/// of a chevron since this toggles a setting in place rather than
+/// navigating anywhere.
+class _BiometricToggleTile extends StatelessWidget {
+  const _BiometricToggleTile({required this.enabled, required this.onChanged});
+
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: SwitchListTile(
+        value: enabled,
+        onChanged: onChanged,
+        activeThumbColor: AppColors.primary,
+        secondary: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
+          child: Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 20),
+        ),
+        title: Text('Login Biometrik', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        subtitle: Text(
+          enabled
+              ? 'Aktif — tap "Gunakan Biometrik" di layar kunci untuk masuk tanpa mengetik PIN'
+              : 'Buka aplikasi dengan sidik jari/Face ID, sebagai pengganti mengetik PIN',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sistem/Terang/Gelap picker driving [themeModeProvider] — a compact
+/// 3-way segmented control rather than a navigation tile, since there's
+/// nothing further to drill into.
+class _ThemeModeTile extends StatelessWidget {
+  const _ThemeModeTile({required this.mode, required this.onChanged});
+
+  final ThemeMode mode;
+  final ValueChanged<ThemeMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Tema Aplikasi', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          const SizedBox(height: 10),
+          SegmentedButton<ThemeMode>(
+            segments: const [
+              ButtonSegment(value: ThemeMode.system, label: Text('Sistem'), icon: Icon(Icons.brightness_auto_rounded)),
+              ButtonSegment(value: ThemeMode.light, label: Text('Terang'), icon: Icon(Icons.light_mode_outlined)),
+              ButtonSegment(value: ThemeMode.dark, label: Text('Gelap'), icon: Icon(Icons.dark_mode_outlined)),
+            ],
+            selected: {mode},
+            onSelectionChanged: (selection) => onChanged(selection.first),
           ),
         ],
       ),
@@ -312,7 +464,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
       ),
     );
   }

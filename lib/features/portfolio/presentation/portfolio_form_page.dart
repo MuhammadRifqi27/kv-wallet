@@ -107,10 +107,10 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                   ErrorBanner(message: _error!.message),
                   const SizedBox(height: 16),
                 ],
-                const Text('Provider', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Provider', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 investmentsAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat daftar provider.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -161,11 +161,11 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                     value: _isInvestmentAccount,
                     onChanged: (value) => setState(() => _isInvestmentAccount = value),
                     activeThumbColor: AppColors.primary,
-                    title: const Text(
+                    title: Text(
                       'Akun investasi',
                       style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     ),
-                    subtitle: const Text(
+                    subtitle: Text(
                       'Dana masuk/keluar dicatat sebagai deposit/profit/withdrawal/loss, terpisah dari transaksi biasa',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
@@ -229,7 +229,7 @@ class _InvestmentPickerField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.account_balance_outlined, color: AppColors.textSecondary, size: 20),
+            Icon(Icons.account_balance_outlined, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -240,7 +240,7 @@ class _InvestmentPickerField extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -271,7 +271,7 @@ class _InvestmentPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Pilih provider investasi',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
@@ -303,16 +303,16 @@ class _InvestmentPickerSheet extends StatelessWidget {
                               children: [
                                 Text(
                                   investment.name,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                                 Text(
                                   investment.type.label,
-                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                                 ),
                               ],
                             ),
                           ),
-                          if (selected) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                          if (selected) Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                         ],
                       ),
                     ),

@@ -209,7 +209,7 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 SegmentedButton<TransactionType>(
                   segments: const [
@@ -232,10 +232,10 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                   }),
                 ),
                 const SizedBox(height: 16),
-                const Text('Kategori', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Kategori', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 categoriesAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat kategori.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -251,10 +251,10 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat akun.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -269,11 +269,11 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Frekuensi', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Frekuensi', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(icon: Icons.repeat_rounded, label: _frequency.label, onTap: _pickFrequency),
                 const SizedBox(height: 16),
-                const Text('Mulai Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Mulai Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(
                   icon: Icons.calendar_today_outlined,
@@ -282,7 +282,7 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                 ),
                 if (_startDateIsHistorical) ...[
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Template ini sudah pernah diproses, jadi mengubah tanggal ini tidak '
                     'menggeser jadwal berikutnya — cuma jadi catatan kapan pertama dibuat.',
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
@@ -349,7 +349,7 @@ class _FrequencyPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Pilih frekuensi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('Pilih frekuensi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             for (final frequency in RecurringFrequency.values)
               Padding(
@@ -367,9 +367,9 @@ class _FrequencyPickerSheet extends StatelessWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text(frequency.label, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                          child: Text(frequency.label, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                         ),
-                        if (frequency == selected) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                        if (frequency == selected) Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                       ],
                     ),
                   ),
@@ -405,8 +405,8 @@ class _TapField extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 15))),
-            const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+            Expanded(child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 15))),
+            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -448,7 +448,7 @@ class _PickerSheet<T> extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -496,8 +496,8 @@ class _PickerRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary))),
-              if (selected) const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+              Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary))),
+              if (selected) Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
             ],
           ),
         ),

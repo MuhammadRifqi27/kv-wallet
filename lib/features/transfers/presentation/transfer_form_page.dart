@@ -164,7 +164,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                   ErrorBanner(message: _error!.message),
                   const SizedBox(height: 16),
                 ],
-                const Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(
                   icon: Icons.calendar_today_outlined,
@@ -172,10 +172,10 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 16),
-                const Text('Dari Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Dari Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat akun.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -191,10 +191,10 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Ke Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Ke Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat akun.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -215,9 +215,9 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                 ],
                 if (involvesCrypto) ...[
                   const SizedBox(height: 16),
-                  const Text('Aset', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text('Aset', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'Salah satu akun tipe crypto — isi simbol asetnya supaya masuk breakdown per-aset di Investment '
                     '(topup maupun withdrawal/profit taking).',
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
@@ -293,8 +293,8 @@ class _TapField extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 15))),
-            const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+            Expanded(child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 15))),
+            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -367,7 +367,7 @@ class _AccountPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Pilih akun', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('Pilih akun', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -394,11 +394,11 @@ class _AccountPickerSheet extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   portfolio.accountName,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                               ),
                               if (portfolio.id == selectedId)
-                                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                                Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                             ],
                           ),
                         ),

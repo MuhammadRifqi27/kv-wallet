@@ -60,7 +60,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   children: [
                     const Center(child: AppLogo(size: 72)),
                     const SizedBox(height: 32),
-                    const Text(
+                    Text(
                       'Selamat datang kembali',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -70,7 +70,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
+                    Text(
                       'Masuk untuk melanjutkan kelola keuangan Anda',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
@@ -123,7 +123,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Belum punya akun?', style: TextStyle(color: AppColors.textSecondary)),
+                        Text('Belum punya akun?', style: TextStyle(color: AppColors.textSecondary)),
                         TextButton(
                           onPressed: () => context.go('/register'),
                           child: const Text('Daftar'),

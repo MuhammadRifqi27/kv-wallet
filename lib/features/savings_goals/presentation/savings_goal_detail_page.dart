@@ -56,7 +56,7 @@ class SavingsGoalDetailPage extends ConsumerWidget {
           children: [
             _GoalSummaryCard(goal: latest, color: color),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Riwayat Nabung/Tarik',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
             ),
@@ -297,7 +297,7 @@ class _ContributionTile extends ConsumerWidget {
               children: [
                 Text(
                   isWithdrawal ? 'Tarik' : 'Nabung',
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -307,7 +307,7 @@ class _ContributionTile extends ConsumerWidget {
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 if (contribution.note != null && contribution.note!.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -315,7 +315,7 @@ class _ContributionTile extends ConsumerWidget {
                     contribution.note!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                   ),
                 ],
               ],
@@ -327,7 +327,7 @@ class _ContributionTile extends ConsumerWidget {
             style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 18),
+            icon: Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 18),
             onPressed: () => _confirmDelete(context, ref),
           ),
         ],
@@ -440,7 +440,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Catat Nabung/Tarik',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                 ),
@@ -466,7 +466,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   onSelectionChanged: (selection) => setState(() => _type = selection.first),
                 ),
                 const SizedBox(height: 16),
-                const Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
@@ -480,9 +480,9 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 20),
+                        Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 20),
                         const SizedBox(width: 12),
-                        Text(formatIndonesianDate(_date), style: const TextStyle(color: AppColors.textPrimary, fontSize: 15)),
+                        Text(formatIndonesianDate(_date), style: TextStyle(color: AppColors.textPrimary, fontSize: 15)),
                       ],
                     ),
                   ),
@@ -503,10 +503,10 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Akun (opsional)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Akun (opsional)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat daftar akun.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -523,16 +523,16 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.account_balance_wallet_outlined, color: AppColors.textSecondary, size: 20),
+                          Icon(Icons.account_balance_wallet_outlined, color: AppColors.textSecondary, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               selectedPortfolioName ??
                                   (portfolios.isEmpty ? 'Belum ada akun' : 'Tidak dicatat ke akun manapun'),
-                              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                              style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                             ),
                           ),
-                          const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+                          Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
                         ],
                       ),
                     ),
@@ -581,7 +581,7 @@ class _ContributionPortfolioPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Pilih akun', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('Pilih akun', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -600,7 +600,7 @@ class _ContributionPortfolioPickerSheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: selectedId == null ? AppColors.primary : AppColors.border),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Tidak dicatat ke akun manapun',
                           style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                         ),
@@ -625,11 +625,11 @@ class _ContributionPortfolioPickerSheet extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   portfolio.accountName,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                               ),
                               if (portfolio.id == selectedId)
-                                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                                Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                             ],
                           ),
                         ),

@@ -89,7 +89,7 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'Tanggal mulai siklus gajian menentukan periode yang dipakai Dashboard, '
             'Budget, dan Ringkasan — bukan tanggal 1-31 kalender biasa.',
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
@@ -109,11 +109,11 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
               value: _useEndOfMonth,
               onChanged: (value) => setState(() => _useEndOfMonth = value),
               activeThumbColor: AppColors.primary,
-              title: const Text(
+              title: Text(
                 'Pakai akhir bulan',
                 style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
               ),
-              subtitle: const Text(
+              subtitle: Text(
                 'Siklus mulai dari tanggal terakhir tiap bulan',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
               ),
@@ -121,7 +121,7 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
           ),
           if (!_useEndOfMonth) ...[
             const SizedBox(height: 8),
-            const Text('Tanggal mulai', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            Text('Tanggal mulai', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             _DayPickerField(
               day: _day,
@@ -170,15 +170,15 @@ class _DayPickerField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 20),
+            Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Tanggal $day',
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -211,7 +211,7 @@ class _DayPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Pilih tanggal mulai',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),

@@ -114,20 +114,20 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
               children: [
                 Text(
                   'Untuk periode ${monthName(period.month)} ${period.year}',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 if (generalError) ...[
                   ErrorBanner(message: _error!.message),
                   const SizedBox(height: 16),
                 ],
-                const Text(
+                Text(
                   'Kategori Pengeluaran',
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 8),
                 categoriesAsync.when(
-                  loading: () => const LinearProgressIndicator(color: AppColors.primary),
+                  loading: () => LinearProgressIndicator(color: AppColors.primary),
                   error: (error, _) => const Text(
                     'Gagal memuat kategori.',
                     style: TextStyle(color: AppColors.error, fontSize: 13),
@@ -152,17 +152,17 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.category_outlined, color: AppColors.textSecondary, size: 20),
+                            Icon(Icons.category_outlined, color: AppColors.textSecondary, size: 20),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 selected?.name ??
                                     (expenseCategories.isEmpty ? 'Semua kategori sudah punya budget' : 'Pilih kategori'),
-                                style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                                style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                               ),
                             ),
                             if (!_isEditing)
-                              const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+                              Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
                           ],
                         ),
                       ),
@@ -223,7 +223,7 @@ class _CategoryPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Pilih kategori',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
@@ -253,11 +253,11 @@ class _CategoryPickerSheet extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   category.name,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                               ),
                               if (category.id == selectedId)
-                                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                                Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                             ],
                           ),
                         ),

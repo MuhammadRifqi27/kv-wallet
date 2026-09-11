@@ -108,14 +108,14 @@ class _CategoryTile extends StatelessWidget {
               children: [
                 Text(
                   category.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   category.description?.isNotEmpty == true ? category.description! : category.type.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
               ],
             ),
@@ -142,12 +142,12 @@ class ListEmptyState extends StatelessWidget {
         children: [
           Icon(icon, size: 48, color: AppColors.textDisabled),
           const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
           const SizedBox(height: 4),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ],
       ),
@@ -170,7 +170,7 @@ class ListErrorState extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
           const SizedBox(height: 12),
-          Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary)),
+          Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
           const SizedBox(height: 16),
           TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
         ],

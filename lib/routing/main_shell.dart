@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/providers/core_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../data/models/user_model.dart';
 import '../features/auth/application/auth_controller.dart';
@@ -89,6 +90,12 @@ class MainShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
+    // MainShell stays mounted the whole time any of its 6 IndexedStack
+    // branches is visible, so it's never naturally rebuilt by Flutter's
+    // normal parent-cascade when the user flips light/dark from deep
+    // inside the Profile branch — watching the mode here forces Riverpod
+    // to rebuild it directly instead, see AppColors' class doc.
+    ref.watch(themeModeProvider);
 
     return Scaffold(
       body: navigationShell,
@@ -127,7 +134,7 @@ class _NavIcon extends StatelessWidget {
         alignment: Alignment.bottomRight,
         children: [
           Icon(icon),
-          const Icon(Icons.lock_rounded, size: 10, color: AppColors.textSecondary),
+          Icon(Icons.lock_rounded, size: 10, color: AppColors.textSecondary),
         ],
       ),
     );

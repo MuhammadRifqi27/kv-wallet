@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/dashboard_model.dart';
@@ -29,6 +30,10 @@ class DashboardPage extends ConsumerWidget {
     final controller = ref.read(dashboardControllerProvider.notifier);
     final hideNominal = ref.watch(hideNominalProvider);
     final selectedPeriod = ref.watch(selectedDashboardPeriodProvider);
+    // Kept alive inside MainShell's IndexedStack, so it's never naturally
+    // rebuilt by Flutter's parent-cascade when the theme is toggled from
+    // the Profile branch — see AppColors' class doc + MainShell's note.
+    ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -36,7 +41,10 @@ class DashboardPage extends ConsumerWidget {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/branding/logo_mark.png', height: 22, fit: BoxFit.contain),
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(AppColors.textPrimary, BlendMode.srcIn),
+              child: Image.asset('assets/branding/logo_mark.png', height: 22, fit: BoxFit.contain),
+            ),
             const SizedBox(width: 8),
             const Text('Flowr'),
           ],
@@ -152,7 +160,7 @@ class _DashboardBody extends StatelessWidget {
         _SavingsGoalsCard(hideNominal: hideNominal),
         if (_dailyAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Akun Harian',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
@@ -164,7 +172,7 @@ class _DashboardBody extends StatelessWidget {
         ],
         if (_investmentAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Akun Investasi',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
@@ -176,7 +184,7 @@ class _DashboardBody extends StatelessWidget {
         ],
         if (dashboard.incomeBreakdown.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Sumber Pemasukan',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
@@ -185,7 +193,7 @@ class _DashboardBody extends StatelessWidget {
         ],
         if (dashboard.topExpenses.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Kategori Terbesar',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
@@ -194,7 +202,7 @@ class _DashboardBody extends StatelessWidget {
         ],
         if (dashboard.recentTransactions.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Transaksi Terbaru',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
@@ -305,13 +313,13 @@ class _StatCard extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
           const SizedBox(height: 2),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
           ),
         ],
       ),
@@ -356,9 +364,9 @@ class _SavingsGoalsCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.savings_outlined, color: AppColors.primary, size: 18),
+                  Icon(Icons.savings_outlined, color: AppColors.primary, size: 18),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Target Tabungan',
                       style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
@@ -366,9 +374,9 @@ class _SavingsGoalsCard extends ConsumerWidget {
                   ),
                   Text(
                     '${summary.activeCount} aktif · ${summary.achievedCount} tercapai',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                   ),
-                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
+                  Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
                 ],
               ),
               const SizedBox(height: 10),
@@ -376,7 +384,7 @@ class _SavingsGoalsCard extends ConsumerWidget {
                 highlight.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 6),
               ClipRRect(
@@ -391,7 +399,7 @@ class _SavingsGoalsCard extends ConsumerWidget {
               const SizedBox(height: 6),
               Text(
                 '${maskRupiah(highlight.savedAmount, hide: hideNominal)} dari ${maskRupiah(highlight.targetAmount, hide: hideNominal)}',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -421,7 +429,7 @@ class _AccountTile extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
             child: Icon(
               portfolio.isInvestment ? Icons.trending_up_rounded : Icons.account_balance_wallet_outlined,
               color: AppColors.primary,
@@ -435,19 +443,19 @@ class _AccountTile extends StatelessWidget {
               children: [
                 Text(
                   portfolio.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
                 ),
                 if (portfolio.investmentCode != null)
                   Text(
                     portfolio.investmentCode!,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
                   ),
               ],
             ),
           ),
           Text(
             maskRupiah(portfolio.balance, hide: hideNominal),
-            style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 12.5),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 12.5),
           ),
         ],
       ),
@@ -508,12 +516,12 @@ class _AmountBar extends StatelessWidget {
                 item.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ),
             Text(
               maskRupiah(item.amount, hide: hideNominal),
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
             ),
           ],
         ),
@@ -582,7 +590,7 @@ class _RecentTransactionTile extends StatelessWidget {
               children: [
                 Text(
                   transaction.categoryName,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
                 ),
                 Text(
                   [
@@ -591,7 +599,7 @@ class _RecentTransactionTile extends StatelessWidget {
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
                 ),
               ],
             ),

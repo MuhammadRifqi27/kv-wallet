@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/transaction_model.dart';
@@ -36,6 +37,10 @@ class TransactionListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionListControllerProvider);
     final controller = ref.read(transactionListControllerProvider.notifier);
+    final searchQuery = ref.watch(transactionSearchQueryProvider);
+    // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
+    // + MainShell's note on why this needs an explicit watch.
+    ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -52,6 +57,8 @@ class TransactionListPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const _SearchField(),
+                const SizedBox(height: 12),
                 const _DateFilterBar(),
                 const SizedBox(height: 8),
                 const _TypeFilterBar(),
@@ -82,9 +89,21 @@ class TransactionListPage extends ConsumerWidget {
                       ),
                     );
                   }
+
+                  final filtered = filterTransactionsByQuery(result.transactions, searchQuery);
+                  if (filtered.isEmpty) {
+                    return scrollableCenter(
+                      const ListEmptyState(
+                        icon: Icons.search_off_rounded,
+                        title: 'Tidak ada hasil',
+                        subtitle: 'Tidak ada transaksi yang cocok dengan pencarian ini.',
+                      ),
+                    );
+                  }
+
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                    itemCount: result.transactions.length + 1,
+                    itemCount: filtered.length + 1,
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Padding(
@@ -94,7 +113,7 @@ class TransactionListPage extends ConsumerWidget {
                       }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: _TransactionTile(transaction: result.transactions[index - 1]),
+                        child: _TransactionTile(transaction: filtered[index - 1]),
                       );
                     },
                   );
@@ -103,6 +122,53 @@ class TransactionListPage extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Client-side search box — see [transactionSearchQueryProvider]. Keeps its
+/// own [TextEditingController] (rather than rebuilding from provider state
+/// on every keystroke) so the cursor position isn't disturbed while typing.
+class _SearchField extends ConsumerStatefulWidget {
+  const _SearchField();
+
+  @override
+  ConsumerState<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends ConsumerState<_SearchField> {
+  late final _controller = TextEditingController(text: ref.read(transactionSearchQueryProvider));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _clear() {
+    _controller.clear();
+    ref.read(transactionSearchQueryProvider.notifier).state = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasQuery = ref.watch(transactionSearchQueryProvider).isNotEmpty;
+
+    return TextField(
+      controller: _controller,
+      onChanged: (value) => ref.read(transactionSearchQueryProvider.notifier).state = value,
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: 'Cari kategori, catatan, atau akun',
+        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
+        suffixIcon: hasQuery
+            ? IconButton(
+                icon: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
+                onPressed: _clear,
+              )
+            : null,
       ),
     );
   }
@@ -164,7 +230,7 @@ class _SummaryChip extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
           const SizedBox(height: 4),
           Text(
             value,
@@ -240,7 +306,7 @@ class _TransactionTile extends ConsumerWidget {
               children: [
                 Text(
                   transaction.categoryName ?? 'Kategori #${transaction.categoryId}',
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -251,7 +317,7 @@ class _TransactionTile extends ConsumerWidget {
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 if (transaction.description != null && transaction.description!.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -259,7 +325,7 @@ class _TransactionTile extends ConsumerWidget {
                     transaction.description!,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                   ),
                 ],
               ],
@@ -270,7 +336,7 @@ class _TransactionTile extends ConsumerWidget {
             style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+            icon: Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
             onSelected: (value) {
               if (value == 'edit') {
                 context.push('/transactions/form', extra: transaction);
@@ -317,10 +383,10 @@ class _RecurringMenuTile extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.autorenew_rounded, color: AppColors.primary, size: 20),
+                child: Icon(Icons.autorenew_rounded, color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -336,7 +402,7 @@ class _RecurringMenuTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
             ],
           ),
         ),

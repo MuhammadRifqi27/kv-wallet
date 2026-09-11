@@ -52,7 +52,7 @@ class AssetDetailPage extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           priceAsync.when(
-            loading: () => const Padding(
+            loading: () => Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
@@ -92,12 +92,12 @@ class AssetDetailPage extends ConsumerWidget {
               );
             },
           ),
-          const Text(
+          Text(
             'Dipegang di Akun',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Dihitung dari riwayat aktivitas — lihat catatan di kode kalau angkanya tampak meleset.',
             style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
           ),
@@ -221,22 +221,22 @@ class _HoldingSummaryCard extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-            child: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 20),
+            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Total Anda Miliki',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   formatRupiah(totalIdr),
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 15),
                 ),
               ],
             ),
@@ -244,7 +244,7 @@ class _HoldingSummaryCard extends StatelessWidget {
           if (price != null && price!.priceIdr > 0)
             Text(
               '≈ ${formatCryptoQuantity(totalIdr / price!.priceIdr)} BTC',
-              style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14),
+              style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14),
             ),
         ],
       ),
@@ -275,7 +275,7 @@ class _PerformanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Performa (Floating PnL)',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
           ),
@@ -285,31 +285,31 @@ class _PerformanceCard extends StatelessWidget {
             percent: price.changePercent24h,
             pnl: price.floatingPnl24h(totalHeldIdr),
           ),
-          const Divider(height: 20, color: AppColors.border),
+          Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
             label: '1 Minggu',
             percent: price.changePercent7d,
             pnl: price.floatingPnl7d(totalHeldIdr),
           ),
-          const Divider(height: 20, color: AppColors.border),
+          Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
             label: '1 Bulan',
             percent: price.changePercent30d,
             pnl: price.floatingPnl30d(totalHeldIdr),
           ),
-          const Divider(height: 20, color: AppColors.border),
+          Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
             label: '3 Bulan',
             percent: price.changePercent3m,
             pnl: price.floatingPnl3m(totalHeldIdr),
           ),
-          const Divider(height: 20, color: AppColors.border),
+          Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
             label: '6 Bulan',
             percent: price.changePercent6m,
             pnl: price.floatingPnl6m(totalHeldIdr),
           ),
-          const Divider(height: 20, color: AppColors.border),
+          Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
             label: '5 Tahun',
             percent: price.changePercent5y,
@@ -334,9 +334,9 @@ class _PerformanceRow extends StatelessWidget {
       return Row(
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+            child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
           ),
-          const Text('Data tidak tersedia', style: TextStyle(color: AppColors.textDisabled, fontSize: 12)),
+          Text('Data tidak tersedia', style: TextStyle(color: AppColors.textDisabled, fontSize: 12)),
         ],
       );
     }
@@ -347,7 +347,7 @@ class _PerformanceRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
+          child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -383,7 +383,7 @@ class _NoPriceNotice extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(12)),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
           SizedBox(width: 10),
@@ -422,7 +422,7 @@ class _HoldingsList extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
-        child: const Text(
+        child: Text(
           'Belum ada saldo tercatat untuk aset ini.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
@@ -467,14 +467,14 @@ class _HoldingTile extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-            child: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 16),
+            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 16),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               accountName,
-              style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
+              style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
             ),
           ),
           Column(
@@ -482,12 +482,12 @@ class _HoldingTile extends StatelessWidget {
             children: [
               Text(
                 formatRupiah(amount),
-                style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
+                style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
               ),
               if (price != null && price!.priceIdr > 0)
                 Text(
                   '≈ ${formatCryptoQuantity(amount / price!.priceIdr)} BTC',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                 ),
             ],
           ),

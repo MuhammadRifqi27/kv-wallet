@@ -1,0 +1,195 @@
+100 IDE PENGEMBANGAN APLIKASI FLOWR
+=====================================
+
+Daftar ide pengembangan lanjutan untuk aplikasi mobile Flowr (personal
+finance & wallet management), dikelompokkan per kategori. Disusun
+berdasarkan modul yang sudah ada (Transaksi, Budget, Portfolio, BTC
+Tracking, Savings Goals, Recurring, Membership, PIN + Biometric, Dark
+Mode) dan business flow backend yang sudah didokumentasikan tapi belum
+punya mobile API (Stock Trading, IPO, Net Worth Snapshot — lihat
+docs/money-management-alur-bisnis-database.txt).
+
+Bukan roadmap resmi — ini kumpulan opsi untuk didiskusikan & diprioritaskan.
+
+
+BAGIAN A — MODUL KEUANGAN BARU (1-20)
+---------------------------------------
+1. Utang/Pinjaman — kebalikan dari Savings Goals (bayar cicilan, bukan
+   nabung), bisa nyontek arsitektur yang sama.
+2. Stock Trading — jual-beli saham sekunder, sudah ada alur bisnisnya di
+   backend (BAGIAN 1.8 money-management-alur-bisnis-database.txt), belum
+   ada kontrak API mobile.
+3. IPO — ikut penawaran saham perdana, submit order + tunggu penjatahan,
+   juga sudah ada alur bisnisnya di backend (BAGIAN 1.7), belum ada di
+   mobile.
+4. Riwayat Net Worth — grafik tren kekayaan bersih dari waktu ke waktu;
+   tabel `finance_net_worth_snapshots` sudah ada di backend.
+5. Multi-currency wallet — dukung saldo USD/SGD/dll selain IDR untuk
+   akun luar negeri.
+6. Goal keuangan selain tabungan — mis. target pelunasan utang, target
+   dana investasi tertentu.
+7. Bill reminder terpisah — tagihan dengan due date sendiri, beda dari
+   Recurring Transactions yang otomatis generate transaksi.
+8. Asuransi tracker — catat premi, tanggal jatuh tempo, riwayat klaim.
+9. Pajak tracker — estimasi PPh dari penghasilan tercatat + pengingat
+   lapor SPT tahunan.
+10. Zakat/donasi calculator — hitung otomatis dari penghasilan/aset,
+    catat riwayat pembayaran.
+11. Cicilan/KPR-KPA tracker — simulasi amortisasi, sisa tenor, sisa
+    pokok pinjaman.
+12. Rekening/dompet bersama — patungan keluarga/pasangan dengan satu pos
+    keuangan gabungan.
+13. Envelope budgeting — sub-dompet virtual di dalam satu akun/portfolio.
+14. Budget per goal — alokasi budget langsung ke goal tabungan, bukan
+    cuma per kategori pengeluaran.
+15. Kalkulator dana darurat — rekomendasi nominal ideal berdasarkan
+    rata-rata pengeluaran bulanan tercatat.
+16. Kalkulator pensiun/FIRE — proyeksi kapan bisa pensiun berdasarkan
+    saving rate saat ini.
+17. Bandingkan instrumen — data referensi bunga deposito/reksadana antar
+    bank (konten edukasi, bukan transaksional).
+18. Crypto multi-exchange sync — sinkron otomatis dari Indodax/exchange
+    lain via API, pelengkap BTC Tracking manual yang sudah ada.
+19. NFT/aset digital tracker — modul terpisah untuk aset non-crypto biasa.
+20. P2P lending tracker — catat investasi di platform pinjaman online
+    (pokok, bunga berjalan, jatuh tempo).
+
+
+BAGIAN B — KEAMANAN & SISTEM (21-35)
+---------------------------------------
+21. Auto-lock setelah idle di background — re-verifikasi PIN/biometrik
+    kalau app di-minimize lebih dari X menit (gap keamanan saat ini:
+    pinVerifiedProvider cuma reset di cold start).
+22. Blokir screenshot/screen recording di halaman sensitif (saldo,
+    transaksi) — praktik umum app perbankan.
+23. Kelola sesi/perangkat login — lihat & paksa logout device lain
+    (backend sudah pakai Sanctum dengan device_name).
+24. Log aktivitas akun — riwayat login, perubahan PIN/password, dst.
+25. Two-factor authentication (OTP email/SMS) sebagai lapis tambahan di
+    luar password + PIN.
+26. Biometrik untuk konfirmasi transaksi besar — bukan cuma buka app,
+    tapi juga saat submit transaksi di atas nominal tertentu.
+27. Panic PIN / duress PIN — PIN alternatif yang menampilkan data palsu
+    kalau user dipaksa membuka app.
+28. Auto-logout total setelah N hari tidak dibuka sama sekali.
+29. Enkripsi tambahan untuk cache data sensitif di local storage (selain
+    token & PIN yang sudah di secure storage).
+30. Root/jailbreak detection dengan peringatan risiko.
+31. Rate limiting percobaan PIN salah beruntun — lockout sementara
+    setelah N kali gagal.
+32. App integrity check — deteksi APK yang dimodifikasi/repackaged.
+33. Backup & restore terenkripsi — export data manual dengan password
+    sendiri, di luar akun cloud.
+34. Hapus akun permanen dari dalam app (self-service, gaya GDPR).
+35. Consent management — catat persetujuan privacy policy per versi.
+
+
+BAGIAN C — NOTIFIKASI & REMINDER (36-48)
+---------------------------------------
+Rencana lokal notification (BAGIAN 1.1) sudah didesain di
+docs/flutter-notifications-plan.txt — baru "Budget Terlampaui" yang
+dibangun; sisanya di bawah ini termasuk quick win karena infra
+(flutter_local_notifications + NotificationService) sudah ada.
+
+36. Notif "Budget hampir habis" (>=80% terpakai).
+37. Toast "N transaksi berulang otomatis dibuat" saat Recurring diproses
+    diam-diam.
+38. Peringatan saldo kas rendah/negatif di Dashboard.
+39. Push notification (FCM) — membership diverifikasi admin.
+40. Push notification (FCM) — hasil penjatahan IPO siap.
+41. Push notification (FCM) — login dari device baru (keamanan).
+42. Reminder bayar tagihan H-3 sebelum jatuh tempo (untuk fitur #7).
+43. Reminder review budget tiap awal periode gajian baru.
+44. Notif perayaan saat goal tabungan tercapai 100%.
+45. Price alert custom untuk crypto (naik/turun X% dari harga acuan).
+46. Digest mingguan/bulanan ringkasan keuangan via push/email.
+47. Reminder isi ulang saldo akun/e-wallet yang sering dipakai & sering
+    hampir habis.
+48. Notif anomaly spending — pengeluaran satu transaksi jauh di atas
+    rata-rata kategori yang sama.
+
+
+BAGIAN D — LAPORAN & ANALITIK (49-62)
+---------------------------------------
+49. Export laporan PDF per periode (transaksi/ringkasan).
+50. Export ke Excel/CSV.
+51. Insight otomatis di Summary — "pengeluaran kategori X naik 20% dari
+    bulan lalu".
+52. Perbandingan pengeluaran bulan ini vs rata-rata 3/6 bulan terakhir.
+53. Cash flow forecast — proyeksi saldo N hari ke depan dari pola
+    historis.
+54. Heatmap pengeluaran harian dalam tampilan kalender.
+55. Analisis "hari mahal" — hari dalam seminggu dengan pengeluaran
+    tertinggi rata-rata.
+56. Subkategori — hierarki kategori lebih detail dari yang sekarang flat.
+57. Tag/label bebas per transaksi, terpisah dari kategori tetap.
+58. Laporan pajak tahunan otomatis dari histori transaksi.
+59. Skor kesehatan keuangan gabungan (saving rate, kepatuhan budget,
+    rasio utang, dst).
+60. Benchmark anonim vs pengguna lain di rentang usia/pendapatan serupa
+    (opt-in, perlu perhatian privasi).
+61. Breakdown net worth per jenis aset (kas, investasi, crypto, dst).
+62. Laporan P&L per akun/portfolio individual.
+
+
+BAGIAN E — UX/UI & AKSESIBILITAS (63-75)
+---------------------------------------
+63. Widget home-screen — lihat saldo/net worth tanpa buka app (native
+    Android/iOS).
+64. Quick-add transaksi lewat notification action atau app shortcut.
+65. Multi-bahasa — tambah Bahasa Inggris (saat ini hardcode Indonesia).
+66. Dukungan penuh font scaling & screen reader (aksesibilitas).
+67. Onboarding interaktif/tour fitur untuk user baru (di luar slide
+    perkenalan yang sudah ada).
+68. Kustomisasi urutan tab bottom nav (drag reorder).
+69. Kustomisasi ikon & warna kategori oleh user sendiri.
+70. Voice input catat transaksi ("catat pengeluaran makan 25 ribu").
+71. Scan struk/nota otomatis (OCR) untuk isi form transaksi.
+72. Scan QR untuk transfer/pembayaran cepat.
+73. Kalkulator terintegrasi langsung di field jumlah transaksi.
+74. App shortcuts (long-press ikon app) untuk lihat saldo cepat tanpa
+    buka aplikasi penuh.
+75. Tema kustom — pilih warna aksen sendiri, tidak cuma toggle
+    terang/gelap.
+
+
+BAGIAN F — INTEGRASI & OTOMATISASI (76-85)
+---------------------------------------
+76. Sinkron mutasi bank otomatis via Open Banking/aggregator (kalau
+    tersedia untuk bank Indonesia).
+77. Import transaksi dari file CSV/Excel mutasi bank.
+78. Integrasi e-wallet (GoPay/OVO/DANA) via API resmi kalau tersedia.
+79. Automasi custom gaya Zapier untuk power user.
+80. Auto-kategorisasi transaksi pakai machine learning dari histori
+    kategorisasi manual user.
+81. Sinkron due date tagihan ke Google Calendar.
+82. Bot WhatsApp untuk catat transaksi via chat.
+83. Backup otomatis terjadwal ke Google Drive/iCloud.
+84. API publik/developer mode untuk power user bikin automasi sendiri.
+85. Integrasi Siri Shortcuts/Google Assistant untuk catat transaksi
+    lewat suara.
+
+
+BAGIAN G — KOLABORASI & SHARING (86-92)
+---------------------------------------
+86. Shared wallet keluarga dengan role admin/anggota.
+87. Split bill/patungan dengan teman (gaya Splitwise).
+88. Approval flow — pengeluaran di atas nominal tertentu butuh
+    persetujuan pasangan/anggota lain.
+89. Komentar/diskusi internal per transaksi untuk shared wallet.
+90. Konsultasi financial advisor via chat (fitur premium).
+91. Program referral — ajak teman, dapat reward membership.
+92. Tantangan hemat dengan leaderboard privat (gamifikasi, opsional).
+
+
+BAGIAN H — MONETISASI & MEMBERSHIP (93-100)
+---------------------------------------
+93. Free trial otomatis untuk plan premium baru.
+94. In-app purchase langsung (Play Billing/StoreKit), pelengkap
+    verifikasi manual admin yang ada sekarang.
+95. Kode diskon/promo untuk membership.
+96. Tier membership tambahan — mis. Family plan, Business plan.
+97. Konten edukasi finansial premium (artikel/video) dalam app.
+98. White-label/API untuk partner (koperasi, komunitas).
+99. Program cashback/poin dari aktivitas rutin (nabung rutin dapat poin).
+100. Partnership konten dengan bank/e-wallet yang terintegrasi khusus.

@@ -123,8 +123,8 @@ class _TransferTile extends ConsumerWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-            child: const Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 20),
+            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            child: Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -135,12 +135,12 @@ class _TransferTile extends ConsumerWidget {
                   '${fromAccountName ?? 'Akun #${transfer.financeInvestmentId}'} → ${toAccountName ?? 'Akun #${transfer.toFinanceInvestmentId}'}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   formatIndonesianDateShort(transfer.date),
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 if (transfer.description != null && transfer.description!.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -148,7 +148,7 @@ class _TransferTile extends ConsumerWidget {
                     transfer.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                   ),
                 ],
               ],
@@ -156,10 +156,10 @@ class _TransferTile extends ConsumerWidget {
           ),
           Text(
             formatRupiah(transfer.amount),
-            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13),
+            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+            icon: Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
             onSelected: (value) {
               if (value == 'edit') {
                 context.push('/portfolio/transfers/form', extra: transfer);

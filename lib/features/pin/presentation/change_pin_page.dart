@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/pin_code_field.dart';
@@ -60,6 +61,13 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
 
     if (!mounted) return;
     if (success) {
+      // Keep biometric unlock working with the new PIN — otherwise it'd
+      // keep silently replaying the now-stale one until it fails and falls
+      // back to manual entry (see VerifyPinPage._tryBiometricUnlock).
+      if (ref.read(biometricEnabledProvider)) {
+        await ref.read(secureStorageServiceProvider).saveCachedPin(_newController.text);
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('PIN berhasil diperbarui.')),
       );
@@ -107,13 +115,13 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
                   Text(
                     _title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _subtitle,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                   ),
                   const SizedBox(height: 28),
                   if (pinState.error != null) ...[
@@ -121,7 +129,7 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
                     const SizedBox(height: 20),
                   ],
                   if (pinState.isLoading)
-                    const CircularProgressIndicator(color: AppColors.primary)
+                    CircularProgressIndicator(color: AppColors.primary)
                   else
                     switch (_step) {
                       _Step.current => PinCodeField(

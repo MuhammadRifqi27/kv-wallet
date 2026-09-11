@@ -145,10 +145,10 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   const SizedBox(height: 16),
                 ],
                 if (!_isEditing) ...[
-                  const Text('Akun Crypto', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text('Akun Crypto', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   const SizedBox(height: 8),
                   (portfoliosAsync.isLoading || investmentsAsync.isLoading)
-                      ? const LinearProgressIndicator(color: AppColors.primary)
+                      ? LinearProgressIndicator(color: AppColors.primary)
                       : Builder(
                           builder: (context) {
                             final cryptoPortfolios = filterCryptoPortfolios(
@@ -177,7 +177,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 SegmentedButton<BtcEntryType>(
                   segments: const [
@@ -188,7 +188,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   onSelectionChanged: (selection) => setState(() => _type = selection.first),
                 ),
                 const SizedBox(height: 16),
-                const Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(icon: Icons.calendar_today_outlined, label: formatIndonesianDate(_date), onTap: _pickDate),
                 const SizedBox(height: 16),
@@ -253,8 +253,8 @@ class _TapField extends StatelessWidget {
           children: [
             Icon(icon, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 15))),
-            const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+            Expanded(child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 15))),
+            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -285,7 +285,7 @@ class _PortfolioPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Pilih akun crypto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text('Pilih akun crypto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -310,11 +310,11 @@ class _PortfolioPickerSheet extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   portfolio.accountName,
-                                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                               ),
                               if (portfolio.id == selectedId)
-                                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
+                                Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                             ],
                           ),
                         ),

@@ -30,9 +30,9 @@ class SettingsTile extends StatelessWidget {
           decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
           child: Icon(icon, color: AppColors.primary, size: 20),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
-        trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        subtitle: Text(subtitle, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+        trailing: Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
       ),
     );
   }

@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Gunakan Face ID untuk membuka Flowr tanpa mengetik PIN.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ambil foto struk untuk mengisi form transaksi secara otomatis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pilih foto struk dari galeri untuk mengisi form transaksi secara otomatis.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

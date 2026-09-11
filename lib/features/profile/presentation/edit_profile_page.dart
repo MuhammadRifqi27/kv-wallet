@@ -140,7 +140,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ),
               ),
               const SizedBox(height: 28),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(4, 4, 4, 8),
                 child: Text(
                   'Keamanan',

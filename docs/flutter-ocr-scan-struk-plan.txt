@@ -1,0 +1,192 @@
+BLUEPRINT — SCAN STRUK OTOMATIS (OCR) UNTUK FORM TRANSAKSI
+=============================================================
+
+Status: DRAFT PLAN - belum diimplementasikan.
+
+Ide #71 dari docs/ide-pengembangan-100.txt. Dokumen ini merinci scope,
+pendekatan teknis, dan rencana implementasi sebelum mulai coding.
+
+
+BAGIAN 0 — SCOPE & BATASAN (PENTING)
+-----------------------------------------
+Fitur ini adalah **OCR-assisted form-fill**, BUKAN lampiran bukti
+transaksi. Bedanya penting:
+
+- Foto struk dipakai SEKALI untuk baca teks lalu diisi ke form (jumlah,
+  tanggal, deskripsi) — fotonya sendiri TIDAK disimpan/diupload ke
+  manapun setelah itu.
+- Menyimpan foto struk sebagai lampiran permanen di transaksi (supaya
+  bisa dilihat lagi nanti) adalah fitur BEDA — butuh kolom attachment
+  baru di `finance_transactions` + endpoint upload di backend, yang
+  belum ada sama sekali. Itu di luar scope dokumen ini (lihat idea #71
+  vs kemungkinan idea baru "lampiran bukti transaksi" kalau nanti mau
+  dikerjakan terpisah).
+- Semua hasil OCR WAJIB tetap bisa diedit manual sebelum disimpan — OCR
+  tidak pernah 100% akurat (struk kusut, pencahayaan buruk, font kecil,
+  format struk beda-beda per merchant). Fitur ini murni bantuan
+  percepatan input, bukan otomatisasi penuh. Kategori transaksi TETAP
+  harus dipilih manual (OCR tidak bisa menebak kategori pengeluaran).
+- 100% on-device, tidak ada panggilan API baru ke backend — lihat
+  BAGIAN 1 untuk alasan pemilihan OCR on-device vs cloud.
+
+
+BAGIAN 1 — PILIHAN TEKNIS
+-----------------------------------------
+1.1. OCR engine: `google_mlkit_text_recognition`
+     - On-device (Google ML Kit), gratis, tidak butuh API key/kuota,
+       jalan offline sepenuhnya — cocok karena tidak ada infra cloud
+       vision yang sudah disiapkan backend.
+     - Recognizer Latin script sudah cukup untuk struk Indonesia (angka
+       + huruf latin), tidak perlu recognizer khusus lain.
+     - Trade-off vs Cloud Vision API: akurasi on-device sedikit di bawah
+       cloud untuk kasus sulit (tulisan tangan, struk sangat buram),
+       tapi cukup baik untuk struk cetak thermal standar — dan bebas
+       biaya per-scan, penting karena ini fitur yang dipakai berulang.
+
+1.2. Ambil gambar: `image_picker`
+     - Kamera langsung ATAU pilih dari galeri (foto struk lama) — kedua
+       opsi ditawarkan lewat bottom sheet, pola sama seperti picker
+       lain di app ini (lihat _PortfolioPickerSheet dkk.).
+
+1.3. Permission tambahan (belum ada di project ini):
+     - Android: `android.permission.CAMERA` di AndroidManifest.xml.
+       (READ_MEDIA_IMAGES / storage permission untuk galeri biasanya
+       sudah dihandle otomatis oleh image_picker di Android 13+ lewat
+       Photo Picker, tidak butuh permission eksplisit.)
+     - iOS: `NSCameraUsageDescription` dan `NSPhotoLibraryUsageDescription`
+       di Info.plist.
+
+
+BAGIAN 2 — ALUR PENGGUNA (UX)
+-----------------------------------------
+1. Di TransactionFormPage (mode tambah baru, bukan edit), ada tombol
+   "Scan Struk" — ikon kamera, diletakkan di atas field "Jumlah",
+   sejajar dengan judul section atau sebagai tombol outline penuh lebar
+   di paling atas form (di bawah AppBar, sebelum field Tipe).
+2. Tap tombol -> bottom sheet: "Ambil Foto" / "Pilih dari Galeri".
+3. User ambil/pilih gambar struk.
+4. Tampilkan loading indicator singkat ("Membaca struk...") selagi ML
+   Kit memproses gambar (biasanya <1 detik on-device untuk resolusi
+   foto kamera standar).
+5. Hasil ekstraksi (jumlah, tanggal, deskripsi tebakan) langsung
+   mengisi field yang bersangkutan di form yang sudah terbuka — TIDAK
+   ada halaman preview terpisah, supaya user langsung lihat & bisa
+   edit di tempat yang sama seperti input manual.
+6. Tampilkan banner/snackbar sekali: "Terisi otomatis dari struk —
+   mohon periksa kembali sebelum simpan." Field yang berhasil terisi
+   dari OCR diberi border/indikator visual berbeda sementara (opsional,
+   lihat BAGIAN 5 poin desain) supaya user tahu mana yang perlu dicek.
+7. User tetap wajib pilih Kategori manual (tidak pernah diisi otomatis)
+   dan boleh edit Jumlah/Tanggal/Deskripsi sebelum tap "Tambah
+   Transaksi" seperti alur normal — tidak ada perubahan pada proses
+   submit yang sudah ada.
+8. Kalau OCR gagal total (tidak ada teks terbaca / bukan gambar struk):
+   tampilkan snackbar "Tidak bisa membaca struk ini, silakan isi
+   manual." — form tetap kosong seperti biasa, tidak error/crash.
+
+
+BAGIAN 3 — STRATEGI PARSING TEKS
+-----------------------------------------
+Input: `RecognizedText.text` dari ML Kit (satu string multi-baris, hasil
+gabungan semua blok teks terdeteksi, urutan top-to-bottom kurang lebih
+sesuai posisi di gambar).
+
+3.1. Jumlah (amount) — prioritas:
+     a. Cari baris yang mengandung kata kunci umum di struk Indonesia
+        (case-insensitive): "total", "grand total", "total belanja",
+        "total bayar", "jumlah bayar" — HINDARI baris "subtotal"/
+        "sub total" murni kalau ada baris "total" lain sesudahnya
+        (subtotal biasanya lebih kecil dari total akhir).
+     b. Dari baris yang match, ekstrak token numerik terakhir di baris
+        itu (regex angka dengan separator ribuan `.` atau `,`), parse
+        jadi double — buang karakter selain digit sebelum parse,
+        konsisten dengan pola parsing input manual yang sudah dipakai
+        di AppTextField lain di app ini.
+     c. Kalau tidak ada baris dengan kata kunci ketemu: fallback ambil
+        angka terbesar di antara semua token numerik yang match pola
+        "kemungkinan nominal rupiah" (minimal 4 digit) di seluruh teks
+        — asumsi: total belanja biasanya nominal terbesar di struk.
+     d. Kalau tidak ada angka valid sama sekali: field Jumlah dibiarkan
+        kosong (bukan diisi 0), biar validator form yang sudah ada
+        menangkapnya kalau user lupa isi manual.
+
+3.2. Tanggal:
+     a. Regex cari pola tanggal umum: `dd/mm/yyyy`, `dd-mm-yyyy`,
+        `dd.mm.yyyy`, termasuk yyyy 2 digit (`dd/mm/yy`).
+     b. Ambil kemunculan pertama yang valid (struk biasanya cuma punya
+        satu tanggal transaksi, di header/footer).
+     c. Kalau tidak ketemu atau gagal parse: fallback ke tanggal hari
+        ini (`DateTime.now()`) — sama seperti default form saat ini,
+        BUKAN dibiarkan null.
+
+3.3. Deskripsi (nama merchant) — best-effort, prioritas rendah:
+     a. Ambil baris non-kosong PERTAMA dari hasil OCR (nama toko/resto
+        biasanya tercetak paling atas struk).
+     b. Batasi panjang (mis. maks 60 karakter) supaya tidak memenuhi
+        field kalau OCR salah gabung beberapa baris.
+     c. Kalau baris pertama kelihatan bukan nama (cuma simbol/angka,
+        mis. garis pembatas "====" yang sering dicetak persis di atas
+        nama toko di struk thermal), lewati baris itu dan coba baris
+        berikutnya — dibatasi maksimal 5 baris non-kosong pertama saja,
+        supaya tidak "nyasar" ambil nama item belanjaan sebagai nama
+        toko. Kalau sampai batas itu tetap tidak ada yang cocok, field
+        Deskripsi dibiarkan kosong — jangan paksa isi dengan tebakan
+        yang jelas salah.
+
+Catatan: parsing ini heuristik, bukan janji akurasi tinggi — sesuai
+BAGIAN 0, tujuannya mempercepat input untuk KASUS UMUM (struk retail/
+resto standar Indonesia), bukan menggantikan input manual sepenuhnya.
+
+
+BAGIAN 4 — PERUBAHAN FILE (RENCANA)
+-----------------------------------------
+File baru:
+  lib/core/ocr/receipt_scanner.dart
+    - Wrapper tipis di atas `TextRecognizer` (ML Kit) — method
+      `Future<String?> recognizeText(String imagePath)`, pola sama
+      seperti BiometricService (try/catch, kembalikan null/false alih-
+      alih melempar exception ke caller).
+  lib/core/ocr/receipt_parser.dart
+    - Pure functions (tidak butuh instance/service) sesuai BAGIAN 3:
+      `double? parseAmountFromReceipt(String text)`,
+      `DateTime? parseDateFromReceipt(String text)`,
+      `String? parseDescriptionFromReceipt(String text)`.
+    - Dipisah dari receipt_scanner.dart supaya gampang di-unit-test
+      tanpa mock ML Kit (pure string -> value, tidak ada I/O).
+
+File yang diubah:
+  pubspec.yaml — tambah `google_mlkit_text_recognition`, `image_picker`.
+  android/app/src/main/AndroidManifest.xml — tambah permission CAMERA.
+  ios/Runner/Info.plist — tambah NSCameraUsageDescription +
+    NSPhotoLibraryUsageDescription.
+  lib/features/transactions/presentation/transaction_form_page.dart
+    - Tombol "Scan Struk" (hanya muncul saat !_isEditing — scan cuma
+      masuk akal untuk transaksi baru, bukan saat edit transaksi lama).
+    - Handler: pilih sumber gambar -> panggil ReceiptScanner -> parse
+      -> `setState` isi _amountController/_date/_descriptionController.
+    - Loading state sederhana (reuse pola `_isSubmitting` yang sudah
+      ada, atau state baru `_isScanning` terpisah supaya tombol Simpan
+      tidak ikut ke-disable saat scanning).
+
+
+BAGIAN 5 — HAL YANG PERLU DIPUTUSKAN / DIDISKUSIKAN
+-----------------------------------------
+1. Desain indikator "field ini dari OCR, tolong cek" — opsi paling
+   simpel: cuma banner sekali di atas form (tidak highlight per-field),
+   supaya scope implementasi tetap kecil. Bisa ditingkatkan nanti kalau
+   dirasa kurang jelas.
+2. Tombol Scan Struk taruh di mana persis — opsi (a) tombol penuh lebar
+   paling atas form, (b) ikon kamera kecil di AppBar (actions). Condong
+   ke (a) karena lebih terlihat/mengundang dicoba untuk fitur baru,
+   AppBar icon gampang terlewat (pelajaran yang sama seperti kenapa
+   Transfer Antar Akun & Transaksi Berulang diubah dari ikon jadi menu
+   tile penuh, lihat komentar di portfolio_list_page.dart &
+   transaction_list_page.dart).
+3. Apakah field Portfolio/Akun ikut ditebak dari OCR? TIDAK — nama akun
+   bank spesifik user (mis. "BCA - Rekening Utama") tidak collect dari
+   teks struk toko, jadi field ini tetap manual sepenuhnya, tidak
+   disentuh oleh hasil scan.
+
+Kalau blueprint ini sudah oke, langkah berikutnya: tambah dependency +
+permission (BAGIAN 1.2-1.3), lalu implementasi BAGIAN 4 sesuai urutan
+file di atas.

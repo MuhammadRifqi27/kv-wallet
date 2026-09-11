@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/btc_tracking_model.dart';
@@ -35,6 +36,9 @@ class InvestmentDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final overviewAsync = ref.watch(btcOverviewControllerProvider);
     final controller = ref.read(btcOverviewControllerProvider.notifier);
+    // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
+    // + MainShell's note on why this needs an explicit watch.
+    ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -107,7 +111,7 @@ class _InvestmentBody extends ConsumerWidget {
         ),
         if (sortedBalances.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Aset Anda',
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
@@ -217,13 +221,13 @@ class _AssetRow extends StatelessWidget {
   final AssetBalance balance;
   final CryptoPrice? price;
 
-  static const _palette = [
-    AppColors.primary,
-    AppColors.accent,
-    Color(0xFF0EA5A4),
-    Color(0xFF6366F1),
-    Color(0xFFE2B4BD),
-  ];
+  static List<Color> get _palette => [
+        AppColors.primary,
+        AppColors.accent,
+        const Color(0xFF0EA5A4),
+        const Color(0xFF6366F1),
+        const Color(0xFFE2B4BD),
+      ];
 
   Color get _avatarColor => _palette[balance.asset.hashCode.abs() % _palette.length];
 
@@ -269,7 +273,7 @@ class _AssetRow extends StatelessWidget {
                       balance.asset,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 14),
+                      style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 14),
                     ),
                     const SizedBox(height: 3),
                     if (price != null) ...[
@@ -280,7 +284,7 @@ class _AssetRow extends StatelessWidget {
                               formatRupiah(price!.priceIdr),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                             ),
                           ),
                           if (price?.changePercent24h != null) ...[
@@ -292,10 +296,10 @@ class _AssetRow extends StatelessWidget {
                       const SizedBox(height: 1),
                       Text(
                         formatUsd(price!.priceUsd),
-                        style: const TextStyle(color: AppColors.textDisabled, fontSize: 11),
+                        style: TextStyle(color: AppColors.textDisabled, fontSize: 11),
                       ),
                     ] else
-                      const Text(
+                      Text(
                         'Harga tidak tersedia',
                         style: TextStyle(color: AppColors.textDisabled, fontSize: 11.5, fontStyle: FontStyle.italic),
                       ),
@@ -308,13 +312,13 @@ class _AssetRow extends StatelessWidget {
                 children: [
                   Text(
                     formatRupiah(balance.balance),
-                    style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
+                    style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
                   ),
                   if (price != null && price!.priceIdr > 0) ...[
                     const SizedBox(height: 2),
                     Text(
                       '≈ ${formatCryptoQuantity(balance.balance / price!.priceIdr)}',
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                     ),
                   ],
                   if (price?.floatingPnl24h(balance.balance) != null) ...[
@@ -322,7 +326,7 @@ class _AssetRow extends StatelessWidget {
                     _PnlText(amount: price!.floatingPnl24h(balance.balance)!),
                   ],
                   const SizedBox(height: 3),
-                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
+                  Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
                 ],
               ),
             ],
@@ -391,7 +395,7 @@ class _EmptyCryptoAccounts extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(Icons.currency_bitcoin_rounded, color: AppColors.textSecondary, size: 32),
           SizedBox(height: 10),

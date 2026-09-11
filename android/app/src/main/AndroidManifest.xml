@@ -3,6 +3,14 @@
     <!-- Runtime-requested on Android 13+ (see NotificationService.init) —
          no-op on older versions where notifications are allowed by default. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Fingerprint/Face unlock for biometric login, see
+         lib/core/auth/biometric_service.dart. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <!-- Scan Struk (receipt OCR) — camera capture, see
+         lib/core/ocr/receipt_scanner.dart. Gallery picking doesn't need an
+         explicit permission on Android 13+ (image_picker uses the system
+         Photo Picker, which needs none). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="Flowr"
         android:name="${applicationName}"

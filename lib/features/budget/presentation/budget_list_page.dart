@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/budget_model.dart';
@@ -19,6 +20,9 @@ class BudgetListPage extends ConsumerWidget {
     final budgetAsync = ref.watch(budgetControllerProvider);
     final controller = ref.read(budgetControllerProvider.notifier);
     final period = ref.watch(selectedBudgetPeriodProvider);
+    // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
+    // + MainShell's note on why this needs an explicit watch.
+    ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -67,7 +71,7 @@ class _BudgetBody extends StatelessWidget {
   Widget build(BuildContext context) {
     if (summary.categories.isEmpty) {
       return scrollableCenter(
-        const Text(
+        Text(
           'Belum ada budget untuk bulan ini.\nTap tombol + untuk menambah.',
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5),
@@ -81,12 +85,12 @@ class _BudgetBody extends StatelessWidget {
       children: [
         _SummaryCard(summary: summary),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Per Kategori',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 4),
-        const Text(
+        Text(
           'Tap salah satu untuk mengubah jumlah budget-nya.',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
@@ -181,15 +185,15 @@ class _BudgetCategoryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item.categoryName,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
                     ),
                   ),
                   Text(
                     formatRupiah(item.amount),
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 16),
+                  Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 16),
                 ],
               ),
               const SizedBox(height: 10),

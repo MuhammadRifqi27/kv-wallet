@@ -128,7 +128,7 @@ class _RecurringTile extends ConsumerWidget {
                   children: [
                     Text(
                       item.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -139,7 +139,7 @@ class _RecurringTile extends ConsumerWidget {
                       ].join(' · '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                     if (item.description != null && item.description!.isNotEmpty) ...[
                       const SizedBox(height: 2),
@@ -147,7 +147,7 @@ class _RecurringTile extends ConsumerWidget {
                         item.description!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                       ),
                     ],
                   ],
@@ -159,7 +159,7 @@ class _RecurringTile extends ConsumerWidget {
                 style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 20),
+                icon: Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 20),
                 onPressed: () => _confirmDelete(context, ref),
               ),
             ],

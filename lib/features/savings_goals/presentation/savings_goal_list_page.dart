@@ -109,7 +109,7 @@ class _SummaryTile extends StatelessWidget {
             style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 22),
           ),
           const SizedBox(height: 2),
-          Text('$label Goal', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text('$label Goal', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
         ],
       ),
     );
@@ -207,14 +207,14 @@ class _GoalCard extends ConsumerWidget {
                       children: [
                         Text(
                           goal.name,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
                         ),
                         if (goal.purpose != null && goal.purpose!.isNotEmpty)
                           Text(
                             goal.purpose!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                           ),
                       ],
                     ),
@@ -239,7 +239,7 @@ class _GoalCard extends ConsumerWidget {
                     const SizedBox(width: 4),
                   ],
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+                    icon: Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
                     onSelected: (value) {
                       if (value == 'edit') {
                         context.push('/savings-goals/form', extra: goal);
@@ -273,7 +273,7 @@ class _GoalCard extends ConsumerWidget {
                 children: [
                   Text(
                     '${formatRupiah(goal.savedAmount)} dari ${formatRupiah(goal.targetAmount)}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                   Text(
                     '${goal.progressPercent.toStringAsFixed(0)}%',

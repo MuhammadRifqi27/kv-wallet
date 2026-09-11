@@ -90,6 +90,28 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
   di kartu "Performa" baru — dihitung dari data historis harga CoinGecko.
   Hanya di halaman detail (bukan di list dashboard) supaya tidak menambah beban
   request ke CoinGecko untuk tiap baris aset sekaligus.
+- Fitur Target Tabungan (Savings Goals): buat target menabung dengan nama
+  & tujuan tertentu, opsional diikat ke satu akun sebagai sumber dana
+  default, catat riwayat nabung/tarik per target — jumlah terkumpul,
+  persentase progress, dan status (aktif/tercapai/diarsipkan) dihitung
+  otomatis oleh server dari riwayat kontribusi, bukan diinput manual.
+  Diakses dari menu di halaman Profile, dengan kartu ringkasan progress
+  juga tampil di Dashboard.
+- Pencarian teks di halaman Transaksi: cari transaksi berdasarkan nama
+  kategori, catatan, atau nama akun — menyaring dari transaksi yang sudah
+  termuat sesuai filter tanggal/tipe yang aktif.
+- Login Biometrik (sidik jari/Face ID): alternatif membuka aplikasi tanpa
+  mengetik PIN, diaktifkan dari halaman Profile (PIN dikonfirmasi sekali
+  saat aktivasi). Muncul juga popup ajakan aktivasi otomatis setelah PIN
+  berhasil dimasukkan (saat buat PIN baru maupun verifikasi PIN harian),
+  maksimal 3 kali tampil lalu berhenti otomatis kalau terus ditolak.
+- Dark Mode: toggle tema Sistem/Terang/Gelap di halaman Profile, pilihan
+  tersimpan per-device.
+- Fitur Scan Struk: baca teks dari foto struk (kamera atau galeri) secara
+  on-device (tanpa kirim gambar ke server), lalu otomatis mengisi Jumlah,
+  Tanggal, dan Deskripsi di form Tambah Transaksi. Kategori dan Akun tetap
+  wajib dipilih manual, dan seluruh hasil bacaan tetap bisa diedit sebelum
+  disimpan.
 
 ### Diubah
 - Nama aplikasi menjadi **Flowr**; logo, wordmark, dan icon app diganti
@@ -128,6 +150,9 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
   gaya watchlist (avatar bulat berwarna beda per aset, harga & badge
   naik/turun satu baris), diurutkan dari nilai terbesar; akses "Riwayat
   Aktivitas" dipindah dari tile ke ikon di AppBar biar hemat ruang.
+- Logo aplikasi (di halaman Splash/Login/Register/PIN, AppBar Dashboard,
+  dan footer Profile) otomatis berubah warna mengikuti tema aktif — hitam
+  pekat di mode terang, putih di mode gelap.
 
 ### Diperbaiki
 - Login gagal karena nama field request salah (`email` seharusnya `login`).
@@ -165,3 +190,14 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
   di-pan/zoom, geser vertikal di atas chart tetap scroll halaman seperti
   biasa, dan halaman balik jadi satu `ListView` biasa (chart gak makan
   ruang layar permanen lagi).
+- Tema (mode terang/gelap) tidak langsung ter-update di beberapa halaman
+  utama (Dashboard, Transaksi, Ringkasan, Budget, Investment) maupun
+  bottom navigation setelah diganti dari Profile — halaman-halaman itu
+  tetap "hidup" di background (demi menjaga state saat pindah tab)
+  sehingga tidak otomatis dibangun ulang saat tema berubah; sekarang
+  langsung ikut berubah tanpa perlu pindah tab/reload.
+- Popup ajakan aktivasi Login Biometrik tidak menampilkan hasil apapun
+  setelah user menekan "Aktifkan" — notifikasi konfirmasinya keburu
+  hilang karena halaman langsung berpindah ke Dashboard; diganti dengan
+  dialog yang harus ditutup dulu oleh user sebelum lanjut, supaya
+  hasilnya (berhasil/gagal) pasti terlihat.

@@ -49,15 +49,15 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left_rounded, color: AppColors.textSecondary),
+                  icon: Icon(Icons.chevron_left_rounded, color: AppColors.textSecondary),
                   onPressed: () => setState(() => _year--),
                 ),
                 Text(
                   '$_year',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                  icon: Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                   onPressed: () => setState(() => _year++),
                 ),
               ],

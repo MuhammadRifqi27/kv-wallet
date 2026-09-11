@@ -12,19 +12,31 @@ class AppTheme {
   /// from AppBar's `Colors.transparent`, letting whatever's on screen
   /// (e.g. Dashboard's gradient card) show through the status bar area.
   /// Applied both via [ThemeData.appBarTheme] (pages with an AppBar) and
-  /// globally in main.dart (Splash/Login/Register/PIN pages, which don't
-  /// have one).
-  static const statusBarStyle = SystemUiOverlayStyle(
-    statusBarColor: AppColors.background,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  );
+  /// globally in main.dart/FlowrApp (Splash/Login/Register/PIN pages,
+  /// which don't have one). A getter (not `static const` like before) since
+  /// it now depends on [AppColors.isDark].
+  static SystemUiOverlayStyle get statusBarStyle => SystemUiOverlayStyle(
+        statusBarColor: AppColors.background,
+        statusBarIconBrightness: AppColors.isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: AppColors.isDark ? Brightness.dark : Brightness.light,
+      );
 
-  static ThemeData get light {
+  /// Built fresh from whatever [AppColors] currently holds. `FlowrApp.build`
+  /// resolves the user's chosen `ThemeMode` + the platform's own brightness
+  /// into a single effective dark/light flag, calls
+  /// [AppColors.updateBrightness] with it, *then* reads this getter — so
+  /// there's no separate `light`/`dark` pair to keep in sync here; this
+  /// always just reflects "the theme right now."
+  static ThemeData get current {
+    final isDark = AppColors.isDark;
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+
     final base = ThemeData(
       useMaterial3: true,
+      brightness: brightness,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
+        brightness: brightness,
         primary: AppColors.primary,
         surface: AppColors.surface,
         error: AppColors.error,
@@ -38,7 +50,7 @@ class AppTheme {
         bodyColor: AppColors.textPrimary,
         displayColor: AppColors.textPrimary,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -56,15 +68,15 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -74,8 +86,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        labelStyle: const TextStyle(color: AppColors.textSecondary),
-        hintStyle: const TextStyle(color: AppColors.textDisabled),
+        labelStyle: TextStyle(color: AppColors.textSecondary),
+        hintStyle: TextStyle(color: AppColors.textDisabled),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

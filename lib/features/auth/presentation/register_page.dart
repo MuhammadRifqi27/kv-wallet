@@ -74,7 +74,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   children: [
                     const Center(child: AppLogo(size: 64, showWordmark: false)),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Buat akun baru',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -84,7 +84,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
+                    Text(
                       'Mulai kelola pemasukan & pengeluaran Anda',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
@@ -97,7 +97,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         color: AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 20),
                           SizedBox(width: 10),
@@ -189,7 +189,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Sudah punya akun?', style: TextStyle(color: AppColors.textSecondary)),
+                        Text('Sudah punya akun?', style: TextStyle(color: AppColors.textSecondary)),
                         TextButton(
                           onPressed: () => context.go('/login'),
                           child: const Text('Masuk'),

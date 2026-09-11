@@ -15,7 +15,15 @@ class AppLogo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset('assets/branding/logo_mark.png', height: size, fit: BoxFit.contain),
+        ColorFiltered(
+          // The source asset is a solid black mark — tinting it to
+          // textPrimary (not conditionally, always) keeps it looking
+          // identical in light mode (textPrimary is near-black there) while
+          // automatically turning it near-white in dark mode, with no
+          // separate white asset to keep in sync.
+          colorFilter: ColorFilter.mode(AppColors.textPrimary, BlendMode.srcIn),
+          child: Image.asset('assets/branding/logo_mark.png', height: size, fit: BoxFit.contain),
+        ),
         if (showWordmark) ...[
           SizedBox(height: size * 0.14),
           Text(

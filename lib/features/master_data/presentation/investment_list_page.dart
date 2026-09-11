@@ -76,8 +76,8 @@ class _InvestmentTile extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-            child: const Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 20),
+            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            child: Icon(Icons.account_balance_outlined, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -86,14 +86,14 @@ class _InvestmentTile extends StatelessWidget {
               children: [
                 Text(
                   investment.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   investment.code != null ? '${investment.code} · ${investment.type.label}' : investment.type.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 const SizedBox(height: 2),
                 if (investment.description != null)
@@ -101,7 +101,7 @@ class _InvestmentTile extends StatelessWidget {
                     investment.description!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                   ), 
               ],
             ),

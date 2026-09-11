@@ -79,13 +79,13 @@ class _MembershipBody extends ConsumerWidget {
           _PaymentInstructions(status: status),
         ],
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Pilih Plan',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 10),
         plansAsync.when(
-          loading: () => const Padding(
+          loading: () => Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
           ),
@@ -158,9 +158,9 @@ class _StatusCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+                Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+                Text(subtitle, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
               ],
             ),
           ),
@@ -228,7 +228,7 @@ class _PaymentInstructionsState extends ConsumerState<_PaymentInstructions> {
             child: OutlinedButton(
               onPressed: _checking ? null : _checkStatus,
               child: _checking
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2.2, color: AppColors.primary),
@@ -367,17 +367,17 @@ class _PlanCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(plan.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
+                    Text(plan.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
                     const SizedBox(height: 2),
                     Text(
                       '${formatRupiah(plan.price)} / ${plan.durationDays} hari',
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                   ],
                 ),
               ),
               if (isLockedActive)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4),
                   child: Text('Plan Aktif', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
                 )
@@ -427,16 +427,16 @@ class _PlanDetailSheet extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               plan.name,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.textPrimary),
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 4),
             Text(
               '${formatRupiah(plan.price)} / ${plan.durationDays} hari',
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 20),
             if (plan.benefits.isNotEmpty) ...[
-              const Text(
+              Text(
                 'Fitur yang didapat',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
               ),
@@ -450,7 +450,7 @@ class _PlanDetailSheet extends StatelessWidget {
                 ),
               ),
             ] else
-              const Text(
+              Text(
                 'Detail fitur untuk plan ini belum tersedia.',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
@@ -481,7 +481,7 @@ class _BenefitRow extends StatelessWidget {
           const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 18),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+            child: Text(text, style: TextStyle(fontSize: 13, color: AppColors.textPrimary)),
           ),
         ],
       ),

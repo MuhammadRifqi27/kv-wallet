@@ -49,7 +49,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with SingleTickerProvid
           opacity: _fade,
           child: SlideTransition(
             position: _slide,
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 AppLogo(size: 100),

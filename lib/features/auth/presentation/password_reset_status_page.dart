@@ -71,7 +71,7 @@ class _PasswordResetStatusPageState extends ConsumerState<PasswordResetStatusPag
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
+                    Text(
                       'Masukkan email atau username yang dipakai saat mengajukan reset kata sandi.',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5),
                     ),
@@ -159,12 +159,12 @@ class _TicketStatusCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+                child: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(description, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          Text(description, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         ],
       ),
     );

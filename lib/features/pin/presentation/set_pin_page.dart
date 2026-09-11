@@ -7,6 +7,7 @@ import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/pin_code_field.dart';
 import '../application/pin_controller.dart';
+import 'biometric_enable_prompt.dart';
 
 /// Forced right after register/login when the account has no PIN yet — no
 /// way to skip (this app-lock PIN is mandatory, see
@@ -48,7 +49,8 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
           pinConfirmation: confirmPin,
         );
     if (success && mounted) {
-      context.go('/home');
+      await maybeShowBiometricEnablePrompt(context, ref, confirmPin);
+      if (mounted) context.go('/home');
     } else if (mounted) {
       // Server rejected it (e.g. validation) — restart from the first step.
       setState(() {
@@ -79,7 +81,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                   Text(
                     _confirming ? 'Konfirmasi PIN' : 'Buat PIN 6 Digit',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -87,7 +89,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                         ? 'Masukkan ulang PIN yang sama untuk konfirmasi'
                         : 'PIN ini dipakai untuk membuka aplikasi setiap kali dibuka, mirip aplikasi m-banking',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                   ),
                   const SizedBox(height: 32),
                   if (pinState.error != null) ...[
@@ -95,7 +97,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                     const SizedBox(height: 20),
                   ],
                   if (pinState.isLoading)
-                    const CircularProgressIndicator(color: AppColors.primary)
+                    CircularProgressIndicator(color: AppColors.primary)
                   else if (_confirming)
                     PinCodeField(
                       key: const ValueKey('confirm'),

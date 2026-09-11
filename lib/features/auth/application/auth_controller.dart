@@ -70,6 +70,7 @@ class AuthController extends StateNotifier<AuthState> {
     // Otherwise a different user logging in on the same device (without an
     // app restart) would inherit the previous session's unlocked PIN gate.
     _ref.read(pinVerifiedProvider.notifier).state = false;
+    await _clearBiometricLogin();
   }
 
   /// Invoked by [ApiClient] when a request comes back 401 — token is already
@@ -77,6 +78,18 @@ class AuthController extends StateNotifier<AuthState> {
   void forceLogout() {
     state = state.copyWith(status: AuthStatus.unauthenticated, clearError: true, clearUser: true);
     _ref.read(pinVerifiedProvider.notifier).state = false;
+    _clearBiometricLogin();
+  }
+
+  /// Biometric login (see ProfilePage's toggle) is really "biometrics unlock
+  /// a cached PIN that belongs to *this account*" — same reasoning as the
+  /// `pinVerifiedProvider` reset above applies to it, just one step further:
+  /// left alone, the next account to log in on this device would inherit a
+  /// biometric prompt wired to the previous account's PIN.
+  Future<void> _clearBiometricLogin() async {
+    await _ref.read(secureStorageServiceProvider).deleteCachedPin();
+    await _ref.read(biometricPreferenceServiceProvider).setEnabled(false);
+    _ref.read(biometricEnabledProvider.notifier).state = false;
   }
 
   /// Re-fetches `/auth/me` to pick up server-side changes that happened

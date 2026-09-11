@@ -123,7 +123,7 @@ class _PinBox extends StatelessWidget {
           ? Container(
               width: 10,
               height: 10,
-              decoration: const BoxDecoration(color: AppColors.textPrimary, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: AppColors.textPrimary, shape: BoxShape.circle),
             )
           : null,
     );
