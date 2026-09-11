@@ -1,4 +1,4 @@
-# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking)
+# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking, Savings Goals)
 
 Referensi lengkap untuk tim Flutter — semua endpoint yang dibangun untuk
 mobile app di sesi ini. Untuk endpoint Money Management lainnya (dashboard,
@@ -708,6 +708,226 @@ Hapus satu baris entry dari tracking.
 **Response `200`:**
 ```json
 { "success": "Transaction removed from tracking" }
+```
+
+---
+
+## Savings Goals
+
+Base path: `/money-management/savings-goals` (gate permission
+`money-management.savings-goals`). Fitur "Target Tabungan" — user bikin
+target dengan tujuan/alasan tertentu (dana darurat, DP rumah, liburan, dst),
+lalu mencatat nabung/tarik terhadap target itu. Desain lengkapnya ada di
+[docs/money-management-savings-goals-blueprint.txt](money-management-savings-goals-blueprint.txt).
+
+Dua hal penting yang beda dari modul lain:
+
+1. **`saved_amount` selalu dihitung, tidak pernah diinput manual** — dari
+   riwayat kontribusi (`POST .../contributions`), sama seperti saldo akun di
+   Portfolio yang juga selalu dihitung ulang dari transaksi, bukan kolom
+   tersimpan.
+2. **`status` (`active`/`achieved`) juga otomatis** — begitu `saved_amount`
+   mencapai `target_amount`, status berubah sendiri jadi `achieved` (dan
+   balik lagi ke `active` kalau ada penarikan yang membuatnya turun di bawah
+   target lagi). Tidak ada cara set status ini langsung lewat API — cuma ada
+   status ketiga, `archived`, yang murni manual (lihat catatan di bawah,
+   status ini belum ada endpoint khusus dari mobile, sementara kelola dari
+   web).
+3. **Satu akun (`finance_portfolio_id`) boleh dipakai untuk beberapa goal
+   sekaligus** — kontribusi adalah ledger terpisah, bukan cerminan langsung
+   saldo akun. Konsekuensinya: `is_over_allocated` di response bisa `true`
+   kalau total yang "dialokasikan" ke satu akun (dari semua goal) sudah
+   melebihi saldo asli akun itu — ini cuma penanda/warning, bukan yang
+   memblokir request.
+
+### `GET /money-management/savings-goals` 🔒
+List semua goal milik user, sudah termasuk perhitungan progress-nya.
+
+**Response `200`:**
+```json
+{
+  "active_count": 2,
+  "achieved_count": 1,
+  "goals": [
+    {
+      "id": 4,
+      "name": "Dana Darurat",
+      "purpose": "Cadangan 6 bulan pengeluaran",
+      "portfolio": { "id": 1, "name": "BCA - Rekening Utama" },
+      "target_amount": 50000000,
+      "target_date": "2027-01-01",
+      "saved_amount": 15000000,
+      "progress_percent": 30,
+      "remaining_amount": 35000000,
+      "is_over_allocated": false,
+      "status": "active",
+      "icon": "shield-tick",
+      "color": "success"
+    }
+  ]
+}
+```
+`portfolio` bisa `null` kalau goal tidak diikat ke akun manapun (target yang
+masih murni aspirasional). `progress_percent` sudah dibatasi maksimal `100`.
+
+---
+
+### `POST /money-management/savings-goals` 🔒
+Buat goal baru.
+
+**Request:**
+```json
+{
+  "name": "Dana Darurat",
+  "purpose": "Cadangan 6 bulan pengeluaran",
+  "finance_portfolio_id": 1,
+  "target_amount": 50000000,
+  "target_date": "2027-01-01",
+  "icon": "shield-tick",
+  "color": "success"
+}
+```
+| Field | Tipe | Wajib | Keterangan |
+|---|---|---|---|
+| `name` | string | ya | max 255 |
+| `purpose` | string | tidak | alasan/tujuan menabung — tampilkan ini di UI supaya user ingat "untuk apa" targetnya |
+| `finance_portfolio_id` | integer | tidak | akun sumber dana default untuk goal ini, harus milik user. Kosongkan/`null` kalau goal belum terikat akun manapun |
+| `target_amount` | numeric | ya | min `0.01` |
+| `target_date` | date | tidak | deadline, boleh kosong |
+| `icon` | string | tidak | nama ikon buat UI (bebas, app yang menentukan pemetaan ke aset ikon di sisi mobile) |
+| `color` | string | tidak | salah satu dari `primary`, `success`, `info`, `warning`, `danger`. Default `primary` kalau tidak dikirim |
+
+**Response `201`:** shape sama persis seperti satu item di `goals[]` pada
+`GET /savings-goals` (`saved_amount: 0`, `progress_percent: 0`,
+`status: "active"` untuk goal yang baru dibuat).
+
+**Error `404`** kalau `finance_portfolio_id` dikirim tapi bukan milik user
+(bukan `422` — beda dari kebanyakan field lain di app ini yang pakai
+`exists:...`; ownership-nya dicek di layer Service, bukan validation rule).
+
+---
+
+### `PUT /money-management/savings-goals/{id}` 🔒
+Edit goal yang sudah ada. Body **sama persis** dengan `POST` di atas — semua
+field wajib dikirim ulang (bukan partial update). Mengubah `target_amount`
+bisa langsung memicu `status` berubah (mis. diturunkan sampai di bawah
+`saved_amount` yang sudah ada → otomatis jadi `achieved`).
+
+**Response `200`:** shape sama seperti `POST`, dengan `saved_amount` /
+`progress_percent` / `status` terkini (bukan di-reset).
+
+**Error `404`** kalau `id` bukan milik user, atau `finance_portfolio_id`
+yang dikirim bukan milik user.
+
+---
+
+### `DELETE /money-management/savings-goals/{id}` 🔒
+Hapus goal secara permanen — **cascade** menghapus seluruh riwayat
+kontribusi/penarikannya juga. Tidak bisa dibatalkan. Kalau cuma mau
+menghentikan goal tanpa kehilangan riwayatnya, pakai `POST .../archive` di
+bawah.
+
+**Response `200`:**
+```json
+{ "success": true }
+```
+
+---
+
+### `POST /money-management/savings-goals/{id}/archive` 🔒
+Arsipkan goal — cara "menutup" goal tanpa menghapus riwayatnya (beda dari
+`DELETE` yang permanen). Goal berstatus `archived` berhenti dihitung sebagai
+`active_count`/`achieved_count`, tapi tetap muncul di `GET /savings-goals`
+dan riwayat kontribusinya tetap bisa diambil. Tidak ada endpoint untuk
+un-archive — status ini murni satu arah dari sisi mobile (kelola dari web
+kalau perlu batalkan arsip).
+
+**Response `200`:** shape sama seperti item di `goals[]` pada
+`GET /savings-goals`, dengan `status: "archived"`.
+
+---
+
+### `GET /money-management/savings-goals/{id}/contributions` 🔒
+Riwayat nabung/tarik satu goal, terbaru dulu.
+
+**Response `200`:**
+```json
+[
+  {
+    "id": 12,
+    "type": "contribution",
+    "date": "2026-09-11",
+    "amount": 500000,
+    "note": "Nabung awal bulan",
+    "portfolio": { "id": 1, "name": "BCA - Rekening Utama" },
+    "created_at": "2026-09-11T02:00:00+00:00"
+  }
+]
+```
+`type` salah satu dari `contribution` (menambah `saved_amount`) atau
+`withdrawal` (mengurangi). `portfolio` bisa `null` kalau baris ini tidak
+dicatat terhadap akun manapun.
+
+---
+
+### `POST /money-management/savings-goals/{id}/contributions` 🔒
+Catat nabung atau tarik. Satu endpoint untuk dua arah — dibedakan lewat
+field `type`.
+
+**Request (nabung):**
+```json
+{
+  "type": "contribution",
+  "date": "2026-09-11",
+  "amount": 500000,
+  "finance_portfolio_id": 1,
+  "note": "Nabung awal bulan"
+}
+```
+**Request (tarik):**
+```json
+{
+  "type": "withdrawal",
+  "date": "2026-09-11",
+  "amount": 200000,
+  "note": "Dipakai untuk keperluan darurat"
+}
+```
+| Field | Tipe | Wajib | Keterangan |
+|---|---|---|---|
+| `type` | string | ya | `contribution` atau `withdrawal` |
+| `date` | date | ya | — |
+| `amount` | numeric | ya | min `0.01` |
+| `finance_portfolio_id` | integer | tidak | akun untuk baris ini, harus milik user. Kalau **tidak dikirim sama sekali** (key absen dari body), otomatis pakai `finance_portfolio_id` default milik goal-nya; kalau dikirim `null`/kosong, artinya sengaja tidak dicatat ke akun manapun untuk baris ini |
+| `note` | string | tidak | — |
+
+**Response `200`:**
+```json
+{ "success": true }
+```
+
+**Error `400`** kalau `type: "withdrawal"` dengan `amount` melebihi
+`saved_amount` yang sedang terkumpul (bukan `422` — ini business rule, bukan
+validasi format):
+```json
+{ "error": "Penarikan melebihi dana yang sudah terkumpul. Tersedia Rp 100.000" }
+```
+
+---
+
+### `DELETE /money-management/savings-goals/{id}/contributions/{contributionId}` 🔒
+Hapus satu baris riwayat nabung/tarik. `saved_amount` dan `status` goal
+otomatis dihitung ulang setelah baris ini hilang.
+
+**Response `200`:**
+```json
+{ "success": true }
+```
+
+**Error `400`** kalau `contributionId` ada tapi bukan milik `id` (goal) yang
+dituju di URL:
+```json
+{ "error": "Kontribusi ini tidak ditemukan pada goal ini" }
 ```
 
 ---

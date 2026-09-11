@@ -11,6 +11,7 @@ import '../../data/repositories/btc_tracking_repository.dart';
 import '../../data/repositories/crypto_price_repository.dart';
 import '../../data/repositories/portfolio_repository.dart';
 import '../../data/repositories/recurring_repository.dart';
+import '../../data/repositories/savings_goal_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/summary_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
@@ -82,6 +83,10 @@ final portfolioRepositoryProvider = Provider<PortfolioRepository>((ref) {
 
 final recurringRepositoryProvider = Provider<RecurringRepository>((ref) {
   return RecurringRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final savingsGoalRepositoryProvider = Provider<SavingsGoalRepository>((ref) {
+  return SavingsGoalRepository(apiClient: ref.read(apiClientProvider));
 });
 
 final btcTrackingRepositoryProvider = Provider<BtcTrackingRepository>((ref) {

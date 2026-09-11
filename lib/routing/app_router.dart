@@ -6,6 +6,7 @@ import '../data/models/btc_tracking_model.dart';
 import '../data/models/budget_model.dart';
 import '../data/models/portfolio_model.dart';
 import '../data/models/recurring_transaction_model.dart';
+import '../data/models/savings_goal_model.dart';
 import '../data/models/transaction_model.dart';
 import '../data/models/transfer_model.dart';
 import '../features/auth/application/auth_controller.dart';
@@ -38,6 +39,9 @@ import '../features/portfolio/presentation/portfolio_form_page.dart';
 import '../features/portfolio/presentation/portfolio_list_page.dart';
 import '../features/recurring/presentation/recurring_form_page.dart';
 import '../features/recurring/presentation/recurring_list_page.dart';
+import '../features/savings_goals/presentation/savings_goal_detail_page.dart';
+import '../features/savings_goals/presentation/savings_goal_form_page.dart';
+import '../features/savings_goals/presentation/savings_goal_list_page.dart';
 import '../features/splash/presentation/splash_page.dart';
 import '../features/summary/presentation/summary_page.dart';
 import '../features/transactions/presentation/transaction_form_page.dart';
@@ -63,6 +67,7 @@ const _routePermissions = {
   '/summary': 'summary',
   '/portfolio/transfers': 'internal-transfers',
   '/portfolio': 'portfolio',
+  '/savings-goals': 'savings-goals',
   '/budget': 'budgets',
   '/investment': 'btc-tracking',
   '/profile': 'settings',
@@ -185,6 +190,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => TransferFormPage(transfer: state.extra as TransferModel?),
               ),
             ],
+          ),
+        ],
+      ),
+      // Also off the bottom-nav shell, same precedent as Portfolio above —
+      // reached via a menu tile on the Profile page (and a summary card on
+      // the Dashboard).
+      GoRoute(
+        path: '/savings-goals',
+        builder: (context, state) => const SavingsGoalListPage(),
+        routes: [
+          GoRoute(
+            path: 'form',
+            builder: (context, state) => SavingsGoalFormPage(goal: state.extra as SavingsGoalModel?),
+          ),
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => SavingsGoalDetailPage(goal: state.extra as SavingsGoalModel),
           ),
         ],
       ),

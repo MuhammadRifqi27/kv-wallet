@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/dashboard_model.dart';
 import '../../../data/models/named_amount.dart';
+import '../../../data/models/savings_goal_model.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../savings_goals/application/savings_goal_controller.dart';
+import '../../savings_goals/presentation/savings_goal_style.dart';
 import '../application/dashboard_controller.dart';
 
 /// Whether nominal amounts on the dashboard are hidden behind a mask.
@@ -144,6 +148,8 @@ class _DashboardBody extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        _SavingsGoalsCard(hideNominal: hideNominal),
         if (_dailyAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
           const Text(
@@ -308,6 +314,88 @@ class _StatCard extends StatelessWidget {
             style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shortcut into Savings Goals (off the bottom-nav shell, see
+/// routing/app_router.dart) — highlights whichever active goal is closest
+/// to its target so the card isn't just a bare counter. Fetches its own
+/// summary independently of [DashboardModel]/[dashboardControllerProvider]
+/// rather than folding savings goals into the dashboard endpoint's shape.
+class _SavingsGoalsCard extends ConsumerWidget {
+  const _SavingsGoalsCard({required this.hideNominal});
+
+  final bool hideNominal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summary = ref.watch(savingsGoalControllerProvider).valueOrNull;
+    if (summary == null || summary.goals.isEmpty) return const SizedBox.shrink();
+
+    final activeGoals = summary.goals.where((g) => g.status == SavingsGoalStatus.active).toList()
+      ..sort((a, b) => b.progressPercent.compareTo(a.progressPercent));
+    final highlight = activeGoals.isNotEmpty ? activeGoals.first : summary.goals.first;
+    final color = savingsGoalColorFor(highlight.color);
+
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => context.push('/savings-goals'),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.savings_outlined, color: AppColors.primary, size: 18),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Target Tabungan',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+                    ),
+                  ),
+                  Text(
+                    '${summary.activeCount} aktif · ${summary.achievedCount} tercapai',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                highlight.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: highlight.progress,
+                  minHeight: 6,
+                  backgroundColor: AppColors.background,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${maskRupiah(highlight.savedAmount, hide: hideNominal)} dari ${maskRupiah(highlight.targetAmount, hide: hideNominal)}',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

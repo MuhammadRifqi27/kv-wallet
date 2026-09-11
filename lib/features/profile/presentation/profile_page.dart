@@ -73,6 +73,13 @@ class ProfilePage extends ConsumerWidget {
             subtitle: 'Akun, dompet, dan investasi Anda',
             onTap: () => context.push('/portfolio'),
           ),
+          const SizedBox(height: 8),
+          SettingsTile(
+            icon: Icons.savings_outlined,
+            title: 'Target Tabungan',
+            subtitle: 'Buat target dan catat nabung/tarik dana',
+            onTap: () => context.push('/savings-goals'),
+          ),
           const SizedBox(height: 24),
           const _SectionLabel('Master Data'),
           SettingsTile(

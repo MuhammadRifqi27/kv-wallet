@@ -61,6 +61,8 @@ class ApiEndpoints {
   static const String btcTracking = '/money-management/btc-tracking';
   static const String btcTrackingActivity = '/money-management/btc-tracking/activity';
 
+  static const String savingsGoals = '/money-management/savings-goals';
+
   /// See TransferModel's schema-verification note — request body confirmed
   /// against docs/flutter-mobile-app-development-guide.txt, response shape
   /// unverified.
