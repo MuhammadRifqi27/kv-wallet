@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -14,28 +16,28 @@ class _OnboardingSlide {
   final String description;
 }
 
-const _slides = [
-  _OnboardingSlide(
-    icon: Icons.account_balance_wallet_rounded,
-    title: 'Selamat Datang di Flowr',
-    description: 'Kelola pemasukan, pengeluaran, dan investasi Anda dalam satu aplikasi.',
-  ),
-  _OnboardingSlide(
-    icon: Icons.receipt_long_rounded,
-    title: 'Pantau Semua Transaksi',
-    description: 'Catat transaksi harian, lihat ringkasan keuangan, dan pantau portofolio investasi kapan saja.',
-  ),
-  _OnboardingSlide(
-    icon: Icons.calculate_rounded,
-    title: 'Atur Budget & Dapat Peringatan',
-    description: 'Buat batas anggaran per kategori pengeluaran dan dapat notifikasi begitu mulai berlebih.',
-  ),
-  _OnboardingSlide(
-    icon: Icons.lock_rounded,
-    title: 'Aman dengan PIN',
-    description: 'Akun Anda dilindungi PIN 6 digit setiap kali membuka aplikasi, seperti aplikasi m-banking.',
-  ),
-];
+List<_OnboardingSlide> _buildSlides(AppLocalizations l10n) => [
+      _OnboardingSlide(
+        icon: Icons.account_balance_wallet_rounded,
+        title: l10n.authOnboardingSlide1Title,
+        description: l10n.authOnboardingSlide1Description,
+      ),
+      _OnboardingSlide(
+        icon: Icons.receipt_long_rounded,
+        title: l10n.authOnboardingSlide2Title,
+        description: l10n.authOnboardingSlide2Description,
+      ),
+      _OnboardingSlide(
+        icon: Icons.calculate_rounded,
+        title: l10n.authOnboardingSlide3Title,
+        description: l10n.authOnboardingSlide3Description,
+      ),
+      _OnboardingSlide(
+        icon: Icons.lock_rounded,
+        title: l10n.authOnboardingSlide4Title,
+        description: l10n.authOnboardingSlide4Description,
+      ),
+    ];
 
 /// Shown once per device, before Login/Register — see
 /// core/storage/onboarding_service.dart for why this is per-device rather
@@ -50,6 +52,8 @@ class OnboardingPage extends ConsumerStatefulWidget {
 class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final _pageController = PageController();
   int _currentPage = 0;
+
+  List<_OnboardingSlide> get _slides => _buildSlides(AppLocalizations.of(context));
 
   bool get _isLastSlide => _currentPage == _slides.length - 1;
 
@@ -75,6 +79,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final slides = _slides;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -89,16 +95,16 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                   maintainState: true,
                   maintainAnimation: true,
                   maintainSize: true,
-                  child: TextButton(onPressed: _finish, child: const Text('Lewati')),
+                  child: TextButton(onPressed: _finish, child: Text(l10n.authOnboardingSkipButton)),
                 ),
               ),
             ),
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: _slides.length,
+                itemCount: slides.length,
                 onPageChanged: (index) => setState(() => _currentPage = index),
-                itemBuilder: (context, index) => _SlideView(slide: _slides[index]),
+                itemBuilder: (context, index) => _SlideView(slide: slides[index]),
               ),
             ),
             Padding(
@@ -106,7 +112,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  for (var i = 0; i < _slides.length; i++)
+                  for (var i = 0; i < slides.length; i++)
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -125,7 +131,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               child: SizedBox(
                 width: double.infinity,
                 child: PrimaryButton(
-                  label: _isLastSlide ? 'Mulai' : 'Lanjut',
+                  label: _isLastSlide ? l10n.authOnboardingStartButton : l10n.authOnboardingNextButton,
                   onPressed: _next,
                 ),
               ),

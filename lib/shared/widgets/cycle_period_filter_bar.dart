@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/utils/formatters.dart';
+import '../../l10n/app_localizations.dart';
 import 'filter_pill_bar.dart';
 import 'month_period_selector.dart';
 
@@ -28,6 +29,7 @@ class CyclePeriodFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final thisMonth = DateTime(now.year, now.month);
     final lastMonth = DateTime(now.year, now.month - 1);
@@ -37,11 +39,13 @@ class CyclePeriodFilterBar extends StatelessWidget {
 
     return FilterPillBar(
       pills: [
-        FilterPillSpec(label: 'Bulan Ini', selected: isThisMonth, onTap: () => onChanged(thisMonth)),
-        FilterPillSpec(label: 'Bulan Lalu', selected: isLastMonth, onTap: () => onChanged(lastMonth)),
+        FilterPillSpec(label: l10n.appCyclePeriodThisMonth, selected: isThisMonth, onTap: () => onChanged(thisMonth)),
+        FilterPillSpec(label: l10n.appCyclePeriodLastMonth, selected: isLastMonth, onTap: () => onChanged(lastMonth)),
         FilterPillSpec(
           icon: Icons.calendar_today_outlined,
-          label: isCustom ? '${monthName(period.month)} ${period.year}' : 'Pilih Bulan',
+          label: isCustom
+              ? '${monthName(period.month, Localizations.localeOf(context))} ${period.year}'
+              : l10n.appCyclePeriodSelectMonth,
           selected: isCustom,
           onTap: () => _pickCustom(context),
         ),

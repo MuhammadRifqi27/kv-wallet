@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -46,8 +48,9 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
   }
 
   Future<void> _onConfirmCompleted(String confirmPin) async {
+    final l10n = AppLocalizations.of(context);
     if (confirmPin != _newController.text) {
-      setState(() => _confirmError = 'PIN tidak cocok, coba lagi');
+      setState(() => _confirmError = l10n.authChangePinMismatch);
       _confirmController.clear();
       return;
     }
@@ -69,7 +72,7 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PIN berhasil diperbarui.')),
+        SnackBar(content: Text(l10n.authChangePinSuccessSnackbar)),
       );
       Navigator.of(context).pop();
     } else {
@@ -84,25 +87,32 @@ class _ChangePinPageState extends ConsumerState<ChangePinPage> {
     }
   }
 
-  String get _title => switch (_step) {
-        _Step.current => 'Masukkan PIN Saat Ini',
-        _Step.newPin => 'Buat PIN Baru',
-        _Step.confirm => 'Konfirmasi PIN Baru',
-      };
+  String get _title {
+    final l10n = AppLocalizations.of(context);
+    return switch (_step) {
+      _Step.current => l10n.authChangePinStepCurrentTitle,
+      _Step.newPin => l10n.authChangePinStepNewTitle,
+      _Step.confirm => l10n.authChangePinStepConfirmTitle,
+    };
+  }
 
-  String get _subtitle => switch (_step) {
-        _Step.current => 'Masukkan PIN 6 digit yang sedang Anda pakai',
-        _Step.newPin => 'Masukkan PIN 6 digit yang baru',
-        _Step.confirm => 'Masukkan ulang PIN baru untuk konfirmasi',
-      };
+  String get _subtitle {
+    final l10n = AppLocalizations.of(context);
+    return switch (_step) {
+      _Step.current => l10n.authChangePinStepCurrentSubtitle,
+      _Step.newPin => l10n.authChangePinStepNewSubtitle,
+      _Step.confirm => l10n.authChangePinStepConfirmSubtitle,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final pinState = ref.watch(pinControllerProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Ubah PIN')),
+      appBar: AppBar(title: Text(l10n.authChangePinAppBarTitle)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

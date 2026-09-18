@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/btc_tracking_model.dart';
 import '../../../data/models/portfolio_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -80,7 +81,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedPortfolioId == null) {
-      setState(() => _error = ApiException(message: 'Pilih akun crypto terlebih dahulu.'));
+      setState(() => _error = ApiException(message: AppLocalizations.of(context).investSelectCryptoAccountFirstError));
       return;
     }
 
@@ -125,13 +126,14 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final portfoliosAsync = ref.watch(portfolioListControllerProvider);
     final investmentsAsync = ref.watch(investmentListControllerProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Profit/Loss' : 'Catat Profit/Loss')),
+      appBar: AppBar(title: Text(_isEditing ? l10n.investEditProfitLossTitle : l10n.investRecordProfitLossTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -145,7 +147,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   const SizedBox(height: 16),
                 ],
                 if (!_isEditing) ...[
-                  Text('Akun Crypto', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text(l10n.investCryptoAccountLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   const SizedBox(height: 8),
                   (portfoliosAsync.isLoading || investmentsAsync.isLoading)
                       ? LinearProgressIndicator(color: AppColors.primary)
@@ -158,7 +160,8 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                             final selected = cryptoPortfolios.where((p) => p.id == _selectedPortfolioId).firstOrNull;
                             return _TapField(
                               icon: Icons.account_balance_wallet_outlined,
-                              label: selected?.accountName ?? (cryptoPortfolios.isEmpty ? 'Belum ada akun crypto' : 'Pilih akun'),
+                              label: selected?.accountName ??
+                                  (cryptoPortfolios.isEmpty ? l10n.investEmptyCryptoAccountsTitle : l10n.investSelectAccountPlaceholder),
                               onTap: cryptoPortfolios.isEmpty ? null : () => _pickPortfolio(cryptoPortfolios),
                             );
                           },
@@ -166,49 +169,53 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   const SizedBox(height: 16),
                 ],
                 AppTextField(
-                  label: 'Simbol aset (mis. BTC)',
+                  label: l10n.investAssetSymbolLabel,
                   controller: _assetController,
                   icon: Icons.currency_bitcoin_rounded,
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('asset'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Simbol aset wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.investAssetSymbolRequiredError;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.investTypeLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 SegmentedButton<BtcEntryType>(
-                  segments: const [
-                    ButtonSegment(value: BtcEntryType.profit, label: Text('Profit'), icon: Icon(Icons.trending_up_rounded)),
-                    ButtonSegment(value: BtcEntryType.loss, label: Text('Loss'), icon: Icon(Icons.trending_down_rounded)),
+                  segments: [
+                    ButtonSegment(value: BtcEntryType.profit, label: Text(l10n.investLabelProfit), icon: const Icon(Icons.trending_up_rounded)),
+                    ButtonSegment(value: BtcEntryType.loss, label: Text(l10n.investLabelLoss), icon: const Icon(Icons.trending_down_rounded)),
                   ],
                   selected: {_type},
                   onSelectionChanged: (selection) => setState(() => _type = selection.first),
                 ),
                 const SizedBox(height: 16),
-                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.investDateLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
-                _TapField(icon: Icons.calendar_today_outlined, label: formatIndonesianDate(_date), onTap: _pickDate),
+                _TapField(
+                  icon: Icons.calendar_today_outlined,
+                  label: formatLocalizedDate(_date, Localizations.localeOf(context)),
+                  onTap: _pickDate,
+                ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah (Rp)',
+                  label: l10n.investAmountLabel,
                   controller: _amountController,
                   icon: Icons.payments_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.investAmountRequiredError;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed < 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed < 0) return l10n.investAmountInvalidError;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Deskripsi (opsional)',
+                  label: l10n.investDescriptionLabel,
                   controller: _descriptionController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
@@ -217,7 +224,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Simpan',
+                  label: _isEditing ? l10n.investSaveChangesButton : l10n.investSaveButton,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -270,6 +277,7 @@ class _PortfolioPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
@@ -285,7 +293,7 @@ class _PortfolioPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Pilih akun crypto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(l10n.investSelectCryptoAccountSheetTitle, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),

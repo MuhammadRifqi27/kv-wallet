@@ -1,0 +1,872 @@
+{
+  "@@locale": "id",
+
+  "profileAppBarTitle": "Profile",
+  "profileSectionPortfolio": "Portfolio",
+  "profilePortfolioTileTitle": "Portfolio Saya",
+  "profilePortfolioTileSubtitle": "Akun, dompet, dan investasi Anda",
+  "profileSavingsGoalTileTitle": "Target Tabungan",
+  "profileSavingsGoalTileSubtitle": "Buat target dan catat nabung/tarik dana",
+  "profileInvestmentTileTitle": "Investment / BTC Tracking",
+  "profileInvestmentTileSubtitle": "Pantau aset crypto dan catat profit/loss",
+  "profileSectionDisplay": "Tampilan",
+  "profileThemeTitle": "Tema Aplikasi",
+  "profileThemeSystem": "Sistem",
+  "profileThemeLight": "Terang",
+  "profileThemeDark": "Gelap",
+  "profileLanguageTitle": "Bahasa Aplikasi",
+  "profileLanguageSystem": "Sistem",
+  "profileLanguageIndonesian": "Indonesia",
+  "profileLanguageEnglish": "Inggris",
+  "profileSectionMasterData": "Master Data",
+  "profileCategoryTileTitle": "Kategori",
+  "profileCategoryTileSubtitle": "Kategori pemasukan & pengeluaran",
+  "profileInvestmentProviderTileTitle": "Provider Investasi",
+  "profileInvestmentProviderTileSubtitle": "Bank, exchange, dan broker",
+  "profileSectionOther": "Lainnya",
+  "profilePayrollTileTitle": "Siklus Gajian",
+  "profilePayrollTileSubtitle": "Atur tanggal mulai periode gajian",
+  "profileCustomerServiceTileTitle": "Hubungi Customer Service",
+  "profileCustomerServiceTileSubtitle": "Isi form bantuan",
+  "profileCustomerServiceLaunchFailed": "Tidak dapat membuka form.",
+  "profileSectionSecurity": "Keamanan",
+  "profileChangePasswordTileTitle": "Ubah Password",
+  "profileChangePasswordTileSubtitle": "Ganti password akun Anda",
+  "profileChangePinTileTitle": "Ubah PIN",
+  "profileChangePinTileSubtitle": "Ganti PIN 6 digit untuk membuka aplikasi",
+  "profileBiometricTitle": "Login Biometrik",
+  "profileBiometricSubtitleEnabled": "Aktif — tap \"Gunakan Biometrik\" di layar kunci untuk masuk tanpa mengetik PIN",
+  "profileBiometricSubtitleDisabled": "Buka aplikasi dengan sidik jari/Face ID, sebagai pengganti mengetik PIN",
+  "profileBiometricUnsupported": "Perangkat ini tidak mendukung atau belum mendaftarkan biometrik.",
+  "profileBiometricEnrollReason": "Aktifkan login biometrik untuk Flowr",
+  "profileBiometricEnrolledSuccess": "Biometrik aktif. Mulai sekarang cukup tap \"Gunakan Biometrik\" di layar kunci untuk masuk tanpa PIN.",
+  "profileBiometricEnrollFailed": "Verifikasi biometrik gagal atau dibatalkan.",
+  "profileSectionAccount": "Akun",
+  "profileLogoutTileTitle": "Keluar",
+  "profileLogoutTileSubtitle": "Logout dari akun ini",
+  "profileLogoutDialogTitle": "Keluar akun?",
+  "profileLogoutDialogContent": "Anda perlu login kembali untuk mengakses aplikasi.",
+  "profileCancel": "Batal",
+  "profileLogoutConfirm": "Keluar",
+  "profileEditTooltip": "Edit Profil",
+  "profileMembershipFallback": "Member",
+  "profileMembershipFree": "Free — belum upgrade membership",
+  "profileAppVersion": "Versi {version}",
+  "@profileAppVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+
+  "emergencyFundTitle": "Kalkulator Dana Darurat",
+  "emergencyFundLoadError": "Gagal memuat data pengeluaran.",
+  "emergencyFundRetry": "Coba lagi",
+  "emergencyFundTargetLabel": "Target (bulan pengeluaran)",
+  "emergencyFundCreateGoalButton": "Buat Goal Dana Darurat",
+  "emergencyFundGoalName": "Dana Darurat",
+  "emergencyFundAverageLabel": "Rata-rata Pengeluaran Bulanan",
+  "emergencyFundAverageBasis": "Berdasarkan {months} bulan terakhir tercatat",
+  "@emergencyFundAverageBasis": {
+    "placeholders": {
+      "months": {"type": "int"}
+    }
+  },
+  "emergencyFundManualHint": "Data transaksi kamu belum cukup untuk menghitung rata-rata otomatis. Isi manual di bawah:",
+  "emergencyFundManualLabel": "Rata-rata pengeluaran bulanan (Rp)",
+  "emergencyFundRecommendationLabel": "Rekomendasi Dana Darurat ({multiplier}x pengeluaran bulanan)",
+  "@emergencyFundRecommendationLabel": {
+    "placeholders": {
+      "multiplier": {"type": "int"}
+    }
+  },
+  "emergencyFundExistingGoalProgress": "Progress \"{name}\"",
+  "@emergencyFundExistingGoalProgress": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "emergencyFundExistingGoalAmounts": "{saved} dari {target}",
+  "@emergencyFundExistingGoalAmounts": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+
+  "summaryAppBarTitle": "Ringkasan",
+  "summaryLoadError": "Gagal memuat ringkasan.",
+  "summaryIncomeLabel": "Pemasukan",
+  "summaryExpenseLabel": "Pengeluaran",
+  "summaryNetProfitLabel": "Untung Bersih",
+  "summarySectionAssetAllocation": "Alokasi Aset",
+  "summarySectionExpenseBreakdown": "Breakdown Pengeluaran",
+  "summarySectionMonthlyTrend": "Tren Pemasukan vs Pengeluaran",
+  "summarySectionSmartAdvisor": "Smart Advisor",
+  "summaryNetWorthTitle": "Total Kekayaan Bersih",
+  "summaryNetWorthDelta": "{sign} {amount} dari bulan lalu",
+  "@summaryNetWorthDelta": {
+    "placeholders": {
+      "sign": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "summaryChangeBadge": "{percent}% vs lalu",
+  "@summaryChangeBadge": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "summarySavingsRateTitle": "Rasio Menabung",
+  "summaryBudgetAllOk": "Semua kategori masih dalam budget",
+  "summaryBudgetOverCount": "{over} dari {total} kategori melebihi budget",
+  "@summaryBudgetOverCount": {
+    "placeholders": {
+      "over": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "summaryEmergencyFundCardSubtitle": "Hitung rekomendasi nominal ideal",
+
+  "notificationBudgetExceededTitle": "Budget {category} Terlampaui",
+  "@notificationBudgetExceededTitle": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "notificationBudgetExceededBody": "Terpakai {spent} dari budget {budget} bulan {month} {year}.",
+  "@notificationBudgetExceededBody": {
+    "placeholders": {
+      "spent": {"type": "String"},
+      "budget": {"type": "String"},
+      "month": {"type": "String"},
+      "year": {"type": "int"}
+    }
+  },
+
+  "appChangePasswordSuccessMessage": "Password berhasil diperbarui.",
+  "appChangePasswordAppBarTitle": "Ubah Password",
+  "appChangePasswordCurrentLabel": "Password saat ini",
+  "appChangePasswordCurrentRequired": "Password saat ini wajib diisi",
+  "appChangePasswordNewLabel": "Password baru",
+  "appChangePasswordNewRequired": "Password baru wajib diisi",
+  "appChangePasswordMinLength": "Minimal 8 karakter",
+  "appChangePasswordConfirmLabel": "Konfirmasi password baru",
+  "appChangePasswordMismatch": "Password tidak cocok",
+  "appChangePasswordSaveButton": "Simpan",
+  "appEditProfileSuccessMessage": "Profil berhasil diperbarui.",
+  "appEditProfileAppBarTitle": "Edit Profil",
+  "appEditProfileNameLabel": "Nama lengkap",
+  "appEditProfileNameRequired": "Nama wajib diisi",
+  "appEditProfileUsernameLabel": "Username",
+  "appEditProfileUsernameRequired": "Username wajib diisi",
+  "appEditProfileUsernameNoSpaces": "Username tidak boleh mengandung spasi",
+  "appEditProfileEmailLabel": "Email",
+  "appEditProfileEmailRequired": "Email wajib diisi",
+  "appEditProfileEmailInvalid": "Format email tidak valid",
+  "appEditProfileSaveButton": "Simpan",
+  "appEditProfileSecuritySectionLabel": "Keamanan",
+  "appEditProfileChangePasswordTitle": "Ubah Password",
+  "appEditProfileChangePasswordSubtitle": "Ganti password akun Anda",
+  "appEditProfileChangePinTitle": "Ubah PIN",
+  "appEditProfileChangePinSubtitle": "Ganti PIN 6 digit untuk membuka aplikasi",
+  "appCyclePeriodThisMonth": "Bulan Ini",
+  "appCyclePeriodLastMonth": "Bulan Lalu",
+  "appCyclePeriodSelectMonth": "Pilih Bulan",
+  "appNavDashboard": "Dashboard",
+  "appNavTransactions": "Transaksi",
+  "appNavSummary": "Ringkasan",
+  "appNavBudgets": "Budget",
+  "appNavInvestment": "Investment",
+  "appNavProfile": "Profile",
+  "appNavUpgradeRequired": "Fitur ini butuh upgrade membership",
+
+  "authLoginWelcomeTitle": "Selamat datang kembali",
+  "authLoginWelcomeSubtitle": "Masuk untuk melanjutkan kelola keuangan Anda",
+  "authLoginEmailOrUsernameLabel": "Email atau Username",
+  "authLoginEmailOrUsernameRequired": "Email atau username wajib diisi",
+  "authLoginPasswordLabel": "Kata sandi",
+  "authLoginPasswordRequired": "Kata sandi wajib diisi",
+  "authLoginForgotPasswordLink": "Lupa kata sandi?",
+  "authLoginSubmitButton": "Masuk",
+  "authLoginNoAccountPrompt": "Belum punya akun?",
+  "authLoginRegisterLink": "Daftar",
+
+  "authRegisterTitle": "Buat akun baru",
+  "authRegisterSubtitle": "Mulai kelola pemasukan & pengeluaran Anda",
+  "authRegisterInfoBanner": "Akun langsung aktif setelah daftar — Anda akan diminta membuat PIN 6 digit berikutnya.",
+  "authRegisterNameLabel": "Nama lengkap",
+  "authRegisterNameRequired": "Nama wajib diisi",
+  "authRegisterUsernameLabel": "Username",
+  "authRegisterUsernameRequired": "Username wajib diisi",
+  "authRegisterUsernameNoSpaces": "Username tidak boleh mengandung spasi",
+  "authRegisterEmailLabel": "Email",
+  "authRegisterEmailRequired": "Email wajib diisi",
+  "authRegisterEmailInvalid": "Format email tidak valid",
+  "authRegisterPasswordLabel": "Kata sandi",
+  "authRegisterPasswordRequired": "Kata sandi wajib diisi",
+  "authRegisterPasswordMinLength": "Minimal 8 karakter",
+  "authRegisterConfirmPasswordLabel": "Konfirmasi kata sandi",
+  "authRegisterPasswordMismatch": "Kata sandi tidak cocok",
+  "authRegisterSubmitButton": "Daftar",
+  "authRegisterHaveAccountPrompt": "Sudah punya akun?",
+  "authRegisterLoginLink": "Masuk",
+
+  "authForgotPasswordTitle": "Lupa Kata Sandi",
+  "authForgotPasswordSubtitle": "Isi form di bawah, admin akan memproses pengajuanmu",
+  "authForgotPasswordInfoBanner": "Belum ada reset otomatis lewat email. Admin akan menghubungimu lewat WhatsApp/telepon untuk mengirim link reset kata sandi.",
+  "authForgotPasswordIdentifierLabel": "Email atau Username",
+  "authForgotPasswordIdentifierRequired": "Email atau username wajib diisi",
+  "authForgotPasswordPhoneLabel": "Nomor WhatsApp/telepon",
+  "authForgotPasswordPhoneRequired": "Nomor WhatsApp/telepon wajib diisi",
+  "authForgotPasswordNoteLabel": "Catatan (opsional)",
+  "authForgotPasswordSubmitButton": "Kirim Pengajuan",
+  "authForgotPasswordCheckStatusLink": "Sudah pernah mengajukan? Cek status",
+
+  "authResetStatusAppBarTitle": "Cek Status Pengajuan",
+  "authResetStatusDescription": "Masukkan email atau username yang dipakai saat mengajukan reset kata sandi.",
+  "authResetStatusIdentifierLabel": "Email atau Username",
+  "authResetStatusIdentifierRequired": "Email atau username wajib diisi",
+  "authResetStatusCheckButton": "Cek Status",
+  "authResetStatusPendingTitle": "Menunggu Diproses Admin",
+  "authResetStatusPendingDescription": "Admin akan menghubungimu lewat WhatsApp/telepon di nomor yang kamu daftarkan untuk mengirim link reset kata sandi.",
+  "authResetStatusProcessedTitle": "Sudah Diproses",
+  "authResetStatusProcessedDescription": "Admin sudah membuat link reset kata sandi dan seharusnya sudah mengirimkannya lewat WhatsApp/telepon. Buka link tersebut untuk mengatur kata sandi baru.",
+  "authResetStatusRejectedTitle": "Pengajuan Ditolak",
+  "authResetStatusRejectedDescription": "Admin menolak pengajuan reset kata sandi ini. Silakan ajukan ulang lewat form.",
+
+  "authOnboardingSlide1Title": "Selamat Datang di Flowr",
+  "authOnboardingSlide1Description": "Kelola pemasukan, pengeluaran, dan investasi Anda dalam satu aplikasi.",
+  "authOnboardingSlide2Title": "Pantau Semua Transaksi",
+  "authOnboardingSlide2Description": "Catat transaksi harian, lihat ringkasan keuangan, dan pantau portofolio investasi kapan saja.",
+  "authOnboardingSlide3Title": "Atur Budget & Dapat Peringatan",
+  "authOnboardingSlide3Description": "Buat batas anggaran per kategori pengeluaran dan dapat notifikasi begitu mulai berlebih.",
+  "authOnboardingSlide4Title": "Aman dengan PIN",
+  "authOnboardingSlide4Description": "Akun Anda dilindungi PIN 6 digit setiap kali membuka aplikasi, seperti aplikasi m-banking.",
+  "authOnboardingSkipButton": "Lewati",
+  "authOnboardingStartButton": "Mulai",
+  "authOnboardingNextButton": "Lanjut",
+
+  "authSplashTagline": "Kelola keuangan Anda dengan mudah",
+
+  "authConfirmPinTitle": "Konfirmasi PIN Anda",
+  "authConfirmPinSubtitle": "Masukkan PIN 6 digit saat ini untuk mengaktifkan login biometrik",
+
+  "authChangePinMismatch": "PIN tidak cocok, coba lagi",
+  "authChangePinSuccessSnackbar": "PIN berhasil diperbarui.",
+  "authChangePinAppBarTitle": "Ubah PIN",
+  "authChangePinStepCurrentTitle": "Masukkan PIN Saat Ini",
+  "authChangePinStepNewTitle": "Buat PIN Baru",
+  "authChangePinStepConfirmTitle": "Konfirmasi PIN Baru",
+  "authChangePinStepCurrentSubtitle": "Masukkan PIN 6 digit yang sedang Anda pakai",
+  "authChangePinStepNewSubtitle": "Masukkan PIN 6 digit yang baru",
+  "authChangePinStepConfirmSubtitle": "Masukkan ulang PIN baru untuk konfirmasi",
+
+  "authVerifyPinBiometricReason": "Buka Flowr dengan biometrik",
+  "authVerifyPinGreeting": "Halo, {userName}",
+  "@authVerifyPinGreeting": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "authVerifyPinEnterPinTitle": "Masukkan PIN",
+  "authVerifyPinSubtitleBiometric": "Masukkan PIN atau gunakan sidik jari/Face ID untuk membuka aplikasi",
+  "authVerifyPinSubtitleDefault": "Masukkan PIN 6 digit untuk membuka aplikasi",
+  "authVerifyPinUseBiometricButton": "Gunakan Biometrik",
+  "authVerifyPinNotYouLogout": "Bukan Anda? Keluar",
+  "authVerifyPinLogoutDialogTitle": "Bukan Anda?",
+  "authVerifyPinLogoutDialogContent": "Anda akan logout dan perlu login kembali dengan email/username & password.",
+  "authVerifyPinLogoutDialogCancel": "Batal",
+  "authVerifyPinLogoutDialogConfirm": "Keluar",
+
+  "authSetPinMismatch": "PIN tidak cocok, coba lagi",
+  "authSetPinConfirmTitle": "Konfirmasi PIN",
+  "authSetPinCreateTitle": "Buat PIN 6 Digit",
+  "authSetPinConfirmSubtitle": "Masukkan ulang PIN yang sama untuk konfirmasi",
+  "authSetPinCreateSubtitle": "PIN ini dipakai untuk membuka aplikasi setiap kali dibuka, mirip aplikasi m-banking",
+  "authSetPinRestartButton": "Ulangi dari awal",
+
+  "authBiometricPromptTitle": "Masuk lebih cepat dengan biometrik?",
+  "authBiometricPromptContent": "Buka Flowr pakai sidik jari atau Face ID, tanpa perlu mengetik PIN tiap kali. Bisa diaktifkan/dimatikan kapan saja lewat Profile.",
+  "authBiometricPromptLater": "Nanti saja",
+  "authBiometricPromptEnable": "Aktifkan",
+  "authBiometricPromptEnrollReason": "Aktifkan login biometrik untuk Flowr",
+  "authBiometricPromptSuccessTitle": "Biometrik aktif!",
+  "authBiometricPromptFailedTitle": "Gagal mengaktifkan",
+  "authBiometricPromptSuccessContent": "Lain kali Anda bisa masuk ke Flowr tanpa mengetik PIN.",
+  "authBiometricPromptFailedContent": "Verifikasi biometrik gagal atau dibatalkan. Anda bisa coba lagi kapan saja lewat Profile.",
+  "authBiometricPromptOkButton": "Oke",
+
+  "walletPortfolioListUpgradeRequired": "Fitur ini butuh upgrade membership",
+  "walletPortfolioListTitle": "Portfolio",
+  "walletPortfolioListLoadError": "Gagal memuat portfolio.",
+  "walletPortfolioListEmptyTitle": "Belum ada akun",
+  "walletPortfolioListEmptySubtitle": "Tekan tombol + untuk menambah akun/dompet pertama Anda.",
+  "walletPortfolioListTransferTitle": "Transfer Antar Akun",
+  "walletPortfolioListTransferSubtitle": "Pindahkan dana antar akun/dompet Anda",
+  "walletPortfolioListDeleteDialogTitle": "Hapus akun?",
+  "walletPortfolioListDeleteDialogContent": "Akun \"{accountName}\" akan dihapus permanen.",
+  "@walletPortfolioListDeleteDialogContent": {
+    "placeholders": {
+      "accountName": {"type": "String"}
+    }
+  },
+  "walletPortfolioListCancel": "Batal",
+  "walletPortfolioListDeleteConfirm": "Hapus",
+  "walletPortfolioListProviderFallback": "Provider #{id}",
+  "@walletPortfolioListProviderFallback": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "walletPortfolioListEditAction": "Edit",
+
+  "walletPortfolioFormProviderRequired": "Pilih provider investasi terlebih dahulu.",
+  "walletPortfolioFormEditTitle": "Edit Akun",
+  "walletPortfolioFormCreateTitle": "Tambah Akun",
+  "walletPortfolioFormProviderLabel": "Provider",
+  "walletPortfolioFormLoadProvidersError": "Gagal memuat daftar provider.",
+  "walletPortfolioFormAccountNameLabel": "Nama akun",
+  "walletPortfolioFormAccountNameRequired": "Nama akun wajib diisi",
+  "walletPortfolioFormAccountNumberLabel": "Nomor akun (opsional)",
+  "walletPortfolioFormDescriptionLabel": "Deskripsi (opsional)",
+  "walletPortfolioFormInvestmentAccountTitle": "Akun investasi",
+  "walletPortfolioFormInvestmentAccountSubtitle": "Dana masuk/keluar dicatat sebagai deposit/profit/withdrawal/loss, terpisah dari transaksi biasa",
+  "walletPortfolioFormSaveChanges": "Simpan Perubahan",
+  "walletPortfolioFormNoProviders": "Belum ada provider investasi",
+  "walletPortfolioFormSelectProvider": "Pilih provider",
+  "walletPortfolioFormSelectProviderSheetTitle": "Pilih provider investasi",
+
+  "walletSavingsGoalListTitle": "Target Tabungan",
+  "walletSavingsGoalListLoadError": "Gagal memuat target tabungan.",
+  "walletSavingsGoalListEmptyTitle": "Belum ada target tabungan",
+  "walletSavingsGoalListEmptySubtitle": "Tekan tombol + untuk membuat target pertama Anda.",
+  "walletSavingsGoalListActiveLabel": "Aktif",
+  "walletSavingsGoalListAchievedLabel": "Tercapai",
+  "walletSavingsGoalListSummarySuffix": "{label} Goal",
+  "@walletSavingsGoalListSummarySuffix": {
+    "placeholders": {
+      "label": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalListDeleteDialogTitle": "Hapus target?",
+  "walletSavingsGoalListDeleteDialogContent": "Target \"{name}\" beserta seluruh riwayat nabung/tariknya akan dihapus permanen.",
+  "@walletSavingsGoalListDeleteDialogContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalListCancel": "Batal",
+  "walletSavingsGoalListDeleteConfirm": "Hapus",
+  "walletSavingsGoalListArchiveDialogTitle": "Arsipkan target?",
+  "walletSavingsGoalListArchiveDialogContent": "Target berhenti dihitung aktif/tercapai, tapi riwayatnya tetap tersimpan. Tidak bisa dibatalkan dari aplikasi.",
+  "walletSavingsGoalListArchiveConfirm": "Arsipkan",
+  "walletSavingsGoalListEditAction": "Edit",
+  "walletSavingsGoalListProgressAmounts": "{saved} dari {target}",
+  "@walletSavingsGoalListProgressAmounts": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalListOverAllocatedWarning": "Total alokasi ke akun ini melebihi saldo aslinya.",
+
+  "walletSavingsGoalFormEditTitle": "Edit Target Tabungan",
+  "walletSavingsGoalFormCreateTitle": "Target Tabungan Baru",
+  "walletSavingsGoalFormNameLabel": "Nama target",
+  "walletSavingsGoalFormNameRequired": "Nama target wajib diisi",
+  "walletSavingsGoalFormPurposeLabel": "Tujuan (opsional)",
+  "walletSavingsGoalFormTargetAmountLabel": "Jumlah Target (Rp)",
+  "walletSavingsGoalFormTargetAmountRequired": "Jumlah target wajib diisi",
+  "walletSavingsGoalFormAmountInvalid": "Jumlah tidak valid",
+  "walletSavingsGoalFormDeadlineLabel": "Tenggat (opsional)",
+  "walletSavingsGoalFormNoDeadline": "Tanpa tenggat",
+  "walletSavingsGoalFormSourceAccountLabel": "Akun sumber dana (opsional)",
+  "walletSavingsGoalFormLoadAccountsError": "Gagal memuat daftar akun.",
+  "walletSavingsGoalFormNoAccounts": "Belum ada akun",
+  "walletSavingsGoalFormNoAccountBound": "Tidak diikat ke akun manapun",
+  "walletSavingsGoalFormColorLabel": "Warna",
+  "walletSavingsGoalFormIconLabel": "Ikon",
+  "walletSavingsGoalFormSaveChanges": "Simpan Perubahan",
+  "walletSavingsGoalFormCreateAction": "Buat Target",
+  "walletSavingsGoalFormPickAccountSheetTitle": "Pilih akun sumber dana",
+
+  "walletSavingsGoalDetailAddEntryTooltip": "Catat Nabung/Tarik",
+  "walletSavingsGoalDetailHistoryTitle": "Riwayat Nabung/Tarik",
+  "walletSavingsGoalDetailLoadHistoryError": "Gagal memuat riwayat.",
+  "walletSavingsGoalDetailEmptyTitle": "Belum ada riwayat",
+  "walletSavingsGoalDetailEmptySubtitle": "Tekan tombol + untuk mencatat nabung/tarik pertama.",
+  "walletSavingsGoalDetailCollectedLabel": "Terkumpul",
+  "walletSavingsGoalDetailTargetAmount": "Target {amount}",
+  "@walletSavingsGoalDetailTargetAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailRemainingAmount": "Kurang {amount} lagi",
+  "@walletSavingsGoalDetailRemainingAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailDeadline": "Tenggat {date}",
+  "@walletSavingsGoalDetailDeadline": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailDefaultAccount": "Akun default: {name}",
+  "@walletSavingsGoalDetailDefaultAccount": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailOverAllocatedWarning": "Total alokasi ke akun ini dari semua goal sudah melebihi saldo aslinya.",
+  "walletSavingsGoalDetailDeleteEntryTitle": "Hapus baris ini?",
+  "walletSavingsGoalDetailDeleteEntryContent": "Baris riwayat ini akan dihapus permanen dan progress target dihitung ulang.",
+  "walletSavingsGoalDetailCancel": "Batal",
+  "walletSavingsGoalDetailDeleteConfirm": "Hapus",
+  "walletSavingsGoalDetailWithdrawLabel": "Tarik",
+  "walletSavingsGoalDetailContributeLabel": "Nabung",
+  "walletSavingsGoalDetailDateLabel": "Tanggal",
+  "walletSavingsGoalDetailAmountLabel": "Jumlah (Rp)",
+  "walletSavingsGoalDetailAmountRequired": "Jumlah wajib diisi",
+  "walletSavingsGoalDetailAmountInvalid": "Jumlah tidak valid",
+  "walletSavingsGoalDetailAccountLabel": "Akun (opsional)",
+  "walletSavingsGoalDetailLoadAccountsError": "Gagal memuat daftar akun.",
+  "walletSavingsGoalDetailNoAccounts": "Belum ada akun",
+  "walletSavingsGoalDetailNoAccountRecorded": "Tidak dicatat ke akun manapun",
+  "walletSavingsGoalDetailNoteLabel": "Catatan (opsional)",
+  "walletSavingsGoalDetailSaveAction": "Simpan",
+  "walletSavingsGoalDetailPickAccountSheetTitle": "Pilih akun",
+
+  "walletGoalStatusAchieved": "Tercapai",
+  "walletGoalStatusArchived": "Diarsipkan",
+  "walletGoalStatusActive": "Aktif",
+
+  "walletDashboardLoadError": "Gagal memuat dashboard.",
+  "walletDashboardCashBalanceLabel": "Saldo Kas",
+  "walletDashboardInvestmentBalanceLabel": "Saldo Investasi",
+  "walletDashboardIncomeLabel": "Pemasukan",
+  "walletDashboardExpenseLabel": "Pengeluaran",
+  "walletDashboardDailyAccountsTitle": "Akun Harian",
+  "walletDashboardInvestmentAccountsTitle": "Akun Investasi",
+  "walletDashboardIncomeSourcesTitle": "Sumber Pemasukan",
+  "walletDashboardTopCategoriesTitle": "Kategori Terbesar",
+  "walletDashboardRecentTransactionsTitle": "Transaksi Terbaru",
+  "walletDashboardGreeting": "Halo, {name}",
+  "@walletDashboardGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardCycleRange": "Siklus {start} — {end}",
+  "@walletDashboardCycleRange": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "walletDashboardNetWorthLabel": "Total Kekayaan Bersih",
+  "walletDashboardSavingsGoalsCardTitle": "Target Tabungan",
+  "walletDashboardSavingsGoalsSummary": "{active} aktif · {achieved} tercapai",
+  "@walletDashboardSavingsGoalsSummary": {
+    "placeholders": {
+      "active": {"type": "int"},
+      "achieved": {"type": "int"}
+    }
+  },
+  "walletDashboardSavingsGoalProgress": "{saved} dari {target}",
+  "@walletDashboardSavingsGoalProgress": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+
+  "txnCommonCancel": "Batal",
+  "txnCommonDelete": "Hapus",
+  "txnCommonEdit": "Edit",
+  "txnIncomeLabel": "Pemasukan",
+  "txnExpenseLabel": "Pengeluaran",
+  "txnFilterAll": "Semua",
+  "txnCommonSaveChanges": "Simpan Perubahan",
+  "txnCommonAmountRequired": "Jumlah wajib diisi",
+  "txnCommonAmountInvalid": "Jumlah tidak valid",
+  "txnCommonSelectCategoryFirst": "Pilih kategori terlebih dahulu.",
+  "txnCommonCategoryLoadError": "Gagal memuat kategori.",
+  "txnCommonAccountLoadError": "Gagal memuat akun.",
+  "txnCommonDescriptionLabel": "Deskripsi (opsional)",
+  "txnCommonAmountRpLabel": "Jumlah (Rp)",
+  "txnCommonSelectCategoryTitle": "Pilih kategori",
+  "txnCommonNoCategoryForType": "Belum ada kategori untuk tipe ini",
+  "txnCommonSelectAccountTitle": "Pilih akun",
+  "txnCommonNoneOption": "Tidak ada",
+  "txnCommonDateSectionLabel": "Tanggal",
+  "txnCommonTypeSectionLabel": "Tipe",
+  "txnCommonCategorySectionLabel": "Kategori",
+  "txnCommonNoAccountAvailable": "Belum ada akun",
+  "txnCategoryFallbackName": "Kategori #{id}",
+  "@txnCategoryFallbackName": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "txnAccountFallbackName": "Akun #{id}",
+  "@txnAccountFallbackName": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "txnRecurringMenuTileTitle": "Transaksi Berulang",
+
+  "txnFeatureRequiresUpgrade": "Fitur ini butuh upgrade membership",
+  "txnListTitle": "Transaksi",
+  "txnListLoadError": "Gagal memuat transaksi.",
+  "txnListEmptyTitle": "Belum ada transaksi",
+  "txnListEmptySubtitle": "Tekan tombol + untuk mencatat pemasukan atau pengeluaran.",
+  "txnListNoResultsTitle": "Tidak ada hasil",
+  "txnListNoResultsSubtitle": "Tidak ada transaksi yang cocok dengan pencarian ini.",
+  "txnSearchHint": "Cari kategori, catatan, atau akun",
+  "txnNetBalanceLabel": "Saldo Bersih",
+  "txnDeleteDialogTitle": "Hapus transaksi?",
+  "txnDeleteDialogContent": "Transaksi ini akan dihapus permanen.",
+  "txnRecurringMenuTileSubtitle": "Kelola tagihan/pemasukan otomatis berkala",
+  "txnPickDateLabel": "Pilih Tanggal",
+  "txnFilterThisMonth": "Bulan Ini",
+  "txnFilterLastMonth": "Bulan Lalu",
+  "txnFilterLast7Days": "7 Hari Terakhir",
+  "txnFilterLast30Days": "30 Hari Terakhir",
+
+  "txnScanReceiptFailedMessage": "Tidak bisa membaca struk ini, silakan isi manual.",
+  "txnScanReceiptAutofilledMessage": "Terisi otomatis dari struk — mohon periksa kembali sebelum simpan.",
+  "txnFormTitleEdit": "Edit Transaksi",
+  "txnFormTitleAdd": "Tambah Transaksi",
+  "txnFormAccountOptionalLabel": "Akun (opsional)",
+  "txnScanReceiptScanning": "Membaca struk...",
+  "txnScanReceiptButtonLabel": "Scan Struk",
+  "txnScanSourceCamera": "Ambil Foto",
+  "txnScanSourceGallery": "Pilih dari Galeri",
+
+  "txnRecurringListLoadError": "Gagal memuat transaksi berulang.",
+  "txnRecurringListEmptyTitle": "Belum ada transaksi berulang",
+  "txnRecurringListEmptySubtitle": "Tekan tombol + untuk membuat template, misal tagihan bulanan.",
+  "txnRecurringDeleteDialogTitle": "Hapus transaksi berulang?",
+  "txnRecurringDeleteDialogContent": "Template \"{name}\" akan dihapus permanen. Transaksi yang sudah pernah dibuat tidak terhapus.",
+  "@txnRecurringDeleteDialogContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "txnRecurringNextDateLabel": "Berikutnya {date}",
+  "@txnRecurringNextDateLabel": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+
+  "txnRecurringSelectAccountFirst": "Pilih akun terlebih dahulu.",
+  "txnRecurringFormTitleEdit": "Edit Transaksi Berulang",
+  "txnRecurringFormTitleAdd": "Tambah Transaksi Berulang",
+  "txnRecurringNameLabel": "Nama",
+  "txnRecurringNameRequired": "Nama wajib diisi",
+  "txnRecurringAccountSectionLabel": "Akun",
+  "txnRecurringFrequencyLabel": "Frekuensi",
+  "txnRecurringStartDateLabel": "Mulai Tanggal",
+  "txnRecurringStartDateHistoricalNote": "Template ini sudah pernah diproses, jadi mengubah tanggal ini tidak menggeser jadwal berikutnya — cuma jadi catatan kapan pertama dibuat.",
+  "txnRecurringSubmitAdd": "Tambah",
+  "txnRecurringPickFrequencyTitle": "Pilih frekuensi",
+
+  "txnTransferListTitle": "Transfer Antar Akun",
+  "txnTransferListLoadError": "Gagal memuat transfer.",
+  "txnTransferListEmptyTitle": "Belum ada transfer",
+  "txnTransferListEmptySubtitle": "Tekan tombol + untuk memindahkan dana antar akun Anda.",
+  "txnTransferDeleteDialogTitle": "Hapus transfer?",
+  "txnTransferDeleteDialogContent": "Transfer ini akan dihapus permanen, saldo kedua akun akan disesuaikan kembali.",
+
+  "txnTransferSelectAccountsError": "Pilih akun asal dan akun tujuan.",
+  "txnTransferSameAccountError": "Akun asal dan tujuan tidak boleh sama.",
+  "txnTransferAssetRequiredError": "Isi simbol aset (mis. BTC) — salah satu akun tipe crypto.",
+  "txnTransferFormTitleEdit": "Edit Transfer",
+  "txnTransferFromAccountLabel": "Dari Akun",
+  "txnTransferFromAccountPlaceholder": "Pilih akun asal",
+  "txnTransferToAccountLabel": "Ke Akun",
+  "txnTransferToAccountPlaceholder": "Pilih akun tujuan",
+  "txnTransferAssetSectionLabel": "Aset",
+  "txnTransferAssetHint": "Salah satu akun tipe crypto — isi simbol asetnya supaya masuk breakdown per-aset di Investment (topup maupun withdrawal/profit taking).",
+  "txnTransferAssetFieldLabel": "Simbol aset (mis. BTC)",
+  "txnTransferSubmitLabel": "Transfer",
+
+  "txnBudgetListTitle": "Budget",
+  "txnBudgetListLoadError": "Gagal memuat budget.",
+  "txnBudgetListEmptyMessage": "Belum ada budget untuk bulan ini.\nTap tombol + untuk menambah.",
+  "txnBudgetPerCategoryLabel": "Per Kategori",
+  "txnBudgetTapToEditHint": "Tap salah satu untuk mengubah jumlah budget-nya.",
+  "txnBudgetTotalLabel": "Total Budget",
+  "txnBudgetUsedAmount": "Terpakai {amount}",
+  "@txnBudgetUsedAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "txnBudgetCategoryOverBudget": "Terpakai {spent} — melebihi budget",
+  "@txnBudgetCategoryOverBudget": {
+    "placeholders": {
+      "spent": {"type": "String"}
+    }
+  },
+  "txnBudgetCategoryUsedOfTotal": "Terpakai {spent} dari {total}",
+  "@txnBudgetCategoryUsedOfTotal": {
+    "placeholders": {
+      "spent": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+
+  "txnBudgetFormTitleEdit": "Edit Budget",
+  "txnBudgetFormTitleAdd": "Tambah Budget",
+  "txnBudgetFormPeriodLabel": "Untuk periode {month} {year}",
+  "@txnBudgetFormPeriodLabel": {
+    "placeholders": {
+      "month": {"type": "String"},
+      "year": {"type": "int"}
+    }
+  },
+  "txnBudgetExpenseCategoryLabel": "Kategori Pengeluaran",
+  "txnBudgetAllCategoriesBudgeted": "Semua kategori sudah punya budget",
+  "txnBudgetAmountLabel": "Jumlah Budget (Rp)",
+
+  "investDashboardTitle": "Investment",
+  "investActivityHistoryLabel": "Riwayat Aktivitas",
+  "investRecordProfitLossTooltip": "Catat Profit/Loss",
+  "investLoadErrorMessage": "Gagal memuat data investasi.",
+  "investYourAssetsLabel": "Aset Anda",
+  "investTotalCryptoValueLabel": "Total Nilai Crypto",
+  "investAssetCountEmpty": "Belum ada aset",
+  "investAssetCountTracked": "{count} aset dilacak",
+  "@investAssetCountTracked": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "investPnl24hFull": "PnL {amount} (24 jam)",
+  "@investPnl24hFull": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "investPnl24hShort": "PnL {amount} (24j)",
+  "@investPnl24hShort": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "investPriceUnavailable": "Harga tidak tersedia",
+  "investEmptyCryptoAccountsTitle": "Belum ada akun crypto",
+  "investEmptyCryptoAccountsSubtitle": "Tambah akun dengan provider bertipe Crypto lewat Portfolio, lalu top up saldonya lewat Transfer Antar Akun.",
+
+  "investHeldInAccountsTitle": "Dipegang di Akun",
+  "investHeldInAccountsSubtitle": "Dihitung dari riwayat aktivitas — lihat catatan di kode kalau angkanya tampak meleset.",
+  "investCurrentPriceLabel": "Harga Saat Ini",
+  "investChangePercent24h": "{percent}% (24 jam)",
+  "@investChangePercent24h": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "investTotalHeldLabel": "Total Anda Miliki",
+  "investApproxQuantityBtc": "≈ {quantity} BTC",
+  "@investApproxQuantityBtc": {
+    "placeholders": {
+      "quantity": {"type": "String"}
+    }
+  },
+  "investPerformanceTitle": "Performa (Floating PnL)",
+  "investPeriod24h": "24 Jam",
+  "investPeriod1w": "1 Minggu",
+  "investPeriod1m": "1 Bulan",
+  "investPeriod3m": "3 Bulan",
+  "investPeriod6m": "6 Bulan",
+  "investPeriod5y": "5 Tahun",
+  "investDataUnavailable": "Data tidak tersedia",
+  "investMarketPriceUnavailable": "Harga pasar untuk aset ini belum tersedia.",
+  "investNoBalanceRecorded": "Belum ada saldo tercatat untuk aset ini.",
+  "investAccountFallbackName": "Akun #{accountId}",
+  "@investAccountFallbackName": {
+    "placeholders": {
+      "accountId": {"type": "int"}
+    }
+  },
+
+  "investActivityLoadError": "Gagal memuat riwayat.",
+  "investActivityEmptyTitle": "Belum ada aktivitas",
+  "investActivityEmptySubtitle": "Top up lewat Transfer Antar Akun, atau catat Profit/Loss dengan tombol +.",
+  "investLabelDeposit": "Deposit",
+  "investLabelWithdrawal": "Withdrawal",
+  "investLabelProfit": "Profit",
+  "investLabelLoss": "Loss",
+  "investLabelTransfer": "Transfer",
+  "investFromTransferSuffix": "dari Transfer",
+  "investDeleteEntryDialogTitle": "Hapus entry?",
+  "investDeleteEntryDialogContent": "Entry ini akan dihapus permanen dari tracking.",
+  "investCancelButton": "Batal",
+  "investDeleteButton": "Hapus",
+  "investManageFromTransferTooltip": "Kelola dari Transfer Antar Akun",
+  "investFromTransferSnackbar": "Entry ini dari Transfer — kelola dari menu Transfer Antar Akun.",
+
+  "investSelectCryptoAccountFirstError": "Pilih akun crypto terlebih dahulu.",
+  "investEditProfitLossTitle": "Edit Profit/Loss",
+  "investRecordProfitLossTitle": "Catat Profit/Loss",
+  "investCryptoAccountLabel": "Akun Crypto",
+  "investSelectAccountPlaceholder": "Pilih akun",
+  "investAssetSymbolLabel": "Simbol aset (mis. BTC)",
+  "investAssetSymbolRequiredError": "Simbol aset wajib diisi",
+  "investTypeLabel": "Tipe",
+  "investDateLabel": "Tanggal",
+  "investAmountLabel": "Jumlah (Rp)",
+  "investAmountRequiredError": "Jumlah wajib diisi",
+  "investAmountInvalidError": "Jumlah tidak valid",
+  "investDescriptionLabel": "Deskripsi (opsional)",
+  "investSaveChangesButton": "Simpan Perubahan",
+  "investSaveButton": "Simpan",
+  "investSelectCryptoAccountSheetTitle": "Pilih akun crypto",
+
+  "investUpgradeMembershipTitle": "Upgrade Membership",
+  "investMembershipStatusLoadError": "Gagal memuat status membership.",
+  "investChoosePlanTitle": "Pilih Plan",
+  "investPlanListLoadError": "Gagal memuat daftar plan.",
+  "investMemberFallbackName": "Member",
+  "investActiveUntil": "Berlaku sampai {date}",
+  "@investActiveUntil": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "investActiveLabel": "Aktif",
+  "investPendingVerificationSubtitle": "Menunggu verifikasi pembayaran dari admin",
+  "investFreeLabel": "Free",
+  "investNoMembershipSubtitle": "Belum upgrade membership",
+  "investManualTransferTitle": "Transfer Manual",
+  "investBankLabel": "Bank",
+  "investAccountNumberLabel": "No. Rekening",
+  "investAccountHolderLabel": "Atas Nama",
+  "investNominalLabel": "Nominal",
+  "investTransferInstructionsNote": "Setelah transfer, admin akan memverifikasi pembayaran dan mengaktifkan membership Anda secara manual.",
+  "investCheckStatusButton": "Saya sudah transfer, cek status",
+  "investConfirmPlanDialogTitle": "Konfirmasi {planName}",
+  "@investConfirmPlanDialogTitle": {
+    "placeholders": {
+      "planName": {"type": "String"}
+    }
+  },
+  "investConfirmPlanDialogContent": "Anda akan upgrade ke plan {planName} seharga {price} untuk {days} hari.",
+  "@investConfirmPlanDialogContent": {
+    "placeholders": {
+      "planName": {"type": "String"},
+      "price": {"type": "String"},
+      "days": {"type": "int"}
+    }
+  },
+  "investSwitchPlanWarning": "Plan Anda saat ini masih aktif. Mengganti ke plan lain akan mereset akses Anda ke Free sampai pembayaran baru diverifikasi admin.",
+  "investConfirmButton": "Konfirmasi",
+  "investPlanSelectedSnackbar": "Plan dipilih. Silakan transfer sesuai instruksi di atas.",
+  "investSelectPlanError": "Gagal memilih plan.",
+  "investActivePlanLabel": "Plan Aktif",
+  "investSelectPlanButton": "Pilih Plan",
+  "investPricePerDuration": "{price} / {days} hari",
+  "@investPricePerDuration": {
+    "placeholders": {
+      "price": {"type": "String"},
+      "days": {"type": "int"}
+    }
+  },
+  "investPlanFeaturesTitle": "Fitur yang didapat",
+  "investPlanFeaturesUnavailable": "Detail fitur untuk plan ini belum tersedia.",
+
+  "investCategoryListTitle": "Kategori",
+  "investCategoryLoadError": "Gagal memuat kategori.",
+  "investCategoryEmptyTitle": "Belum ada kategori",
+  "investCategoryEmptySubtitle": "Kategori dikelola oleh admin lewat aplikasi web.",
+  "investRetryButton": "Coba lagi",
+
+  "investProviderListTitle": "Provider Investasi",
+  "investProviderLoadError": "Gagal memuat provider investasi.",
+  "investProviderEmptyTitle": "Belum ada provider investasi",
+  "investProviderEmptySubtitle": "Provider investasi dikelola oleh admin lewat aplikasi web.",
+
+  "investPayrollCycleTitle": "Siklus Gajian",
+  "investPayrollSettingsLoadError": "Gagal memuat pengaturan.",
+  "investPayrollSavedSnackbar": "Siklus gajian berhasil disimpan.",
+  "investPayrollDescription": "Tanggal mulai siklus gajian menentukan periode yang dipakai Dashboard, Budget, dan Ringkasan — bukan tanggal 1-31 kalender biasa.",
+  "investUseEndOfMonthLabel": "Pakai akhir bulan",
+  "investUseEndOfMonthSubtitle": "Siklus mulai dari tanggal terakhir tiap bulan",
+  "investStartDateLabel": "Tanggal mulai",
+  "investDayLabel": "Tanggal {day}",
+  "@investDayLabel": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "investSelectStartDateTitle": "Pilih tanggal mulai",
+
+  "fireTitle": "Kalkulator Pensiun/FIRE",
+  "fireLoadError": "Gagal memuat data keuangan.",
+  "fireRetry": "Coba lagi",
+  "fireReturnRateLabel": "Asumsi Return Investasi Tahunan",
+  "fireCreateGoalButton": "Buat Goal Dana Pensiun/FIRE",
+  "fireGoalName": "Dana Pensiun/FIRE",
+  "fireAverageIncomeLabel": "Rata-rata Pemasukan Bulanan",
+  "fireAverageExpenseLabel": "Rata-rata Pengeluaran Bulanan",
+  "fireSavingsRateLabel": "Rasio Menabung",
+  "fireAverageBasis": "Berdasarkan {months} bulan terakhir tercatat",
+  "@fireAverageBasis": {
+    "placeholders": {
+      "months": {"type": "int"}
+    }
+  },
+  "fireManualHint": "Data transaksi kamu belum cukup untuk menghitung rata-rata otomatis. Isi manual di bawah:",
+  "fireManualIncomeLabel": "Rata-rata pemasukan bulanan (Rp)",
+  "fireManualExpenseLabel": "Rata-rata pengeluaran bulanan (Rp)",
+  "fireReturnRateConservative": "Konservatif",
+  "fireReturnRateModerate": "Moderat",
+  "fireReturnRateAggressive": "Agresif",
+  "fireProjectionLabel": "Estimasi Menuju Financial Independence",
+  "fireYearsToGo": "{years} tahun lagi",
+  "@fireYearsToGo": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "fireNotReachableWithinCap": "Belum tercapai dalam {years} tahun",
+  "@fireNotReachableWithinCap": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "fireTargetYear": "Target tercapai ±{year} · Kebutuhan dana {amount}",
+  "@fireTargetYear": {
+    "placeholders": {
+      "year": {"type": "int"},
+      "amount": {"type": "String"}
+    }
+  },
+  "fireTargetAmountOnly": "Kebutuhan dana {amount} — naikkan rasio menabung untuk mempercepat",
+  "@fireTargetAmountOnly": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "fireExistingGoalProgress": "Progress \"{name}\"",
+  "@fireExistingGoalProgress": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "fireExistingGoalAmounts": "{saved} dari {target}",
+  "@fireExistingGoalAmounts": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "summaryFireCardSubtitle": "Proyeksi kapan bisa pensiun"
+}

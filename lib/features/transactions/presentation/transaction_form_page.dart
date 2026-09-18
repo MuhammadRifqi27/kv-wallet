@@ -11,6 +11,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/portfolio_model.dart';
 import '../../../data/models/transaction_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -87,7 +88,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     if (text == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak bisa membaca struk ini, silakan isi manual.')),
+        SnackBar(content: Text(AppLocalizations.of(context).txnScanReceiptFailedMessage)),
       );
       return;
     }
@@ -104,14 +105,14 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Terisi otomatis dari struk — mohon periksa kembali sebelum simpan.')),
+      SnackBar(content: Text(AppLocalizations.of(context).txnScanReceiptAutofilledMessage)),
     );
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategoryId == null) {
-      setState(() => _error = ApiException(message: 'Pilih kategori terlebih dahulu.'));
+      setState(() => _error = ApiException(message: AppLocalizations.of(context).txnCommonSelectCategoryFirst));
       return;
     }
 
@@ -159,10 +160,12 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
     final categoriesAsync = ref.watch(categoryListControllerProvider);
     final portfoliosAsync = ref.watch(portfolioListControllerProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Transaksi' : 'Tambah Transaksi')),
+      appBar: AppBar(title: Text(_isEditing ? l10n.txnFormTitleEdit : l10n.txnFormTitleAdd)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -179,19 +182,19 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   _ScanReceiptButton(isScanning: _isScanning, onTap: _scanReceipt),
                   const SizedBox(height: 20),
                 ],
-                Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnCommonTypeSectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 SegmentedButton<TransactionType>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: TransactionType.expense,
-                      label: Text('Pengeluaran'),
-                      icon: Icon(Icons.arrow_upward_rounded),
+                      label: Text(l10n.txnExpenseLabel),
+                      icon: const Icon(Icons.arrow_upward_rounded),
                     ),
                     ButtonSegment(
                       value: TransactionType.income,
-                      label: Text('Pemasukan'),
-                      icon: Icon(Icons.arrow_downward_rounded),
+                      label: Text(l10n.txnIncomeLabel),
+                      icon: const Icon(Icons.arrow_downward_rounded),
                     ),
                   ],
                   selected: {_type},
@@ -202,21 +205,21 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   }),
                 ),
                 const SizedBox(height: 16),
-                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnCommonDateSectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(
                   icon: Icons.calendar_today_outlined,
-                  label: formatIndonesianDate(_date),
+                  label: formatLocalizedDate(_date, locale),
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 16),
-                Text('Kategori', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnCommonCategorySectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 categoriesAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat kategori.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonCategoryLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (categories) {
                     final filtered = categories.where((c) => c.type.name == _type.name).toList();
@@ -229,15 +232,15 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Akun (opsional)',
+                  l10n.txnFormAccountOptionalLabel,
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 10),
                 portfoliosAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat akun.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonAccountLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (portfolios) => _PortfolioPickerField(
                     portfolios: portfolios,
@@ -247,22 +250,22 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah (Rp)',
+                  label: l10n.txnCommonAmountRpLabel,
                   controller: _amountController,
                   icon: Icons.payments_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed <= 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Deskripsi (opsional)',
+                  label: l10n.txnCommonDescriptionLabel,
                   controller: _descriptionController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
@@ -271,7 +274,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Tambah Transaksi',
+                  label: _isEditing ? l10n.txnCommonSaveChanges : l10n.txnFormTitleAdd,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -296,6 +299,7 @@ class _ScanReceiptButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: AppColors.primaryLight,
       borderRadius: BorderRadius.circular(14),
@@ -317,7 +321,7 @@ class _ScanReceiptButton extends StatelessWidget {
                 Icon(Icons.document_scanner_outlined, color: AppColors.primary, size: 20),
               const SizedBox(width: 10),
               Text(
-                isScanning ? 'Membaca struk...' : 'Scan Struk',
+                isScanning ? l10n.txnScanReceiptScanning : l10n.txnScanReceiptButtonLabel,
                 style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
               ),
             ],
@@ -333,6 +337,7 @@ class _ScanSourceSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
@@ -348,17 +353,17 @@ class _ScanSourceSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Scan Struk', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(l10n.txnScanReceiptButtonLabel, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             _ScanSourceTile(
               icon: Icons.camera_alt_outlined,
-              label: 'Ambil Foto',
+              label: l10n.txnScanSourceCamera,
               onTap: () => Navigator.of(context).pop(ImageSource.camera),
             ),
             const SizedBox(height: 8),
             _ScanSourceTile(
               icon: Icons.photo_library_outlined,
-              label: 'Pilih dari Galeri',
+              label: l10n.txnScanSourceGallery,
               onTap: () => Navigator.of(context).pop(ImageSource.gallery),
             ),
           ],
@@ -452,7 +457,7 @@ class _CategoryPickerField extends StatelessWidget {
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => _PickerSheet<CategoryModel>(
-        title: 'Pilih kategori',
+        title: AppLocalizations.of(context).txnCommonSelectCategoryTitle,
         items: categories,
         selectedId: selectedId,
         idOf: (c) => c.id,
@@ -466,9 +471,10 @@ class _CategoryPickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = _selected;
+    final l10n = AppLocalizations.of(context);
     return _TapField(
       icon: Icons.category_outlined,
-      label: selected?.name ?? (categories.isEmpty ? 'Belum ada kategori untuk tipe ini' : 'Pilih kategori'),
+      label: selected?.name ?? (categories.isEmpty ? l10n.txnCommonNoCategoryForType : l10n.txnCommonSelectCategoryTitle),
       onTap: categories.isEmpty ? () {} : () => _openPicker(context),
     );
   }
@@ -495,7 +501,7 @@ class _PortfolioPickerField extends StatelessWidget {
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => _PickerSheet<PortfolioModel>(
-        title: 'Pilih akun',
+        title: AppLocalizations.of(context).txnCommonSelectAccountTitle,
         items: portfolios,
         selectedId: selectedId,
         idOf: (p) => p.id,
@@ -512,7 +518,7 @@ class _PortfolioPickerField extends StatelessWidget {
     final selected = _selected;
     return _TapField(
       icon: Icons.account_balance_wallet_outlined,
-      label: selected?.accountName ?? 'Tidak ada',
+      label: selected?.accountName ?? AppLocalizations.of(context).txnCommonNoneOption,
       onTap: () => _openPicker(context),
     );
   }
@@ -566,7 +572,7 @@ class _PickerSheet<T> extends StatelessWidget {
                 children: [
                   if (allowClear)
                     _PickerRow(
-                      title: 'Tidak ada',
+                      title: AppLocalizations.of(context).txnCommonNoneOption,
                       subtitle: '',
                       selected: selectedId == null,
                       onTap: () => Navigator.of(context).pop(null),

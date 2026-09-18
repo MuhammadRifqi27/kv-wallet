@@ -9,6 +9,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/dashboard_model.dart';
 import '../../../data/models/named_amount.dart';
 import '../../../data/models/savings_goal_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../auth/application/auth_controller.dart';
@@ -30,6 +31,7 @@ class DashboardPage extends ConsumerWidget {
     final controller = ref.read(dashboardControllerProvider.notifier);
     final hideNominal = ref.watch(hideNominalProvider);
     final selectedPeriod = ref.watch(selectedDashboardPeriodProvider);
+    final l10n = AppLocalizations.of(context);
     // Kept alive inside MainShell's IndexedStack, so it's never naturally
     // rebuilt by Flutter's parent-cascade when the theme is toggled from
     // the Profile branch — see AppColors' class doc + MainShell's note.
@@ -76,7 +78,7 @@ class DashboardPage extends ConsumerWidget {
                 loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : 'Gagal memuat dashboard.',
+                    message: error is ApiException ? error.message : l10n.walletDashboardLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
@@ -106,6 +108,7 @@ class _DashboardBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final cycleStart = dashboard.cycleStartDate;
     final cycleEnd = dashboard.cycleEndDate;
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -118,7 +121,7 @@ class _DashboardBody extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.payments_outlined,
-                label: 'Saldo Kas',
+                label: l10n.walletDashboardCashBalanceLabel,
                 value: maskRupiah(dashboard.totalLiquidCash, hide: hideNominal),
                 color: AppColors.primary,
               ),
@@ -127,7 +130,7 @@ class _DashboardBody extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.trending_up_rounded,
-                label: 'Saldo Investasi',
+                label: l10n.walletDashboardInvestmentBalanceLabel,
                 value: maskRupiah(dashboard.totalInvestmentValue, hide: hideNominal),
                 color: AppColors.accent,
               ),
@@ -140,7 +143,7 @@ class _DashboardBody extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.arrow_downward_rounded,
-                label: 'Pemasukan',
+                label: l10n.walletDashboardIncomeLabel,
                 value: maskRupiah(dashboard.incomePool, hide: hideNominal),
                 color: AppColors.success,
               ),
@@ -149,7 +152,7 @@ class _DashboardBody extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 icon: Icons.arrow_upward_rounded,
-                label: 'Pengeluaran',
+                label: l10n.walletDashboardExpenseLabel,
                 value: maskRupiah(dashboard.monthlyExpense, hide: hideNominal),
                 color: AppColors.error,
               ),
@@ -161,7 +164,7 @@ class _DashboardBody extends StatelessWidget {
         if (_dailyAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            'Akun Harian',
+            l10n.walletDashboardDailyAccountsTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -173,7 +176,7 @@ class _DashboardBody extends StatelessWidget {
         if (_investmentAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            'Akun Investasi',
+            l10n.walletDashboardInvestmentAccountsTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -185,7 +188,7 @@ class _DashboardBody extends StatelessWidget {
         if (dashboard.incomeBreakdown.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            'Sumber Pemasukan',
+            l10n.walletDashboardIncomeSourcesTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -194,7 +197,7 @@ class _DashboardBody extends StatelessWidget {
         if (dashboard.topExpenses.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            'Kategori Terbesar',
+            l10n.walletDashboardTopCategoriesTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -203,7 +206,7 @@ class _DashboardBody extends StatelessWidget {
         if (dashboard.recentTransactions.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            'Transaksi Terbaru',
+            l10n.walletDashboardRecentTransactionsTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -228,6 +231,7 @@ class _NetWorthCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hideNominal = ref.watch(hideNominalProvider);
     final userName = ref.watch(authControllerProvider).user?.name;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -244,13 +248,16 @@ class _NetWorthCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Halo, ${userName ?? ''}',
+            l10n.walletDashboardGreeting(userName ?? ''),
             style: const TextStyle(color: AppColors.primaryDark, fontSize: 15, fontWeight: FontWeight.w700),
           ),
           if (cycleStart != null && cycleEnd != null) ...[
             const SizedBox(height: 4),
             Text(
-              'Siklus ${formatIndonesianDate(cycleStart!)} — ${formatIndonesianDate(cycleEnd!)}',
+              l10n.walletDashboardCycleRange(
+                formatLocalizedDate(cycleStart!, Localizations.localeOf(context)),
+                formatLocalizedDate(cycleEnd!, Localizations.localeOf(context)),
+              ),
               style: TextStyle(
                 color: AppColors.primaryDark.withValues(alpha: 0.65),
                 fontSize: 11.5,
@@ -260,7 +267,7 @@ class _NetWorthCard extends ConsumerWidget {
           ],
           const SizedBox(height: 16),
           Text(
-            'Total Kekayaan Bersih',
+            l10n.walletDashboardNetWorthLabel,
             style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
           ),
           const SizedBox(height: 8),
@@ -346,6 +353,7 @@ class _SavingsGoalsCard extends ConsumerWidget {
       ..sort((a, b) => b.progressPercent.compareTo(a.progressPercent));
     final highlight = activeGoals.isNotEmpty ? activeGoals.first : summary.goals.first;
     final color = savingsGoalColorFor(highlight.color);
+    final l10n = AppLocalizations.of(context);
 
     return Material(
       color: AppColors.surface,
@@ -368,12 +376,12 @@ class _SavingsGoalsCard extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Target Tabungan',
+                      l10n.walletDashboardSavingsGoalsCardTitle,
                       style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
                     ),
                   ),
                   Text(
-                    '${summary.activeCount} aktif · ${summary.achievedCount} tercapai',
+                    l10n.walletDashboardSavingsGoalsSummary(summary.activeCount, summary.achievedCount),
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                   ),
                   Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
@@ -398,7 +406,10 @@ class _SavingsGoalsCard extends ConsumerWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                '${maskRupiah(highlight.savedAmount, hide: hideNominal)} dari ${maskRupiah(highlight.targetAmount, hide: hideNominal)}',
+                l10n.walletDashboardSavingsGoalProgress(
+                  maskRupiah(highlight.savedAmount, hide: hideNominal),
+                  maskRupiah(highlight.targetAmount, hide: hideNominal),
+                ),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
@@ -594,7 +605,7 @@ class _RecentTransactionTile extends StatelessWidget {
                 ),
                 Text(
                   [
-                    formatIndonesianDateShort(transaction.date),
+                    formatLocalizedDateShort(transaction.date, Localizations.localeOf(context)),
                     if (transaction.portfolioName != null) transaction.portfolioName!,
                   ].join(' · '),
                   maxLines: 1,

@@ -1,0 +1,140 @@
+KALKULATOR PENSIUN/FIRE — CATATAN IMPLEMENTASI
+=============================================================
+
+Status: SELESAI DIIMPLEMENTASIKAN, `flutter analyze` bersih.
+
+Ide #16 dari docs/ide-pengembangan-100.txt ("Kalkulator pensiun/FIRE —
+proyeksi kapan bisa pensiun berdasarkan saving rate saat ini"). Dokumen
+ini mendokumentasikan apa yang sudah dibuat — arsitekturnya sengaja
+mengikuti pola Kalkulator Dana Darurat (idea #15, lihat
+docs/plan-dev/kalkulator-dana-darurat-plan.txt) karena keduanya sama-sama
+kalkulator murni yang baca data Summary yang sudah ada.
+
+
+BAGIAN 0 — SCOPE & BATASAN
+-----------------------------------------
+- Sama seperti Kalkulator Dana Darurat: murni kalkulator/proyeksi, TIDAK
+  ada tabel/endpoint backend baru. Sumber data: endpoint Summary yang
+  sudah ada (`SummaryRepository.getSummary`), sama seperti idea #15.
+- Tidak butuh field "usia" atau "tanggal lahir" dari user (backend
+  `UserModel` tidak punya field itu) — output kalkulator sengaja cuma
+  "X tahun lagi dari sekarang", bukan "pensiun di usia Y", supaya tidak
+  perlu nambah field baru ke akun user.
+- Output adalah proyeksi/rekomendasi, bukan aksi otomatis — sama seperti
+  idea #15, ada tombol opsional "Buat Goal Dana Pensiun/FIRE" yang
+  mengarah ke form Savings Goal (prefilled), tetap harus dikonfirmasi
+  manual oleh user.
+
+
+BAGIAN 1 — SUMBER DATA & PERHITUNGAN
+-----------------------------------------
+1.1. Data pemasukan & pengeluaran bulanan: rata-rata dari
+     `SummaryModel.monthlyTrend` (field `income` & `expense`) — reuse
+     endpoint yang sama dengan Kalkulator Dana Darurat
+     (`lib/features/emergency_fund/application/emergency_fund_controller.dart`),
+     tapi di sini butuh KEDUA angka (income & expense) karena proyeksi
+     butuh selisihnya (tabungan bulanan), bukan cuma pengeluaran.
+     Implementasi: `retirementDataProvider` di
+     lib/features/fire_calculator/application/fire_calculator_controller.dart.
+2.2. Net worth saat ini: `SummaryModel.totalNetWorth` dari bulan
+     berjalan — dipakai sebagai saldo awal proyeksi. TIDAK dirata-rata
+     (beda dari income/expense) karena ini nilai snapshot per waktu,
+     bukan sesuatu yang masuk akal dirata-rata dari beberapa bulan.
+1.3. Target FIRE = 25x pengeluaran tahunan ("4% rule" / safe withdrawal
+     rate 4%) — nilai INI TIDAK dibuat adjustable oleh user (beda dari
+     "return investasi" di bawah), karena 4% rule adalah patokan FIRE
+     yang paling universal dipakai/dikenal, sementara asumsi return
+     investasi memang bervariasi tergantung portofolio masing-masing
+     orang jadi lebih masuk akal untuk di-slider.
+1.4. Asumsi return investasi tahunan — 3 opsi chip: Konservatif 4% /
+     Moderat 6% (default) / Agresif 8%. Proyeksi disimulasikan tahun per
+     tahun (bukan rumus aljabar tertutup) sampai saldo >= target, dibatasi
+     maksimal 60 tahun (`projectionCapYears`) supaya tidak infinite-loop
+     kalau rasio menabung user nol/negatif — kalau tidak tercapai dalam
+     60 tahun, tampilkan "Belum tercapai" alih-alih angka tahun spesifik.
+1.5. Rasio menabung (savings rate) ditampilkan sebagai data poin
+     transparansi (sesuai penjelasan idea #16 sendiri: proyeksi
+     "berdasarkan saving rate saat ini") — dihitung dari selisih
+     income/expense rata-rata, warna hijau/merah tergantung positif/
+     negatif.
+1.6. Data belum cukup (<2 bulan tercatat, threshold sama seperti idea
+     #15): fallback ke 2 input manual (pemasukan & pengeluaran bulanan
+     rata-rata) — beda dari idea #15 yang cuma butuh 1 input manual,
+     karena proyeksi di sini butuh KEDUA angka. Sama seperti idea #15,
+     input manual ini murni state lokal, tidak pernah dikirim ke backend.
+
+
+BAGIAN 2 — ALUR PENGGUNA (UX)
+-----------------------------------------
+1. Entry point: kartu baru di Summary Page, tepat di bawah kartu
+   Kalkulator Dana Darurat (pola sama — Material+InkWell+context.push,
+   tidak ada fetch sendiri di kartunya).
+2. Halaman kalkulator (`/fire-calculator`, di luar bottom-nav shell,
+   permission `summary` — sama seperti idea #15):
+   a. Kartu data: rata-rata pemasukan & pengeluaran bulanan, rasio
+      menabung, jumlah bulan yang jadi basis perhitungan.
+   b. Chip pilihan asumsi return investasi (4%/6%/8%), update proyeksi
+      realtime.
+   c. Kartu hasil: "X tahun lagi" + target nominal FIRE (25x pengeluaran
+      tahunan) + estimasi tahun kalender tercapainya.
+   d. Kalau ada Savings Goal "dana pensiun"/"fire"/"retirement" existing
+      (deteksi best-effort dari nama/purpose, sama pola seperti idea
+      #15): tampilkan progress saldo saat ini vs target.
+   e. CTA "Buat Goal Dana Pensiun/FIRE" -> push ke SavingsGoalFormPage
+      dengan draft ter-prefill (nama "Dana Pensiun/FIRE", target = hasil
+      proyeksi, icon 'savings', warna 'info' — sengaja beda warna dari
+      Dana Darurat yang pakai 'success', supaya dua goal ini gampang
+      dibedakan visual di daftar Savings Goals).
+3. Fallback data belum cukup: 2 field input manual (pemasukan &
+   pengeluaran bulanan).
+
+
+BAGIAN 3 — FILE
+-----------------------------------------
+File baru:
+  lib/features/fire_calculator/application/fire_calculator_controller.dart
+    - `RetirementData` (rata-rata income/expense + net worth + savings
+      rate turunan), `retirementDataProvider`, `fireExistingGoalProvider`.
+    - `FireProjection` + fungsi murni `projectFire(...)` (simulasi
+      compound interest tahun-per-tahun) — dipisah dari provider supaya
+      gampang di-unit-test tanpa mock Riverpod (pure function, input
+      angka -> output angka).
+  lib/features/fire_calculator/presentation/fire_calculator_page.dart
+    - UI sesuai BAGIAN 2.
+
+File yang diubah:
+  lib/routing/app_router.dart — route baru `/fire-calculator` (pola
+    sama seperti `/emergency-fund-calculator`), entry di
+    `_routePermissions`.
+  lib/features/summary/presentation/summary_page.dart — kartu entry
+    baru `_FireCalculatorCard` setelah `_EmergencyFundCalculatorCard`.
+  lib/l10n/app_id.arb & app_en.arb — key baru prefix `fire*` (halaman
+    kalkulator) dan `summaryFireCardSubtitle` (kartu entry), mengikuti
+    konvensi di docs/plan-dev/multi-bahasa-plan.txt BAGIAN 2.
+
+
+BAGIAN 4 — HAL YANG BISA DIPERTIMBANGKAN KE DEPAN (belum dikerjakan)
+-----------------------------------------
+1. Proyeksi saat ini mengasumsikan tabungan tahunan (income-expense)
+   KONSTAN sepanjang proyeksi — tidak memperhitungkan kenaikan gaji/
+   inflasi biaya hidup dari waktu ke waktu. Ini simplifikasi yang wajar
+   untuk versi pertama (kalkulator FIRE paling sederhana biasanya begitu
+   juga), tapi kalau nanti mau lebih akurat bisa ditambah asumsi
+   pertumbuhan tahunan sebagai input tambahan.
+2. Tidak ada input "usia saat ini" (lihat BAGIAN 0) — kalau ke depannya
+   backend nambah field tanggal lahir ke profil user, halaman ini bisa
+   ditingkatkan untuk menampilkan "pensiun di usia Y" alih-alih cuma
+   "X tahun lagi".
+   KEPUTUSAN (2026-09-18): dikonfirmasi ke user — usia TIDAK dibutuhkan
+   untuk hitungan proyeksi itu sendiri (compound interest murni angka,
+   tidak peduli usia), tapi berguna untuk CEK KELAYAKAN: bandingkan
+   "X tahun lagi" dengan sisa masa produktif (usia sekarang -> usia
+   pensiun umum, mis. 55/60) — supaya kelihatan kalau target FIRE baru
+   tercapai SETELAH masa produktif habis (berarti perlu naikkan rasio
+   menabung). Sempat ditawarkan opsi cepat "usia lokal saja" (tersimpan
+   SharedPreferences seperti preferensi tema/bahasa, tanpa ubah backend),
+   TAPI user memilih menunggu backend nambah field tanggal lahir yang
+   proper ke profil user dulu — bukan quick-fix lokal. Jangan
+   implementasikan versi lokal tanpa konfirmasi ulang; tunggu field
+   backend siap, baru kerjakan sesuai poin di atas (tampilkan usia
+   pensiun proyeksi + peringatan kalau melebihi masa produktif).

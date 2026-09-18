@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/btc_tracking_model.dart';
 import '../../../data/models/crypto_price_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
 import '../application/btc_tracking_controller.dart';
@@ -39,15 +40,16 @@ class InvestmentDashboardPage extends ConsumerWidget {
     // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
     // + MainShell's note on why this needs an explicit watch.
     ref.watch(themeModeProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Investment'),
+        title: Text(l10n.investDashboardTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded),
-            tooltip: 'Riwayat Aktivitas',
+            tooltip: l10n.investActivityHistoryLabel,
             onPressed: () => context.push('/investment/activity'),
           ),
         ],
@@ -55,7 +57,7 @@ class InvestmentDashboardPage extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/investment/entry-form'),
         backgroundColor: AppColors.primary,
-        tooltip: 'Catat Profit/Loss',
+        tooltip: l10n.investRecordProfitLossTooltip,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
       body: RefreshIndicator(
@@ -68,7 +70,7 @@ class InvestmentDashboardPage extends ConsumerWidget {
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat data investasi.',
+              message: error is ApiException ? error.message : l10n.investLoadErrorMessage,
               onRetry: controller.refresh,
             ),
           ),
@@ -86,6 +88,7 @@ class _InvestmentBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final pricesAsync = ref.watch(assetPricesProvider);
     final prices = pricesAsync.valueOrNull ?? const <String, CryptoPrice>{};
 
@@ -112,7 +115,7 @@ class _InvestmentBody extends ConsumerWidget {
         if (sortedBalances.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
-            'Aset Anda',
+            l10n.investYourAssetsLabel,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -142,6 +145,7 @@ class _TotalValueCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -169,7 +173,7 @@ class _TotalValueCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                'Total Nilai Crypto',
+                l10n.investTotalCryptoValueLabel,
                 style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
               ),
             ],
@@ -183,7 +187,7 @@ class _TotalValueCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                assetCount == 0 ? 'Belum ada aset' : '$assetCount aset dilacak',
+                assetCount == 0 ? l10n.investAssetCountEmpty : l10n.investAssetCountTracked(assetCount),
                 style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 12),
               ),
               if (pnl24h != null) ...[
@@ -195,7 +199,7 @@ class _TotalValueCard extends StatelessWidget {
                     final isUp = pnl24h! >= 0;
                     final color = isUp ? AppColors.success : AppColors.error;
                     return Text(
-                      'PnL ${isUp ? '+' : '-'}${formatRupiah(pnl24h!.abs())} (24 jam)',
+                      l10n.investPnl24hFull('${isUp ? '+' : '-'}${formatRupiah(pnl24h!.abs())}'),
                       style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700),
                     );
                   },
@@ -239,6 +243,7 @@ class _AssetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
@@ -300,7 +305,7 @@ class _AssetRow extends StatelessWidget {
                       ),
                     ] else
                       Text(
-                        'Harga tidak tersedia',
+                        l10n.investPriceUnavailable,
                         style: TextStyle(color: AppColors.textDisabled, fontSize: 11.5, fontStyle: FontStyle.italic),
                       ),
                   ],
@@ -346,10 +351,11 @@ class _PnlText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isUp = amount >= 0;
     final color = isUp ? AppColors.success : AppColors.error;
     return Text(
-      'PnL ${isUp ? '+' : '-'}${formatRupiah(amount.abs())} (24j)',
+      l10n.investPnl24hShort('${isUp ? '+' : '-'}${formatRupiah(amount.abs())}'),
       style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
     );
   }
@@ -387,6 +393,7 @@ class _EmptyCryptoAccounts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -400,13 +407,12 @@ class _EmptyCryptoAccounts extends StatelessWidget {
           Icon(Icons.currency_bitcoin_rounded, color: AppColors.textSecondary, size: 32),
           SizedBox(height: 10),
           Text(
-            'Belum ada akun crypto',
+            l10n.investEmptyCryptoAccountsTitle,
             style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 14),
           ),
           SizedBox(height: 6),
           Text(
-            'Tambah akun dengan provider bertipe Crypto lewat Portfolio, lalu top up '
-            'saldonya lewat Transfer Antar Akun.',
+            l10n.investEmptyCryptoAccountsSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
           ),

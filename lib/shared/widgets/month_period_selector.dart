@@ -87,7 +87,7 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      monthNameShort(month),
+                      monthNameShort(month, Localizations.localeOf(context)),
                       style: TextStyle(
                         color: selected ? Colors.white : AppColors.textPrimary,
                         fontWeight: FontWeight.w600,

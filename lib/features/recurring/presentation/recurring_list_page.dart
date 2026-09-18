@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/recurring_transaction_model.dart';
 import '../../../data/models/transaction_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../application/recurring_list_controller.dart';
@@ -22,10 +23,11 @@ class RecurringListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recurringAsync = ref.watch(recurringListControllerProvider);
     final controller = ref.read(recurringListControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Transaksi Berulang')),
+      appBar: AppBar(title: Text(l10n.txnRecurringMenuTileTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/transactions/recurring/form'),
         backgroundColor: AppColors.primary,
@@ -38,17 +40,17 @@ class RecurringListPage extends ConsumerWidget {
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat transaksi berulang.',
+              message: error is ApiException ? error.message : l10n.txnRecurringListLoadError,
               onRetry: controller.refresh,
             ),
           ),
           data: (items) {
             if (items.isEmpty) {
               return scrollableCenter(
-                const ListEmptyState(
+                ListEmptyState(
                   icon: Icons.autorenew_rounded,
-                  title: 'Belum ada transaksi berulang',
-                  subtitle: 'Tekan tombol + untuk membuat template, misal tagihan bulanan.',
+                  title: l10n.txnRecurringListEmptyTitle,
+                  subtitle: l10n.txnRecurringListEmptySubtitle,
                 ),
               );
             }
@@ -71,17 +73,18 @@ class _RecurringTile extends ConsumerWidget {
   final RecurringTransactionModel item;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus transaksi berulang?'),
-        content: Text('Template "${item.name}" akan dihapus permanen. Transaksi yang sudah pernah dibuat tidak terhapus.'),
+        title: Text(l10n.txnRecurringDeleteDialogTitle),
+        content: Text(l10n.txnRecurringDeleteDialogContent(item.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.txnCommonCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.txnCommonDelete, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -100,6 +103,8 @@ class _RecurringTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = item.type == TransactionType.income;
     final color = isIncome ? AppColors.success : AppColors.error;
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     return Material(
       color: AppColors.surface,
@@ -134,8 +139,9 @@ class _RecurringTile extends ConsumerWidget {
                     Text(
                       [
                         item.frequency.label,
-                        item.categoryName ?? 'Kategori #${item.categoryId}',
-                        if (item.nextDate != null) 'Berikutnya ${formatIndonesianDateShort(item.nextDate!)}',
+                        item.categoryName ?? l10n.txnCategoryFallbackName(item.categoryId),
+                        if (item.nextDate != null)
+                          l10n.txnRecurringNextDateLabel(formatLocalizedDateShort(item.nextDate!, locale)),
                       ].join(' · '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

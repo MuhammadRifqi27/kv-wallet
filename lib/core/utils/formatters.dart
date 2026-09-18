@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 final _rupiahFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
@@ -22,26 +23,43 @@ String formatCryptoQuantity(double quantity) => _cryptoQuantityFormat.format(qua
 /// underlying amount so it doesn't leak the digit count.
 String maskRupiah(num amount, {required bool hide}) => hide ? 'Rp ••••••' : formatRupiah(amount);
 
-/// Hand-rolled instead of `DateFormat(pattern, 'id_ID')` — locale-aware
-/// month names need `initializeDateFormatting()` first, which isn't wired
-/// up anywhere yet; a fixed list is simpler for the handful of places that
-/// need an Indonesian date label.
-const _monthNames = [
+/// Hand-rolled instead of `DateFormat(pattern, locale)` — locale-aware
+/// month names via `intl` need `initializeDateFormatting()` first, which
+/// isn't wired up anywhere; a fixed id/en lookup is simpler for the
+/// handful of places that need a localized month name. Every call site
+/// passes the current `Locale` (`Localizations.localeOf(context)`) so the
+/// name follows the user's language picker — see
+/// docs/plan-dev/multi-bahasa-plan.txt.
+const _monthNamesId = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ];
-const _monthNamesShort = [
+const _monthNamesShortId = [
   'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
   'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
 ];
+const _monthNamesEn = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+const _monthNamesShortEn = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
 
-String formatIndonesianDate(DateTime date) => '${date.day} ${_monthNames[date.month - 1]} ${date.year}';
+List<String> _monthNamesFor(Locale locale) => locale.languageCode == 'en' ? _monthNamesEn : _monthNamesId;
 
-String formatIndonesianDateShort(DateTime date) => '${date.day} ${_monthNamesShort[date.month - 1]}';
+List<String> _monthNamesShortFor(Locale locale) => locale.languageCode == 'en' ? _monthNamesShortEn : _monthNamesShortId;
 
-String monthName(int month) => _monthNames[month - 1];
+String formatLocalizedDate(DateTime date, Locale locale) =>
+    '${date.day} ${_monthNamesFor(locale)[date.month - 1]} ${date.year}';
 
-String monthNameShort(int month) => _monthNamesShort[month - 1];
+String formatLocalizedDateShort(DateTime date, Locale locale) =>
+    '${date.day} ${_monthNamesShortFor(locale)[date.month - 1]}';
+
+String monthName(int month, Locale locale) => _monthNamesFor(locale)[month - 1];
+
+String monthNameShort(int month, Locale locale) => _monthNamesShortFor(locale)[month - 1];
 
 /// Compact Rupiah for tight spaces (chart axis labels) — "jt" (juta) and
 /// "rb" (ribu) instead of the full "Rp 5.000.000" `formatRupiah` gives.

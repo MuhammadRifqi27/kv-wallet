@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/transfer_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../../portfolio/application/portfolio_list_controller.dart';
@@ -25,9 +26,11 @@ class TransferListPage extends ConsumerWidget {
         portfolio.id: portfolio,
     };
 
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Transfer Antar Akun')),
+      appBar: AppBar(title: Text(l10n.txnTransferListTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/portfolio/transfers/form'),
         backgroundColor: AppColors.primary,
@@ -40,17 +43,17 @@ class TransferListPage extends ConsumerWidget {
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat transfer.',
+              message: error is ApiException ? error.message : l10n.txnTransferListLoadError,
               onRetry: controller.refresh,
             ),
           ),
           data: (transfers) {
             if (transfers.isEmpty) {
               return scrollableCenter(
-                const ListEmptyState(
+                ListEmptyState(
                   icon: Icons.swap_horiz_rounded,
-                  title: 'Belum ada transfer',
-                  subtitle: 'Tekan tombol + untuk memindahkan dana antar akun Anda.',
+                  title: l10n.txnTransferListEmptyTitle,
+                  subtitle: l10n.txnTransferListEmptySubtitle,
                 ),
               );
             }
@@ -84,17 +87,18 @@ class _TransferTile extends ConsumerWidget {
   final String? toAccountName;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus transfer?'),
-        content: const Text('Transfer ini akan dihapus permanen, saldo kedua akun akan disesuaikan kembali.'),
+        title: Text(l10n.txnTransferDeleteDialogTitle),
+        content: Text(l10n.txnTransferDeleteDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.txnCommonCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.txnCommonDelete, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -111,6 +115,8 @@ class _TransferTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -132,14 +138,14 @@ class _TransferTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${fromAccountName ?? 'Akun #${transfer.financeInvestmentId}'} → ${toAccountName ?? 'Akun #${transfer.toFinanceInvestmentId}'}',
+                  '${fromAccountName ?? l10n.txnAccountFallbackName(transfer.financeInvestmentId)} → ${toAccountName ?? l10n.txnAccountFallbackName(transfer.toFinanceInvestmentId)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  formatIndonesianDateShort(transfer.date),
+                  formatLocalizedDateShort(transfer.date, locale),
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
                 if (transfer.description != null && transfer.description!.isNotEmpty) ...[
@@ -167,9 +173,9 @@ class _TransferTile extends ConsumerWidget {
                 _confirmDelete(context, ref);
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Hapus')),
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'edit', child: Text(l10n.txnCommonEdit)),
+              PopupMenuItem(value: 'delete', child: Text(l10n.txnCommonDelete)),
             ],
           ),
         ],

@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/portfolio_model.dart';
 import '../../../data/models/savings_goal_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -32,6 +33,7 @@ class SavingsGoalDetailPage extends ConsumerWidget {
         goal;
     final contributionsAsync = ref.watch(savingsGoalContributionsProvider(goal.id));
     final color = savingsGoalColorFor(latest.color);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -41,7 +43,7 @@ class SavingsGoalDetailPage extends ConsumerWidget {
           : FloatingActionButton(
               onPressed: () => _openContributionForm(context, ref),
               backgroundColor: AppColors.primary,
-              tooltip: 'Catat Nabung/Tarik',
+              tooltip: l10n.walletSavingsGoalDetailAddEntryTooltip,
               child: const Icon(Icons.add_rounded, color: Colors.white),
             ),
       body: RefreshIndicator(
@@ -57,7 +59,7 @@ class SavingsGoalDetailPage extends ConsumerWidget {
             _GoalSummaryCard(goal: latest, color: color),
             const SizedBox(height: 24),
             Text(
-              'Riwayat Nabung/Tarik',
+              l10n.walletSavingsGoalDetailHistoryTitle,
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 10),
@@ -67,15 +69,15 @@ class SavingsGoalDetailPage extends ConsumerWidget {
                 child: Center(child: AppLoadingIndicator()),
               ),
               error: (error, _) => ListErrorState(
-                message: error is ApiException ? error.message : 'Gagal memuat riwayat.',
+                message: error is ApiException ? error.message : l10n.walletSavingsGoalDetailLoadHistoryError,
                 onRetry: () async => ref.invalidate(savingsGoalContributionsProvider(goal.id)),
               ),
               data: (contributions) {
                 if (contributions.isEmpty) {
-                  return const ListEmptyState(
+                  return ListEmptyState(
                     icon: Icons.receipt_long_outlined,
-                    title: 'Belum ada riwayat',
-                    subtitle: 'Tekan tombol + untuk mencatat nabung/tarik pertama.',
+                    title: l10n.walletSavingsGoalDetailEmptyTitle,
+                    subtitle: l10n.walletSavingsGoalDetailEmptySubtitle,
                   );
                 }
                 return Column(
@@ -113,6 +115,7 @@ class _GoalSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -149,14 +152,14 @@ class _GoalSummaryCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
                 child: Text(
-                  savingsGoalStatusLabel(goal.status),
+                  savingsGoalStatusLabel(context, goal.status),
                   style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 18),
-          Text('Terkumpul', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
+          Text(l10n.walletSavingsGoalDetailCollectedLabel, style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
           const SizedBox(height: 4),
           Text(
             formatRupiah(goal.savedAmount),
@@ -177,7 +180,7 @@ class _GoalSummaryCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Target ${formatRupiah(goal.targetAmount)}',
+                l10n.walletSavingsGoalDetailTargetAmount(formatRupiah(goal.targetAmount)),
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
               ),
               Text(
@@ -189,21 +192,21 @@ class _GoalSummaryCard extends StatelessWidget {
           if (goal.remainingAmount > 0) ...[
             const SizedBox(height: 4),
             Text(
-              'Kurang ${formatRupiah(goal.remainingAmount)} lagi',
+              l10n.walletSavingsGoalDetailRemainingAmount(formatRupiah(goal.remainingAmount)),
               style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
             ),
           ],
           if (goal.targetDate != null) ...[
             const SizedBox(height: 4),
             Text(
-              'Tenggat ${formatIndonesianDate(goal.targetDate!)}',
+              l10n.walletSavingsGoalDetailDeadline(formatLocalizedDate(goal.targetDate!, Localizations.localeOf(context))),
               style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
             ),
           ],
           if (goal.portfolioName != null) ...[
             const SizedBox(height: 4),
             Text(
-              'Akun default: ${goal.portfolioName}',
+              l10n.walletSavingsGoalDetailDefaultAccount(goal.portfolioName!),
               style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
             ),
           ],
@@ -216,9 +219,9 @@ class _GoalSummaryCard extends StatelessWidget {
                 children: [
                   const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Total alokasi ke akun ini dari semua goal sudah melebihi saldo aslinya.',
+                      l10n.walletSavingsGoalDetailOverAllocatedWarning,
                       style: TextStyle(color: Colors.white, fontSize: 11.5),
                     ),
                   ),
@@ -239,17 +242,18 @@ class _ContributionTile extends ConsumerWidget {
   final SavingsGoalContributionModel contribution;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus baris ini?'),
-        content: const Text('Baris riwayat ini akan dihapus permanen dan progress target dihitung ulang.'),
+        title: Text(l10n.walletSavingsGoalDetailDeleteEntryTitle),
+        content: Text(l10n.walletSavingsGoalDetailDeleteEntryContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletSavingsGoalDetailCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.walletSavingsGoalDetailDeleteConfirm, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -270,6 +274,7 @@ class _ContributionTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isWithdrawal = contribution.type == SavingsGoalEntryType.withdrawal;
     final color = isWithdrawal ? AppColors.error : AppColors.success;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -296,13 +301,13 @@ class _ContributionTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isWithdrawal ? 'Tarik' : 'Nabung',
+                  isWithdrawal ? l10n.walletSavingsGoalDetailWithdrawLabel : l10n.walletSavingsGoalDetailContributeLabel,
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   [
-                    formatIndonesianDateShort(contribution.date),
+                    formatLocalizedDateShort(contribution.date, Localizations.localeOf(context)),
                     if (contribution.portfolioName != null) contribution.portfolioName!,
                   ].join(' · '),
                   maxLines: 1,
@@ -421,6 +426,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
     final generalError = _error != null && _error!.fieldErrors == null;
     final selectedPortfolioName =
         portfoliosAsync.valueOrNull?.where((p) => p.id == _selectedPortfolioId).firstOrNull?.accountName;
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -441,7 +447,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Catat Nabung/Tarik',
+                  l10n.walletSavingsGoalDetailAddEntryTooltip,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 16),
@@ -450,23 +456,23 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   const SizedBox(height: 16),
                 ],
                 SegmentedButton<SavingsGoalEntryType>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: SavingsGoalEntryType.contribution,
-                      label: Text('Nabung'),
-                      icon: Icon(Icons.arrow_downward_rounded),
+                      label: Text(l10n.walletSavingsGoalDetailContributeLabel),
+                      icon: const Icon(Icons.arrow_downward_rounded),
                     ),
                     ButtonSegment(
                       value: SavingsGoalEntryType.withdrawal,
-                      label: Text('Tarik'),
-                      icon: Icon(Icons.arrow_upward_rounded),
+                      label: Text(l10n.walletSavingsGoalDetailWithdrawLabel),
+                      icon: const Icon(Icons.arrow_upward_rounded),
                     ),
                   ],
                   selected: {_type},
                   onSelectionChanged: (selection) => setState(() => _type = selection.first),
                 ),
                 const SizedBox(height: 16),
-                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.walletSavingsGoalDetailDateLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
@@ -482,33 +488,36 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                       children: [
                         Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 20),
                         const SizedBox(width: 12),
-                        Text(formatIndonesianDate(_date), style: TextStyle(color: AppColors.textPrimary, fontSize: 15)),
+                        Text(
+                          formatLocalizedDate(_date, Localizations.localeOf(context)),
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                        ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah (Rp)',
+                  label: l10n.walletSavingsGoalDetailAmountLabel,
                   controller: _amountController,
                   icon: Icons.payments_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.walletSavingsGoalDetailAmountRequired;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed <= 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed <= 0) return l10n.walletSavingsGoalDetailAmountInvalid;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Akun (opsional)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.walletSavingsGoalDetailAccountLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat daftar akun.',
+                  error: (error, _) => Text(
+                    l10n.walletSavingsGoalDetailLoadAccountsError,
                     style: TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (portfolios) => InkWell(
@@ -528,7 +537,9 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                           Expanded(
                             child: Text(
                               selectedPortfolioName ??
-                                  (portfolios.isEmpty ? 'Belum ada akun' : 'Tidak dicatat ke akun manapun'),
+                                  (portfolios.isEmpty
+                                      ? l10n.walletSavingsGoalDetailNoAccounts
+                                      : l10n.walletSavingsGoalDetailNoAccountRecorded),
                               style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                             ),
                           ),
@@ -540,7 +551,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Catatan (opsional)',
+                  label: l10n.walletSavingsGoalDetailNoteLabel,
                   controller: _noteController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
@@ -548,7 +559,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   onFieldSubmitted: (_) => _submit(),
                 ),
                 const SizedBox(height: 24),
-                PrimaryButton(label: 'Simpan', isLoading: _isSubmitting, onPressed: _submit),
+                PrimaryButton(label: l10n.walletSavingsGoalDetailSaveAction, isLoading: _isSubmitting, onPressed: _submit),
               ],
             ),
           ),
@@ -581,7 +592,10 @@ class _ContributionPortfolioPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Pilih akun', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(
+              AppLocalizations.of(context).walletSavingsGoalDetailPickAccountSheetTitle,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -601,7 +615,7 @@ class _ContributionPortfolioPickerSheet extends StatelessWidget {
                           border: Border.all(color: selectedId == null ? AppColors.primary : AppColors.border),
                         ),
                         child: Text(
-                          'Tidak dicatat ke akun manapun',
+                          AppLocalizations.of(context).walletSavingsGoalDetailNoAccountRecorded,
                           style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                         ),
                       ),

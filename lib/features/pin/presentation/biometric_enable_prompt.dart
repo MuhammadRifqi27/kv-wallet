@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/auth/biometric_enroll.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/storage/biometric_prompt_service.dart';
@@ -27,25 +29,24 @@ Future<void> maybeShowBiometricEnablePrompt(BuildContext context, WidgetRef ref,
   await promptService.incrementShownCount();
   if (!context.mounted) return;
 
+  final l10n = AppLocalizations.of(context);
+
   final wantsToEnable = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       icon: Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 32),
-      title: const Text('Masuk lebih cepat dengan biometrik?'),
-      content: const Text(
-        'Buka Flowr pakai sidik jari atau Face ID, tanpa perlu mengetik PIN tiap kali. '
-        'Bisa diaktifkan/dimatikan kapan saja lewat Profile.',
-      ),
+      title: Text(l10n.authBiometricPromptTitle),
+      content: Text(l10n.authBiometricPromptContent),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Nanti saja')),
-        FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Aktifkan')),
+        TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.authBiometricPromptLater)),
+        FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.authBiometricPromptEnable)),
       ],
     ),
   );
   if (wantsToEnable != true || !context.mounted) return;
 
-  final enabled = await enrollBiometricLogin(ref, pin: pin, reason: 'Aktifkan login biometrik untuk Flowr');
+  final enabled = await enrollBiometricLogin(ref, pin: pin, reason: l10n.authBiometricPromptEnrollReason);
   if (!context.mounted) return;
 
   // A dialog (awaited, must be dismissed) instead of a SnackBar — the
@@ -61,14 +62,12 @@ Future<void> maybeShowBiometricEnablePrompt(BuildContext context, WidgetRef ref,
         color: enabled ? AppColors.success : AppColors.error,
         size: 32,
       ),
-      title: Text(enabled ? 'Biometrik aktif!' : 'Gagal mengaktifkan'),
+      title: Text(enabled ? l10n.authBiometricPromptSuccessTitle : l10n.authBiometricPromptFailedTitle),
       content: Text(
-        enabled
-            ? 'Lain kali Anda bisa masuk ke Flowr tanpa mengetik PIN.'
-            : 'Verifikasi biometrik gagal atau dibatalkan. Anda bisa coba lagi kapan saja lewat Profile.',
+        enabled ? l10n.authBiometricPromptSuccessContent : l10n.authBiometricPromptFailedContent,
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Oke')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.authBiometricPromptOkButton)),
       ],
     ),
   );

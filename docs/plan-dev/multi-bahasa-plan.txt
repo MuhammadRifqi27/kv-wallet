@@ -1,0 +1,154 @@
+MULTI-BAHASA (INDONESIA/INGGRIS) — CATATAN IMPLEMENTASI
+=============================================================
+
+Status: SELESAI DIIMPLEMENTASIKAN (semua layar sudah dikonversi,
+`flutter analyze` bersih di seluruh proyek).
+
+Ide #65 dari docs/ide-pengembangan-100.txt ("Multi-bahasa — tambah Bahasa
+Inggris, saat ini hardcode Indonesia"). Dokumen ini dokumentasi APA YANG
+SUDAH DIBUAT dan bagaimana cara menambah bahasa baru / string baru ke
+depannya — bukan blueprint pra-implementasi seperti dokumen plan-dev
+lain.
+
+
+BAGIAN 0 — PENDEKATAN
+-----------------------------------------
+Flutter official l10n (flutter_localizations + ARB + `flutter gen-l10n`
+bawaan SDK) — BUKAN package pihak ketiga (mis. easy_localization). Sudah
+dipakai `intl` sebelumnya (untuk format Rupiah/tanggal), jadi pendekatan
+ini paling minim dependency baru dan paling "resmi".
+
+- `l10n.yaml` di root project: `arb-dir: lib/l10n`,
+  `template-arb-file: app_id.arb` (Indonesia = bahasa sumber/default),
+  `output-class: AppLocalizations`, `output-dir: lib/l10n`,
+  `nullable-getter: false` (supaya `AppLocalizations.of(context)` TIDAK
+  nullable — lihat catatan penting di BAGIAN 2).
+- `lib/l10n/app_id.arb` — source of truth, semua string Indonesia asli.
+- `lib/l10n/app_en.arb` — terjemahan Inggris, key harus persis sama
+  dengan app_id.arb.
+- `lib/l10n/app_localizations*.dart` — HASIL GENERATE, jangan diedit
+  manual. Regenerate dengan `flutter gen-l10n` setiap kali ARB berubah
+  (juga otomatis jalan saat `flutter pub get`/build karena
+  `generate: true` di pubspec.yaml).
+- `pubspec.yaml`: `intl` di-pin ke `^0.20.2` (bukan `^0.20.3`) karena
+  `flutter_localizations` dari Flutter SDK memaksa versi itu — kalau
+  suatu saat upgrade Flutter SDK dan versi pin berubah, sesuaikan sini.
+
+
+BAGIAN 1 — STATE BAHASA & CARA GANTI
+-----------------------------------------
+- `localeProvider` (lib/core/providers/core_providers.dart) —
+  `StateProvider<Locale?>`, `null` berarti "ikuti sistem". Sama persis
+  polanya dengan `themeModeProvider` (lihat file itu untuk analoginya).
+- `LocalePreferenceService` (lib/core/storage/locale_preference_service.dart)
+  — persist pilihan ke SharedPreferences, dibaca sekali di awal
+  `main()` dan di-`overrideWith` ke `localeProvider`, sama seperti
+  `ThemePreferenceService`/`themeModeProvider`.
+- UI pemilih bahasa: `_LanguageTile` di
+  lib/features/profile/presentation/profile_page.dart, bagian "Tampilan"
+  — segmented button Sistem/Indonesia/English, tepat di bawah pemilih
+  Tema. Ganti lewat `_setLocale(ref, locale)` di file yang sama.
+- `MaterialApp.router` (lib/main.dart) menerima `locale: locale`,
+  `localizationsDelegates: AppLocalizations.localizationsDelegates`,
+  `supportedLocales: AppLocalizations.supportedLocales`.
+- Untuk kode TANPA `BuildContext` (mis. `NotificationService`, yang
+  membangun teks notifikasi sebelum ada widget yang tampil):
+  `effectiveLocaleProvider` (core_providers.dart) meresolusi
+  `localeProvider` (yang boleh `null`) jadi `Locale` konkret — fallback
+  ke locale sistem kalau didukung, atau `id` kalau tidak. Panggil
+  `AppLocalizations.delegate.load(locale)` untuk dapat instance
+  `AppLocalizations` tanpa context (lihat notification_service.dart).
+
+
+BAGIAN 2 — POLA PEMAKAIAN DI WIDGET (PENTING kalau nambah string baru)
+-----------------------------------------
+```dart
+import 'package:flowr/l10n/app_localizations.dart';   // path absolut package, bukan relatif
+
+// di dalam build(BuildContext context, ...):
+final l10n = AppLocalizations.of(context);   // TANPA "!" — sudah non-nullable
+Text(l10n.someKey)                            // string biasa
+Text(l10n.someKeyWithArg(value))              // string dengan placeholder ICU
+```
+
+Kesalahan paling gampang ketemu: nulis `AppLocalizations.of(context)!`
+(pakai `!`) — itu salah/warning karena `nullable-getter: false` di
+l10n.yaml sudah bikin `of()` selalu non-null.
+
+Konvensi penamaan key: camelCase, prefix per area fitur biar gampang
+dicari & tidak tabrakan — `profile*`, `emergencyFund*`, `summary*`,
+`auth*` (login/register/forgot-password/onboarding/splash/PIN),
+`txn*` (transaksi/recurring/transfer/budget), `wallet*`
+(portfolio/savings goals/dashboard), `invest*` (BTC tracking/membership/
+master data), `app*` (profile sub-pages, shared widgets, bottom nav).
+Prefix ini bukan aturan mati — sekadar hasil pembagian kerja saat
+konversi awal, silakan lanjutkan pola sejenis (prefix = nama
+fitur/halaman) untuk key baru.
+
+String dengan bagian dinamis (nama, jumlah, tanggal) pakai ICU
+placeholder di ARB:
+```json
+"summaryNetWorthDelta": "{sign} {amount} dari bulan lalu",
+"@summaryNetWorthDelta": {
+  "placeholders": { "sign": {"type": "String"}, "amount": {"type": "String"} }
+}
+```
+dipanggil sebagai `l10n.summaryNetWorthDelta(sign, amount)` — urutan
+argumen POSISIONAL mengikuti urutan kemunculan placeholder pertama kali
+di string ARB.
+
+
+BAGIAN 3 — NAMA/TANGGAL BULAN (fungsi locale-aware, bukan lewat ARB)
+-----------------------------------------
+lib/core/utils/formatters.dart — nama bulan Indonesia/Inggris di-hardcode
+sebagai dua array (bukan lewat `intl`'s `DateFormat(pattern, locale)`,
+karena itu butuh `initializeDateFormatting()` yang belum di-wire; lihat
+komentar di file itu). Fungsi-fungsi ini SEMUA butuh parameter `Locale`
+eksplisit, diambil dari `Localizations.localeOf(context)`:
+
+  formatLocalizedDate(date, locale)       // "17 September 2026"
+  formatLocalizedDateShort(date, locale)  // "17 Sep"
+  monthName(month, locale)                // "September"
+  monthNameShort(month, locale)           // "Sep"
+
+Nama lama `formatIndonesianDate`/`formatIndonesianDateShort` (1 argumen,
+selalu Indonesia) SUDAH TIDAK ADA — kalau lihat kode lama yang masih
+manggil nama itu berarti belum ikut konversi, perbaiki ke nama+argumen
+baru di atas.
+
+
+BAGIAN 4 — HAL YANG SENGAJA TIDAK DIKONVERSI (scope trim, bukan lupa)
+-----------------------------------------
+1. `lib/shared/widgets/tradingview_chart.dart` — parameter `"locale":
+   "id"` yang dikirim ke widget TradingView (config JS/HTML embed, bukan
+   `Text` Flutter). Mengikat bahasa chart ke locale app adalah
+   penambahan terpisah, bukan bagian dari pass string-translation ini.
+2. `savingsGoalColorLabel` di
+   lib/features/savings_goals/presentation/savings_goal_style.dart —
+   dead code, tidak dipanggil di manapun. Dibiarkan hardcode Indonesia;
+   kalau nanti dipakai, ikutkan pola `savingsGoalStatusLabel` (terima
+   `BuildContext context`) di file yang sama sebagai contoh.
+3. Nama brand ("Flowr", "kodevisual") dan baris copyright — dibiarkan
+   literal di kedua bahasa (bukan pindah ke ARB), karena sudah identik
+   antara Indonesia/Inggris dan bukan teks yang "diterjemahkan".
+4. Notification channel name/description Android
+   (`_budgetChannel` di lib/core/notifications/notification_service.dart)
+   — nilainya `const` di top-level file (dipakai sekali saat pembuatan
+   channel), jadi tidak bisa dinamis per-locale tanpa refactor jadi
+   function. Cuma ISI notifikasi (judul+body per notifikasi) yang sudah
+   locale-aware, bukan nama channel-nya di Android Settings.
+
+
+BAGIAN 5 — CARA NAMBAH BAHASA KE-3
+-----------------------------------------
+1. Buat `lib/l10n/app_<kode>.arb` baru, salin semua key dari
+   `app_id.arb`, terjemahkan semua value.
+2. Tambah `Locale('<kode>')` ke mana pun `AppLocalizations.supportedLocales`
+   dipakai (otomatis ikut regenerate, tidak perlu edit manual — cukup
+   `flutter gen-l10n` lagi setelah file ARB baru dibuat, `supportedLocales`
+   di-generate otomatis dari daftar file `app_*.arb` yang ada).
+3. Tambah opsi baru di `_LanguageTile` (profile_page.dart) — satu
+   `ButtonSegment` baru + key ARB baru untuk labelnya (`profileLanguage<Bahasa>`).
+4. Kalau bahasa baru butuh nama bulan sendiri (BAGIAN 3), tambah array
+   `_monthNames<Kode>`/`_monthNamesShort<Kode>` di formatters.dart dan
+   masukkan ke `_monthNamesFor`/`_monthNamesShortFor`.

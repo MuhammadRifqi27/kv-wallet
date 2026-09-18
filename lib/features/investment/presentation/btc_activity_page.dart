@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/btc_tracking_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../application/btc_tracking_controller.dart';
@@ -22,14 +23,15 @@ class BtcActivityPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activityAsync = ref.watch(btcActivityControllerProvider);
     final controller = ref.read(btcActivityControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Riwayat Aktivitas')),
+      appBar: AppBar(title: Text(l10n.investActivityHistoryLabel)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/investment/entry-form'),
         backgroundColor: AppColors.primary,
-        tooltip: 'Catat Profit/Loss',
+        tooltip: l10n.investRecordProfitLossTooltip,
         child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
       body: RefreshIndicator(
@@ -39,17 +41,17 @@ class BtcActivityPage extends ConsumerWidget {
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat riwayat.',
+              message: error is ApiException ? error.message : l10n.investActivityLoadError,
               onRetry: controller.refresh,
             ),
           ),
           data: (items) {
             if (items.isEmpty) {
               return scrollableCenter(
-                const ListEmptyState(
+                ListEmptyState(
                   icon: Icons.history_rounded,
-                  title: 'Belum ada aktivitas',
-                  subtitle: 'Top up lewat Transfer Antar Akun, atau catat Profit/Loss dengan tombol +.',
+                  title: l10n.investActivityEmptyTitle,
+                  subtitle: l10n.investActivityEmptySubtitle,
                 ),
               );
             }
@@ -77,27 +79,28 @@ class _ActivityTile extends ConsumerWidget {
         _ => AppColors.primary,
       };
 
-  String _labelFor(String type) => switch (type) {
-        'deposit' => 'Deposit',
-        'withdrawal' => 'Withdrawal',
-        'profit' => 'Profit',
-        'loss' => 'Loss',
-        'transfer' => 'Transfer',
+  String _labelFor(AppLocalizations l10n, String type) => switch (type) {
+        'deposit' => l10n.investLabelDeposit,
+        'withdrawal' => l10n.investLabelWithdrawal,
+        'profit' => l10n.investLabelProfit,
+        'loss' => l10n.investLabelLoss,
+        'transfer' => l10n.investLabelTransfer,
         _ => type,
       };
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus entry?'),
-        content: const Text('Entry ini akan dihapus permanen dari tracking.'),
+        title: Text(l10n.investDeleteEntryDialogTitle),
+        content: Text(l10n.investDeleteEntryDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.investCancelButton)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.investDeleteButton, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -114,6 +117,7 @@ class _ActivityTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final color = _colorFor(item.type);
 
     return Container(
@@ -137,15 +141,15 @@ class _ActivityTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${item.asset} · ${_labelFor(item.type)}',
+                  '${item.asset} · ${_labelFor(l10n, item.type)}',
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   [
-                    formatIndonesianDateShort(item.date),
+                    formatLocalizedDateShort(item.date, Localizations.localeOf(context)),
                     if (item.portfolioName != null) item.portfolioName!,
-                    if (item.isFromTransfer) 'dari Transfer',
+                    if (item.isFromTransfer) l10n.investFromTransferSuffix,
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -171,9 +175,9 @@ class _ActivityTile extends ConsumerWidget {
           if (item.isFromTransfer)
             IconButton(
               icon: Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary, size: 18),
-              tooltip: 'Kelola dari Transfer Antar Akun',
+              tooltip: l10n.investManageFromTransferTooltip,
               onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Entry ini dari Transfer — kelola dari menu Transfer Antar Akun.')),
+                SnackBar(content: Text(l10n.investFromTransferSnackbar)),
               ),
             )
           else ...[

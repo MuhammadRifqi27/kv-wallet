@@ -8,6 +8,7 @@ import '../../../core/auth/biometric_enroll.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/settings_tile.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../pin/presentation/confirm_pin_sheet.dart';
@@ -21,6 +22,7 @@ const _instagramUrl = 'https://www.instagram.com/kodevisual';
 /// Disabling never needs re-confirmation: wiping the cached PIN is always
 /// safe, there's nothing destructive about it.
 Future<void> _setBiometricEnabled(BuildContext context, WidgetRef ref, bool enabled) async {
+  final l10n = AppLocalizations.of(context);
   if (!enabled) {
     await ref.read(secureStorageServiceProvider).deleteCachedPin();
     await ref.read(biometricPreferenceServiceProvider).setEnabled(false);
@@ -31,7 +33,7 @@ Future<void> _setBiometricEnabled(BuildContext context, WidgetRef ref, bool enab
   if (!await ref.read(biometricServiceProvider).isSupported()) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perangkat ini tidak mendukung atau belum mendaftarkan biometrik.')),
+        SnackBar(content: Text(l10n.profileBiometricUnsupported)),
       );
     }
     return;
@@ -52,16 +54,14 @@ Future<void> _setBiometricEnabled(BuildContext context, WidgetRef ref, bool enab
   final enrolled = await enrollBiometricLogin(
     ref,
     pin: confirmedPin,
-    reason: 'Aktifkan login biometrik untuk Flowr',
+    reason: l10n.profileBiometricEnrollReason,
   );
   if (!context.mounted) return;
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
-        enrolled
-            ? 'Biometrik aktif. Mulai sekarang cukup tap "Gunakan Biometrik" di layar kunci untuk masuk tanpa PIN.'
-            : 'Verifikasi biometrik gagal atau dibatalkan.',
+        enrolled ? l10n.profileBiometricEnrolledSuccess : l10n.profileBiometricEnrollFailed,
       ),
       duration: const Duration(seconds: 5),
     ),
@@ -73,6 +73,11 @@ Future<void> _setThemeMode(WidgetRef ref, ThemeMode mode) async {
   await ref.read(themePreferenceServiceProvider).setThemeMode(mode);
 }
 
+Future<void> _setLocale(WidgetRef ref, Locale? locale) async {
+  ref.read(localeProvider.notifier).state = locale;
+  await ref.read(localePreferenceServiceProvider).setLocale(locale);
+}
+
 /// Landing page for the "settings" permission — framed as the user's
 /// account/profile hub: profile info + membership status up top, then
 /// Portfolio, Master Data (kategori, provider investasi — view-only, admin
@@ -82,17 +87,18 @@ class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Keluar akun?'),
-        content: const Text('Anda perlu login kembali untuk mengakses aplikasi.'),
+        title: Text(l10n.profileLogoutDialogTitle),
+        content: Text(l10n.profileLogoutDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.profileCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Keluar', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.profileLogoutConfirm, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -110,7 +116,7 @@ class ProfilePage extends ConsumerWidget {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tidak dapat membuka form.')),
+        SnackBar(content: Text(AppLocalizations.of(context).profileCustomerServiceLaunchFailed)),
       );
     }
   }
@@ -118,78 +124,91 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text(l10n.profileAppBarTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (user != null) _ProfileHeader(user: user),
           const SizedBox(height: 24),
-          const _SectionLabel('Portfolio'),
+          _SectionLabel(l10n.profileSectionPortfolio),
           SettingsTile(
             icon: Icons.account_balance_wallet_outlined,
-            title: 'Portfolio Saya',
-            subtitle: 'Akun, dompet, dan investasi Anda',
+            title: l10n.profilePortfolioTileTitle,
+            subtitle: l10n.profilePortfolioTileSubtitle,
             onTap: () => context.push('/portfolio'),
           ),
           const SizedBox(height: 8),
           SettingsTile(
             icon: Icons.savings_outlined,
-            title: 'Target Tabungan',
-            subtitle: 'Buat target dan catat nabung/tarik dana',
+            title: l10n.profileSavingsGoalTileTitle,
+            subtitle: l10n.profileSavingsGoalTileSubtitle,
             onTap: () => context.push('/savings-goals'),
           ),
+          const SizedBox(height: 8),
+          SettingsTile(
+            icon: Icons.currency_bitcoin_outlined,
+            title: l10n.profileInvestmentTileTitle,
+            subtitle: l10n.profileInvestmentTileSubtitle,
+            onTap: () => context.push('/investment'),
+          ),
           const SizedBox(height: 24),
-          const _SectionLabel('Tampilan'),
+          _SectionLabel(l10n.profileSectionDisplay),
           _ThemeModeTile(
             mode: ref.watch(themeModeProvider),
             onChanged: (mode) => _setThemeMode(ref, mode),
           ),
+          const SizedBox(height: 8),
+          _LanguageTile(
+            locale: ref.watch(localeProvider),
+            onChanged: (locale) => _setLocale(ref, locale),
+          ),
           const SizedBox(height: 24),
-          const _SectionLabel('Master Data'),
+          _SectionLabel(l10n.profileSectionMasterData),
           SettingsTile(
             icon: Icons.category_outlined,
-            title: 'Kategori',
-            subtitle: 'Kategori pemasukan & pengeluaran',
+            title: l10n.profileCategoryTileTitle,
+            subtitle: l10n.profileCategoryTileSubtitle,
             onTap: () => context.push('/profile/categories'),
           ),
           const SizedBox(height: 8),
           SettingsTile(
             icon: Icons.account_balance_outlined,
-            title: 'Provider Investasi',
-            subtitle: 'Bank, exchange, dan broker',
+            title: l10n.profileInvestmentProviderTileTitle,
+            subtitle: l10n.profileInvestmentProviderTileSubtitle,
             onTap: () => context.push('/profile/investments'),
           ),
           const SizedBox(height: 24),
-          const _SectionLabel('Lainnya'),
+          _SectionLabel(l10n.profileSectionOther),
           SettingsTile(
             icon: Icons.tune_rounded,
-            title: 'Siklus Gajian',
-            subtitle: 'Atur tanggal mulai periode gajian',
+            title: l10n.profilePayrollTileTitle,
+            subtitle: l10n.profilePayrollTileSubtitle,
             onTap: () => context.push('/profile/payroll'),
           ),
           const SizedBox(height: 8),
           SettingsTile(
             icon: Icons.support_agent_rounded,
-            title: 'Hubungi Customer Service',
-            subtitle: 'Isi form bantuan',
+            title: l10n.profileCustomerServiceTileTitle,
+            subtitle: l10n.profileCustomerServiceTileSubtitle,
             onTap: () => _contactCustomerService(context),
           ),
           const SizedBox(height: 24),
-          const _SectionLabel('Keamanan'),
+          _SectionLabel(l10n.profileSectionSecurity),
           SettingsTile(
             icon: Icons.lock_outline_rounded,
-            title: 'Ubah Password',
-            subtitle: 'Ganti password akun Anda',
+            title: l10n.profileChangePasswordTileTitle,
+            subtitle: l10n.profileChangePasswordTileSubtitle,
             onTap: () => context.push('/profile/change-password'),
           ),
           const SizedBox(height: 8),
           SettingsTile(
             icon: Icons.pin_outlined,
-            title: 'Ubah PIN',
-            subtitle: 'Ganti PIN 6 digit untuk membuka aplikasi',
+            title: l10n.profileChangePinTileTitle,
+            subtitle: l10n.profileChangePinTileSubtitle,
             onTap: () => context.push('/profile/change-pin'),
           ),
           const SizedBox(height: 8),
@@ -198,11 +217,11 @@ class ProfilePage extends ConsumerWidget {
             onChanged: (value) => _setBiometricEnabled(context, ref, value),
           ),
           const SizedBox(height: 24),
-          const _SectionLabel('Akun'),
+          _SectionLabel(l10n.profileSectionAccount),
           SettingsTile(
             icon: Icons.logout_rounded,
-            title: 'Keluar',
-            subtitle: 'Logout dari akun ini',
+            title: l10n.profileLogoutTileTitle,
+            subtitle: l10n.profileLogoutTileSubtitle,
             onTap: () => _confirmLogout(context, ref),
           ),
           const _AppFooter(),
@@ -222,6 +241,7 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : '?';
     final avatarUrl = user.avatarUrl;
 
@@ -269,7 +289,7 @@ class _ProfileHeader extends StatelessWidget {
               ),
               IconButton(
                 icon: Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 20),
-                tooltip: 'Edit Profil',
+                tooltip: l10n.profileEditTooltip,
                 onPressed: () => context.push('/profile/edit'),
               ),
             ],
@@ -291,8 +311,8 @@ class _ProfileHeader extends StatelessWidget {
                 Expanded(
                   child: Text(
                     user.isPaidMember
-                        ? (user.membershipPlan?.name ?? 'Member')
-                        : 'Free — belum upgrade membership',
+                        ? (user.membershipPlan?.name ?? l10n.profileMembershipFallback)
+                        : l10n.profileMembershipFree,
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
                   ),
                 ),
@@ -315,6 +335,7 @@ class _AppFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 8),
       child: Column(
@@ -337,7 +358,7 @@ class _AppFooter extends StatelessWidget {
             builder: (context, snapshot) {
               final version = snapshot.data?.version ?? '1.0.0';
               return Text(
-                'Versi $version',
+                l10n.profileAppVersion(version),
                 style: TextStyle(color: AppColors.textDisabled, fontSize: 10.5),
               );
             },
@@ -387,6 +408,7 @@ class _BiometricToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -403,11 +425,9 @@ class _BiometricToggleTile extends StatelessWidget {
           decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
           child: Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 20),
         ),
-        title: Text('Login Biometrik', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        title: Text(l10n.profileBiometricTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         subtitle: Text(
-          enabled
-              ? 'Aktif — tap "Gunakan Biometrik" di layar kunci untuk masuk tanpa mengetik PIN'
-              : 'Buka aplikasi dengan sidik jari/Face ID, sebagai pengganti mengetik PIN',
+          enabled ? l10n.profileBiometricSubtitleEnabled : l10n.profileBiometricSubtitleDisabled,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
         ),
       ),
@@ -426,6 +446,7 @@ class _ThemeModeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -436,18 +457,143 @@ class _ThemeModeTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tema Aplikasi', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text(l10n.profileThemeTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
           const SizedBox(height: 10),
-          SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(value: ThemeMode.system, label: Text('Sistem'), icon: Icon(Icons.brightness_auto_rounded)),
-              ButtonSegment(value: ThemeMode.light, label: Text('Terang'), icon: Icon(Icons.light_mode_outlined)),
-              ButtonSegment(value: ThemeMode.dark, label: Text('Gelap'), icon: Icon(Icons.dark_mode_outlined)),
+          _SettingsDropdown<ThemeMode>(
+            value: mode,
+            onChanged: onChanged,
+            items: [
+              _SettingsDropdownItem(
+                value: ThemeMode.system,
+                label: l10n.profileThemeSystem,
+                icon: Icons.brightness_auto_rounded,
+              ),
+              _SettingsDropdownItem(
+                value: ThemeMode.light,
+                label: l10n.profileThemeLight,
+                icon: Icons.light_mode_outlined,
+              ),
+              _SettingsDropdownItem(
+                value: ThemeMode.dark,
+                label: l10n.profileThemeDark,
+                icon: Icons.dark_mode_outlined,
+              ),
             ],
-            selected: {mode},
-            onSelectionChanged: (selection) => onChanged(selection.first),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Sistem/Indonesia/English picker driving [localeProvider] — same dropdown
+/// pattern as [_ThemeModeTile] right above it. `null` in [locale] means
+/// "ikuti sistem" (see [LocalePreferenceService] doc).
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile({required this.locale, required this.onChanged});
+
+  final Locale? locale;
+  final ValueChanged<Locale?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.profileLanguageTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          const SizedBox(height: 10),
+          _SettingsDropdown<Locale?>(
+            value: locale,
+            onChanged: onChanged,
+            items: [
+              _SettingsDropdownItem(
+                value: null,
+                label: l10n.profileLanguageSystem,
+                icon: Icons.smartphone_outlined,
+              ),
+              _SettingsDropdownItem(
+                value: const Locale('id'),
+                label: l10n.profileLanguageIndonesian,
+                icon: Icons.language_rounded,
+              ),
+              _SettingsDropdownItem(
+                value: const Locale('en'),
+                label: l10n.profileLanguageEnglish,
+                icon: Icons.language_rounded,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One option in a [_SettingsDropdown] — a value paired with the label/icon
+/// to render for it.
+class _SettingsDropdownItem<T> {
+  const _SettingsDropdownItem({required this.value, required this.label, required this.icon});
+
+  final T value;
+  final String label;
+  final IconData icon;
+}
+
+/// Full-width bordered dropdown shared by [_ThemeModeTile] and
+/// [_LanguageTile] — same visual container as other pickers on this page
+/// (`SettingsTile`, the InkWell pickers on SavingsGoalFormPage), just with
+/// a native [DropdownButton] instead of a bottom sheet since the option
+/// list here is always short and fully known upfront.
+class _SettingsDropdown<T> extends StatelessWidget {
+  const _SettingsDropdown({required this.value, required this.items, required this.onChanged});
+
+  final T value;
+  final List<_SettingsDropdownItem<T>> items;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+          dropdownColor: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          // `DropdownButton.onChanged` only ever fires with one of `items`'
+          // own values (including a literal `null` entry, for the "follow
+          // system" option) — never an unrelated null, so this cast is safe.
+          onChanged: (selected) => onChanged(selected as T),
+          items: [
+            for (final item in items)
+              DropdownMenuItem<T>(
+                value: item.value,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(item.icon, size: 18, color: AppColors.textSecondary),
+                    const SizedBox(width: 10),
+                    Text(item.label, style: TextStyle(color: AppColors.textPrimary, fontSize: 14)),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

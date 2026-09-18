@@ -7,6 +7,7 @@ import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/transaction_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/filter_pill_bar.dart';
 import '../../auth/application/auth_controller.dart';
@@ -25,7 +26,7 @@ void _openRecurring(BuildContext context, WidgetRef ref) {
     return;
   }
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
+    SnackBar(content: Text(AppLocalizations.of(context).txnFeatureRequiresUpgrade)),
   );
   context.push('/profile/membership');
 }
@@ -38,13 +39,14 @@ class TransactionListPage extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionListControllerProvider);
     final controller = ref.read(transactionListControllerProvider.notifier);
     final searchQuery = ref.watch(transactionSearchQueryProvider);
+    final l10n = AppLocalizations.of(context);
     // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
     // + MainShell's note on why this needs an explicit watch.
     ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Transaksi')),
+      appBar: AppBar(title: Text(l10n.txnListTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/transactions/form'),
         backgroundColor: AppColors.primary,
@@ -75,17 +77,17 @@ class TransactionListPage extends ConsumerWidget {
                 loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : 'Gagal memuat transaksi.',
+                    message: error is ApiException ? error.message : l10n.txnListLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
                 data: (result) {
                   if (result.transactions.isEmpty) {
                     return scrollableCenter(
-                      const ListEmptyState(
+                      ListEmptyState(
                         icon: Icons.receipt_long_outlined,
-                        title: 'Belum ada transaksi',
-                        subtitle: 'Tekan tombol + untuk mencatat pemasukan atau pengeluaran.',
+                        title: l10n.txnListEmptyTitle,
+                        subtitle: l10n.txnListEmptySubtitle,
                       ),
                     );
                   }
@@ -93,10 +95,10 @@ class TransactionListPage extends ConsumerWidget {
                   final filtered = filterTransactionsByQuery(result.transactions, searchQuery);
                   if (filtered.isEmpty) {
                     return scrollableCenter(
-                      const ListEmptyState(
+                      ListEmptyState(
                         icon: Icons.search_off_rounded,
-                        title: 'Tidak ada hasil',
-                        subtitle: 'Tidak ada transaksi yang cocok dengan pencarian ini.',
+                        title: l10n.txnListNoResultsTitle,
+                        subtitle: l10n.txnListNoResultsSubtitle,
                       ),
                     );
                   }
@@ -161,7 +163,7 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
       style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
       decoration: InputDecoration(
         isDense: true,
-        hintText: 'Cari kategori, catatan, atau akun',
+        hintText: AppLocalizations.of(context).txnSearchHint,
         prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
         suffixIcon: hasQuery
             ? IconButton(
@@ -181,11 +183,12 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         Expanded(
           child: _SummaryChip(
-            label: 'Pemasukan',
+            label: l10n.txnIncomeLabel,
             value: formatRupiah(result.totalIncome),
             color: AppColors.success,
           ),
@@ -193,7 +196,7 @@ class _SummaryRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _SummaryChip(
-            label: 'Pengeluaran',
+            label: l10n.txnExpenseLabel,
             value: formatRupiah(result.totalExpense),
             color: AppColors.error,
           ),
@@ -201,7 +204,7 @@ class _SummaryRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: _SummaryChip(
-            label: 'Saldo Bersih',
+            label: l10n.txnNetBalanceLabel,
             value: formatRupiah(result.netBalance),
             color: result.netBalance >= 0 ? AppColors.primary : AppColors.error,
           ),
@@ -250,17 +253,18 @@ class _TransactionTile extends ConsumerWidget {
   final TransactionModel transaction;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus transaksi?'),
-        content: const Text('Transaksi ini akan dihapus permanen.'),
+        title: Text(l10n.txnDeleteDialogTitle),
+        content: Text(l10n.txnDeleteDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.txnCommonCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.txnCommonDelete, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -279,6 +283,8 @@ class _TransactionTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isIncome = transaction.type == TransactionType.income;
     final color = isIncome ? AppColors.success : AppColors.error;
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -305,13 +311,13 @@ class _TransactionTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.categoryName ?? 'Kategori #${transaction.categoryId}',
+                  transaction.categoryName ?? l10n.txnCategoryFallbackName(transaction.categoryId),
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   [
-                    formatIndonesianDateShort(transaction.date),
+                    formatLocalizedDateShort(transaction.date, locale),
                     if (transaction.portfolioName != null && transaction.portfolioName != '-')
                       transaction.portfolioName!,
                   ].join(' · '),
@@ -344,9 +350,9 @@ class _TransactionTile extends ConsumerWidget {
                 _confirmDelete(context, ref);
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Hapus')),
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'edit', child: Text(l10n.txnCommonEdit)),
+              PopupMenuItem(value: 'delete', child: Text(l10n.txnCommonDelete)),
             ],
           ),
         ],
@@ -365,6 +371,7 @@ class _RecurringMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
@@ -391,12 +398,12 @@ class _RecurringMenuTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Transaksi Berulang',
+                      l10n.txnRecurringMenuTileTitle,
                       style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Kelola tagihan/pemasukan otomatis berkala',
+                      l10n.txnRecurringMenuTileSubtitle,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                   ],
@@ -440,37 +447,39 @@ class _DateFilterBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final shortcut = ref.watch(transactionDateShortcutProvider);
     final customRange = ref.watch(transactionCustomRangeProvider);
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     void select(TransactionDateShortcut value) => ref.read(transactionDateShortcutProvider.notifier).state = value;
 
     final customLabel = shortcut == TransactionDateShortcut.custom && customRange != null
-        ? '${formatIndonesianDateShort(customRange.start)} - ${formatIndonesianDateShort(customRange.end)}'
-        : 'Pilih Tanggal';
+        ? '${formatLocalizedDateShort(customRange.start, locale)} - ${formatLocalizedDateShort(customRange.end, locale)}'
+        : l10n.txnPickDateLabel;
 
     return FilterPillBar(
       pills: [
         FilterPillSpec(
-          label: 'Semua',
+          label: l10n.txnFilterAll,
           selected: shortcut == TransactionDateShortcut.all,
           onTap: () => select(TransactionDateShortcut.all),
         ),
         FilterPillSpec(
-          label: 'Bulan Ini',
+          label: l10n.txnFilterThisMonth,
           selected: shortcut == TransactionDateShortcut.thisMonth,
           onTap: () => select(TransactionDateShortcut.thisMonth),
         ),
         FilterPillSpec(
-          label: 'Bulan Lalu',
+          label: l10n.txnFilterLastMonth,
           selected: shortcut == TransactionDateShortcut.lastMonth,
           onTap: () => select(TransactionDateShortcut.lastMonth),
         ),
         FilterPillSpec(
-          label: '7 Hari Terakhir',
+          label: l10n.txnFilterLast7Days,
           selected: shortcut == TransactionDateShortcut.last7Days,
           onTap: () => select(TransactionDateShortcut.last7Days),
         ),
         FilterPillSpec(
-          label: '30 Hari Terakhir',
+          label: l10n.txnFilterLast30Days,
           selected: shortcut == TransactionDateShortcut.last30Days,
           onTap: () => select(TransactionDateShortcut.last30Days),
         ),
@@ -494,19 +503,20 @@ class _TypeFilterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final typeFilter = ref.watch(transactionTypeFilterProvider);
+    final l10n = AppLocalizations.of(context);
 
     void select(TransactionType? value) => ref.read(transactionTypeFilterProvider.notifier).state = value;
 
     return FilterPillBar(
       pills: [
-        FilterPillSpec(label: 'Semua', selected: typeFilter == null, onTap: () => select(null)),
+        FilterPillSpec(label: l10n.txnFilterAll, selected: typeFilter == null, onTap: () => select(null)),
         FilterPillSpec(
-          label: 'Pemasukan',
+          label: l10n.txnIncomeLabel,
           selected: typeFilter == TransactionType.income,
           onTap: () => select(TransactionType.income),
         ),
         FilterPillSpec(
-          label: 'Pengeluaran',
+          label: l10n.txnExpenseLabel,
           selected: typeFilter == TransactionType.expense,
           onTap: () => select(TransactionType.expense),
         ),

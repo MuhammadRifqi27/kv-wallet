@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/core_providers.dart';
 import 'core/storage/biometric_preference_service.dart';
+import 'core/storage/locale_preference_service.dart';
 import 'core/storage/onboarding_service.dart';
 import 'core/storage/theme_preference_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
+import 'l10n/app_localizations.dart';
 import 'routing/app_router.dart';
 
 void main() async {
@@ -23,6 +25,7 @@ void main() async {
   final hasSeenOnboarding = await OnboardingService().hasSeenOnboarding();
   final biometricEnabled = await BiometricPreferenceService().isEnabled();
   final themeMode = await ThemePreferenceService().getThemeMode();
+  final locale = await LocalePreferenceService().getLocale();
 
   runApp(
     ProviderScope(
@@ -30,6 +33,7 @@ void main() async {
         hasSeenOnboardingProvider.overrideWith((ref) => hasSeenOnboarding),
         biometricEnabledProvider.overrideWith((ref) => biometricEnabled),
         themeModeProvider.overrideWith((ref) => themeMode),
+        localeProvider.overrideWith((ref) => locale),
       ],
       child: const FlowrApp(),
     ),
@@ -43,6 +47,7 @@ class FlowrApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final locale = ref.watch(localeProvider);
 
     // AppColors is a static namespace read directly by ~45 files instead of
     // through `Theme.of(context)` (see AppColors' class doc for why) — this
@@ -62,6 +67,9 @@ class FlowrApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.current,
       routerConfig: router,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

@@ -1,5 +1,9 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../l10n/app_localizations.dart';
 
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/budget_repository.dart';
@@ -24,6 +28,7 @@ import '../notifications/notification_service.dart';
 import '../ocr/receipt_scanner.dart';
 import '../storage/biometric_preference_service.dart';
 import '../storage/biometric_prompt_service.dart';
+import '../storage/locale_preference_service.dart';
 import '../storage/onboarding_service.dart';
 import '../storage/secure_storage_service.dart';
 import '../storage/theme_preference_service.dart';
@@ -59,6 +64,33 @@ final themePreferenceServiceProvider = Provider<ThemePreferenceService>((ref) {
 /// from ProfilePage's theme picker via [ThemePreferenceService.setThemeMode]
 /// + this provider together — see `_setThemeMode` there.
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+
+final localePreferenceServiceProvider = Provider<LocalePreferenceService>((ref) {
+  return LocalePreferenceService();
+});
+
+/// Overridden in main.dart with the persisted value read at startup, same
+/// pattern as [themeModeProvider]. `null` means "ikuti sistem" — passed
+/// straight through to `MaterialApp.router`'s `locale:` param, which then
+/// falls back to Flutter's own locale-resolution against
+/// `AppLocalizations.supportedLocales`. Set from ProfilePage's language
+/// picker via [LocalePreferenceService.setLocale] + this provider together
+/// — see `_setLocale` there.
+final localeProvider = StateProvider<Locale?>((ref) => null);
+
+/// [localeProvider] resolved to a concrete, always-supported [Locale] —
+/// for the handful of call sites without a `BuildContext` to ask
+/// `Localizations.localeOf` (e.g. [NotificationService], which builds its
+/// text before any widget is on screen). Mirrors the same "system falls
+/// back to id if unsupported" resolution `MaterialApp.router` does
+/// internally for `locale: null`.
+final effectiveLocaleProvider = Provider<Locale>((ref) {
+  final preferred = ref.watch(localeProvider);
+  if (preferred != null) return preferred;
+  final deviceLanguage = PlatformDispatcher.instance.locale.languageCode;
+  final isSupported = AppLocalizations.supportedLocales.any((locale) => locale.languageCode == deviceLanguage);
+  return isSupported ? Locale(deviceLanguage) : const Locale('id');
+});
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();

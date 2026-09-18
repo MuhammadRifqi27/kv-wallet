@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -63,7 +64,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profil berhasil diperbarui.')),
+        SnackBar(content: Text(AppLocalizations.of(context).appEditProfileSuccessMessage)),
       );
       Navigator.of(context).pop();
     } on ApiException catch (e) {
@@ -76,10 +77,11 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     final generalError = _error != null && _error!.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Edit Profil')),
+      appBar: AppBar(title: Text(l10n.appEditProfileAppBarTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -96,32 +98,32 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       const SizedBox(height: 16),
                     ],
                     AppTextField(
-                      label: 'Nama lengkap',
+                      label: l10n.appEditProfileNameLabel,
                       controller: _nameController,
                       icon: Icons.person_outline_rounded,
                       textInputAction: TextInputAction.next,
                       errorText: _error?.errorFor('name'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Nama wajib diisi';
+                        if (value == null || value.trim().isEmpty) return l10n.appEditProfileNameRequired;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Username',
+                      label: l10n.appEditProfileUsernameLabel,
                       controller: _usernameController,
                       icon: Icons.alternate_email_rounded,
                       textInputAction: TextInputAction.next,
                       errorText: _error?.errorFor('username'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Username wajib diisi';
-                        if (value.contains(' ')) return 'Username tidak boleh mengandung spasi';
+                        if (value == null || value.trim().isEmpty) return l10n.appEditProfileUsernameRequired;
+                        if (value.contains(' ')) return l10n.appEditProfileUsernameNoSpaces;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Email',
+                      label: l10n.appEditProfileEmailLabel,
                       controller: _emailController,
                       icon: Icons.mail_outline_rounded,
                       keyboardType: TextInputType.emailAddress,
@@ -129,13 +131,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       errorText: _error?.errorFor('email'),
                       onFieldSubmitted: (_) => _submit(),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email wajib diisi';
-                        if (!value.contains('@')) return 'Format email tidak valid';
+                        if (value == null || value.trim().isEmpty) return l10n.appEditProfileEmailRequired;
+                        if (!value.contains('@')) return l10n.appEditProfileEmailInvalid;
                         return null;
                       },
                     ),
                     const SizedBox(height: 28),
-                    PrimaryButton(label: 'Simpan', isLoading: _isSubmitting, onPressed: _submit),
+                    PrimaryButton(label: l10n.appEditProfileSaveButton, isLoading: _isSubmitting, onPressed: _submit),
                   ],
                 ),
               ),
@@ -143,21 +145,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               Padding(
                 padding: EdgeInsets.fromLTRB(4, 4, 4, 8),
                 child: Text(
-                  'Keamanan',
+                  l10n.appEditProfileSecuritySectionLabel,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                 ),
               ),
               SettingsTile(
                 icon: Icons.lock_outline_rounded,
-                title: 'Ubah Password',
-                subtitle: 'Ganti password akun Anda',
+                title: l10n.appEditProfileChangePasswordTitle,
+                subtitle: l10n.appEditProfileChangePasswordSubtitle,
                 onTap: () => context.push('/profile/change-password'),
               ),
               const SizedBox(height: 8),
               SettingsTile(
                 icon: Icons.pin_outlined,
-                title: 'Ubah PIN',
-                subtitle: 'Ganti PIN 6 digit untuk membuka aplikasi',
+                title: l10n.appEditProfileChangePinTitle,
+                subtitle: l10n.appEditProfileChangePinSubtitle,
                 onTap: () => context.push('/profile/change-pin'),
               ),
             ],

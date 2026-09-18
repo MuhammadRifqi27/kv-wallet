@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/btc_tracking_model.dart';
 import '../../../data/models/crypto_price_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/tradingview_chart.dart';
 import '../application/btc_tracking_controller.dart';
@@ -35,6 +36,7 @@ class AssetDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final priceAsync = ref.watch(singleAssetPriceProvider(asset));
     final tickerAsync = ref.watch(assetTickerProvider(asset));
     final overviewAsync = ref.watch(btcOverviewControllerProvider);
@@ -93,12 +95,12 @@ class AssetDetailPage extends ConsumerWidget {
             },
           ),
           Text(
-            'Dipegang di Akun',
+            l10n.investHeldInAccountsTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 4),
           Text(
-            'Dihitung dari riwayat aktivitas — lihat catatan di kode kalau angkanya tampak meleset.',
+            l10n.investHeldInAccountsSubtitle,
             style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
           ),
           const SizedBox(height: 10),
@@ -135,6 +137,7 @@ class _PriceHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isUp = (changePercent ?? 0) >= 0;
     final color = isUp ? AppColors.success : AppColors.error;
 
@@ -153,7 +156,7 @@ class _PriceHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Harga Saat Ini',
+            l10n.investCurrentPriceLabel,
             style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
           ),
           const SizedBox(height: 8),
@@ -175,7 +178,7 @@ class _PriceHeader extends StatelessWidget {
                       Icon(isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 13, color: color),
                       const SizedBox(width: 2),
                       Text(
-                        '${changePercent!.abs().toStringAsFixed(1)}% (24 jam)',
+                        l10n.investChangePercent24h(changePercent!.abs().toStringAsFixed(1)),
                         style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w700),
                       ),
                     ],
@@ -208,6 +211,7 @@ class _HoldingSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -230,7 +234,7 @@ class _HoldingSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Total Anda Miliki',
+                  l10n.investTotalHeldLabel,
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
@@ -243,7 +247,7 @@ class _HoldingSummaryCard extends StatelessWidget {
           ),
           if (price != null && price!.priceIdr > 0)
             Text(
-              '≈ ${formatCryptoQuantity(totalIdr / price!.priceIdr)} BTC',
+              l10n.investApproxQuantityBtc(formatCryptoQuantity(totalIdr / price!.priceIdr)),
               style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14),
             ),
         ],
@@ -264,6 +268,7 @@ class _PerformanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -276,42 +281,42 @@ class _PerformanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Performa (Floating PnL)',
+            l10n.investPerformanceTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
           _PerformanceRow(
-            label: '24 Jam',
+            label: l10n.investPeriod24h,
             percent: price.changePercent24h,
             pnl: price.floatingPnl24h(totalHeldIdr),
           ),
           Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
-            label: '1 Minggu',
+            label: l10n.investPeriod1w,
             percent: price.changePercent7d,
             pnl: price.floatingPnl7d(totalHeldIdr),
           ),
           Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
-            label: '1 Bulan',
+            label: l10n.investPeriod1m,
             percent: price.changePercent30d,
             pnl: price.floatingPnl30d(totalHeldIdr),
           ),
           Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
-            label: '3 Bulan',
+            label: l10n.investPeriod3m,
             percent: price.changePercent3m,
             pnl: price.floatingPnl3m(totalHeldIdr),
           ),
           Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
-            label: '6 Bulan',
+            label: l10n.investPeriod6m,
             percent: price.changePercent6m,
             pnl: price.floatingPnl6m(totalHeldIdr),
           ),
           Divider(height: 20, color: AppColors.border),
           _PerformanceRow(
-            label: '5 Tahun',
+            label: l10n.investPeriod5y,
             percent: price.changePercent5y,
             pnl: price.floatingPnl5y(totalHeldIdr),
           ),
@@ -330,13 +335,14 @@ class _PerformanceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (percent == null || pnl == null) {
       return Row(
         children: [
           Expanded(
             child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
           ),
-          Text('Data tidak tersedia', style: TextStyle(color: AppColors.textDisabled, fontSize: 12)),
+          Text(l10n.investDataUnavailable, style: TextStyle(color: AppColors.textDisabled, fontSize: 12)),
         ],
       );
     }
@@ -379,6 +385,7 @@ class _NoPriceNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -389,7 +396,7 @@ class _NoPriceNotice extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Harga pasar untuk aset ini belum tersedia.',
+              l10n.investMarketPriceUnavailable,
               style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
             ),
           ),
@@ -409,6 +416,7 @@ class _HoldingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final balances = computePortfolioBalancesForAsset(activity, asset);
     final entries = balances.entries.where((e) => e.value.abs() > 0.01).toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -423,7 +431,7 @@ class _HoldingsList extends StatelessWidget {
           border: Border.all(color: AppColors.border),
         ),
         child: Text(
-          'Belum ada saldo tercatat untuk aset ini.',
+          l10n.investNoBalanceRecorded,
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
@@ -435,7 +443,7 @@ class _HoldingsList extends StatelessWidget {
         for (final entry in entries) ...[
           _HoldingTile(
             accountName: overview.portfolios.where((p) => p.id == entry.key).firstOrNull?.accountName ??
-                'Akun #${entry.key}',
+                l10n.investAccountFallbackName(entry.key),
             amount: entry.value,
             price: price,
           ),
@@ -455,6 +463,7 @@ class _HoldingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -486,7 +495,7 @@ class _HoldingTile extends StatelessWidget {
               ),
               if (price != null && price!.priceIdr > 0)
                 Text(
-                  '≈ ${formatCryptoQuantity(amount / price!.priceIdr)} BTC',
+                  l10n.investApproxQuantityBtc(formatCryptoQuantity(amount / price!.priceIdr)),
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                 ),
             ],

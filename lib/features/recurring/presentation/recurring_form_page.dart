@@ -9,6 +9,7 @@ import '../../../data/models/category_model.dart';
 import '../../../data/models/portfolio_model.dart';
 import '../../../data/models/recurring_transaction_model.dart';
 import '../../../data/models/transaction_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -95,7 +96,7 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => _PickerSheet<CategoryModel>(
-        title: 'Pilih kategori',
+        title: AppLocalizations.of(context).txnCommonSelectCategoryTitle,
         items: categories,
         selectedId: _selectedCategoryId,
         idOf: (c) => c.id,
@@ -112,7 +113,7 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => _PickerSheet<PortfolioModel>(
-        title: 'Pilih akun',
+        title: AppLocalizations.of(context).txnCommonSelectAccountTitle,
         items: portfolios,
         selectedId: _selectedPortfolioId,
         idOf: (p) => p.id,
@@ -124,12 +125,13 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     if (_selectedCategoryId == null) {
-      setState(() => _error = ApiException(message: 'Pilih kategori terlebih dahulu.'));
+      setState(() => _error = ApiException(message: l10n.txnCommonSelectCategoryFirst));
       return;
     }
     if (_selectedPortfolioId == null) {
-      setState(() => _error = ApiException(message: 'Pilih akun terlebih dahulu.'));
+      setState(() => _error = ApiException(message: l10n.txnRecurringSelectAccountFirst));
       return;
     }
 
@@ -181,10 +183,12 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
     final categoriesAsync = ref.watch(categoryListControllerProvider);
     final portfoliosAsync = ref.watch(portfolioListControllerProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Transaksi Berulang' : 'Tambah Transaksi Berulang')),
+      appBar: AppBar(title: Text(_isEditing ? l10n.txnRecurringFormTitleEdit : l10n.txnRecurringFormTitleAdd)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -198,30 +202,30 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                   const SizedBox(height: 16),
                 ],
                 AppTextField(
-                  label: 'Nama',
+                  label: l10n.txnRecurringNameLabel,
                   controller: _nameController,
                   icon: Icons.label_outline_rounded,
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('name'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Nama wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.txnRecurringNameRequired;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Tipe', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnCommonTypeSectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 SegmentedButton<TransactionType>(
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: TransactionType.expense,
-                      label: Text('Pengeluaran'),
-                      icon: Icon(Icons.arrow_upward_rounded),
+                      label: Text(l10n.txnExpenseLabel),
+                      icon: const Icon(Icons.arrow_upward_rounded),
                     ),
                     ButtonSegment(
                       value: TransactionType.income,
-                      label: Text('Pemasukan'),
-                      icon: Icon(Icons.arrow_downward_rounded),
+                      label: Text(l10n.txnIncomeLabel),
+                      icon: const Icon(Icons.arrow_downward_rounded),
                     ),
                   ],
                   selected: {_type},
@@ -232,80 +236,79 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                   }),
                 ),
                 const SizedBox(height: 16),
-                Text('Kategori', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnCommonCategorySectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 categoriesAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat kategori.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonCategoryLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (categories) {
                     final filtered = categories.where((c) => c.type.name == _type.name).toList();
                     final selected = filtered.where((c) => c.id == _selectedCategoryId).firstOrNull;
                     return _TapField(
                       icon: Icons.category_outlined,
-                      label: selected?.name ?? (filtered.isEmpty ? 'Belum ada kategori untuk tipe ini' : 'Pilih kategori'),
+                      label: selected?.name ?? (filtered.isEmpty ? l10n.txnCommonNoCategoryForType : l10n.txnCommonSelectCategoryTitle),
                       onTap: filtered.isEmpty ? null : () => _pickCategory(filtered),
                     );
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnRecurringAccountSectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat akun.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonAccountLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (portfolios) {
                     final selected = portfolios.where((p) => p.id == _selectedPortfolioId).firstOrNull;
                     return _TapField(
                       icon: Icons.account_balance_wallet_outlined,
-                      label: selected?.accountName ?? (portfolios.isEmpty ? 'Belum ada akun' : 'Pilih akun'),
+                      label: selected?.accountName ?? (portfolios.isEmpty ? l10n.txnCommonNoAccountAvailable : l10n.txnCommonSelectAccountTitle),
                       onTap: portfolios.isEmpty ? null : () => _pickPortfolio(portfolios),
                     );
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Frekuensi', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnRecurringFrequencyLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(icon: Icons.repeat_rounded, label: _frequency.label, onTap: _pickFrequency),
                 const SizedBox(height: 16),
-                Text('Mulai Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnRecurringStartDateLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(
                   icon: Icons.calendar_today_outlined,
-                  label: formatIndonesianDate(_startDate),
+                  label: formatLocalizedDate(_startDate, locale),
                   onTap: _pickStartDate,
                 ),
                 if (_startDateIsHistorical) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Template ini sudah pernah diproses, jadi mengubah tanggal ini tidak '
-                    'menggeser jadwal berikutnya — cuma jadi catatan kapan pertama dibuat.',
+                    l10n.txnRecurringStartDateHistoricalNote,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                 ],
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah (Rp)',
+                  label: l10n.txnCommonAmountRpLabel,
                   controller: _amountController,
                   icon: Icons.payments_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed <= 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Deskripsi (opsional)',
+                  label: l10n.txnCommonDescriptionLabel,
                   controller: _descriptionController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
@@ -314,7 +317,7 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Tambah',
+                  label: _isEditing ? l10n.txnCommonSaveChanges : l10n.txnRecurringSubmitAdd,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -349,7 +352,7 @@ class _FrequencyPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Pilih frekuensi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(AppLocalizations.of(context).txnRecurringPickFrequencyTitle, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             for (final frequency in RecurringFrequency.values)
               Padding(
@@ -456,7 +459,11 @@ class _PickerSheet<T> extends StatelessWidget {
                 shrinkWrap: true,
                 children: [
                   if (allowClear)
-                    _PickerRow(title: 'Tidak ada', selected: selectedId == null, onTap: () => Navigator.of(context).pop(null)),
+                    _PickerRow(
+                      title: AppLocalizations.of(context).txnCommonNoneOption,
+                      selected: selectedId == null,
+                      onTap: () => Navigator.of(context).pop(null),
+                    ),
                   for (final item in items)
                     _PickerRow(
                       title: titleOf(item),

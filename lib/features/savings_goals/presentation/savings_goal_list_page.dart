@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/savings_goal_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
 import '../application/savings_goal_controller.dart';
@@ -18,10 +19,11 @@ class SavingsGoalListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(savingsGoalControllerProvider);
     final controller = ref.read(savingsGoalControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Target Tabungan')),
+      appBar: AppBar(title: Text(l10n.walletSavingsGoalListTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/savings-goals/form'),
         backgroundColor: AppColors.primary,
@@ -34,17 +36,17 @@ class SavingsGoalListPage extends ConsumerWidget {
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat target tabungan.',
+              message: error is ApiException ? error.message : l10n.walletSavingsGoalListLoadError,
               onRetry: controller.refresh,
             ),
           ),
           data: (summary) {
             if (summary.goals.isEmpty) {
               return scrollableCenter(
-                const ListEmptyState(
+                ListEmptyState(
                   icon: Icons.savings_outlined,
-                  title: 'Belum ada target tabungan',
-                  subtitle: 'Tekan tombol + untuk membuat target pertama Anda.',
+                  title: l10n.walletSavingsGoalListEmptyTitle,
+                  subtitle: l10n.walletSavingsGoalListEmptySubtitle,
                 ),
               );
             }
@@ -75,11 +77,17 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
-        Expanded(child: _SummaryTile(label: 'Aktif', value: '$activeCount', color: AppColors.primary)),
+        Expanded(
+          child: _SummaryTile(label: l10n.walletSavingsGoalListActiveLabel, value: '$activeCount', color: AppColors.primary),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _SummaryTile(label: 'Tercapai', value: '$achievedCount', color: AppColors.success)),
+        Expanded(
+          child:
+              _SummaryTile(label: l10n.walletSavingsGoalListAchievedLabel, value: '$achievedCount', color: AppColors.success),
+        ),
       ],
     );
   }
@@ -109,7 +117,10 @@ class _SummaryTile extends StatelessWidget {
             style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 22),
           ),
           const SizedBox(height: 2),
-          Text('$label Goal', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text(
+            AppLocalizations.of(context).walletSavingsGoalListSummarySuffix(label),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -122,17 +133,18 @@ class _GoalCard extends ConsumerWidget {
   final SavingsGoalModel goal;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus target?'),
-        content: Text('Target "${goal.name}" beserta seluruh riwayat nabung/tariknya akan dihapus permanen.'),
+        title: Text(l10n.walletSavingsGoalListDeleteDialogTitle),
+        content: Text(l10n.walletSavingsGoalListDeleteDialogContent(goal.name)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletSavingsGoalListCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.walletSavingsGoalListDeleteConfirm, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -148,17 +160,16 @@ class _GoalCard extends ConsumerWidget {
   }
 
   Future<void> _confirmArchive(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Arsipkan target?'),
-        content: const Text(
-          'Target berhenti dihitung aktif/tercapai, tapi riwayatnya tetap tersimpan. Tidak bisa dibatalkan dari aplikasi.',
-        ),
+        title: Text(l10n.walletSavingsGoalListArchiveDialogTitle),
+        content: Text(l10n.walletSavingsGoalListArchiveDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Arsipkan')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletSavingsGoalListCancel)),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.walletSavingsGoalListArchiveConfirm)),
         ],
       ),
     );
@@ -176,6 +187,7 @@ class _GoalCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final color = savingsGoalColorFor(goal.color);
     final isArchived = goal.status == SavingsGoalStatus.archived;
+    final l10n = AppLocalizations.of(context);
 
     return Material(
       color: AppColors.surface,
@@ -228,7 +240,7 @@ class _GoalCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        savingsGoalStatusLabel(goal.status),
+                        savingsGoalStatusLabel(context, goal.status),
                         style: TextStyle(
                           color: goal.status == SavingsGoalStatus.achieved ? AppColors.success : AppColors.textSecondary,
                           fontSize: 11,
@@ -250,9 +262,10 @@ class _GoalCard extends ConsumerWidget {
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      if (!isArchived) const PopupMenuItem(value: 'archive', child: Text('Arsipkan')),
-                      const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                      PopupMenuItem(value: 'edit', child: Text(l10n.walletSavingsGoalListEditAction)),
+                      if (!isArchived)
+                        PopupMenuItem(value: 'archive', child: Text(l10n.walletSavingsGoalListArchiveConfirm)),
+                      PopupMenuItem(value: 'delete', child: Text(l10n.walletSavingsGoalListDeleteConfirm)),
                     ],
                   ),
                 ],
@@ -272,7 +285,7 @@ class _GoalCard extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${formatRupiah(goal.savedAmount)} dari ${formatRupiah(goal.targetAmount)}',
+                    l10n.walletSavingsGoalListProgressAmounts(formatRupiah(goal.savedAmount), formatRupiah(goal.targetAmount)),
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                   Text(
@@ -287,9 +300,9 @@ class _GoalCard extends ConsumerWidget {
                   children: [
                     const Icon(Icons.warning_amber_rounded, color: AppColors.accent, size: 14),
                     const SizedBox(width: 6),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Total alokasi ke akun ini melebihi saldo aslinya.',
+                        l10n.walletSavingsGoalListOverAllocatedWarning,
                         style: TextStyle(color: AppColors.accent, fontSize: 11),
                       ),
                     ),

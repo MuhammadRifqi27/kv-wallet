@@ -6,14 +6,34 @@ import '../core/providers/core_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../data/models/user_model.dart';
 import '../features/auth/application/auth_controller.dart';
+import '../l10n/app_localizations.dart';
 
 class _NavItem {
-  const _NavItem({required this.permission, required this.icon, required this.selectedIcon, required this.label});
+  const _NavItem({required this.permission, required this.icon, required this.selectedIcon});
 
   final String permission;
   final IconData icon;
   final IconData selectedIcon;
-  final String label;
+}
+
+/// Nav item labels are locale-dependent, so they can't live on the const
+/// [_NavItem] list itself — this maps a nav item's stable `permission` key
+/// to its localized label at build time.
+String _navLabelFor(AppLocalizations l10n, String permission) {
+  switch (permission) {
+    case 'dashboard':
+      return l10n.appNavDashboard;
+    case 'transactions':
+      return l10n.appNavTransactions;
+    case 'summary':
+      return l10n.appNavSummary;
+    case 'budgets':
+      return l10n.appNavBudgets;
+    case 'settings':
+      return l10n.appNavProfile;
+    default:
+      return permission;
+  }
 }
 
 /// Index order must match the branch order in app_router.dart's
@@ -23,46 +43,39 @@ class _NavItem {
 /// a tab here — it's reached via a menu tile on the Profile page — but its
 /// route still carries the `portfolio` permission (see app_router.dart's
 /// `_routePermissions`) so a direct/deep link into it still gets gated.
+/// Investment/BTC Tracking was a tab here too until it was moved to a
+/// Profile menu tile (same treatment as Portfolio) to bring the bar down
+/// from 6 tabs to the UX-recommended 4-5 — it's the most niche/premium-only
+/// destination of the six.
 const _navItems = [
   _NavItem(
     permission: 'dashboard',
     icon: Icons.dashboard_outlined,
     selectedIcon: Icons.dashboard_rounded,
-    label: 'Dashboard',
   ),
   _NavItem(
     permission: 'transactions',
     icon: Icons.receipt_long_outlined,
     selectedIcon: Icons.receipt_long_rounded,
-    label: 'Transaksi',
   ),
   _NavItem(
     permission: 'summary',
     icon: Icons.pie_chart_outline_rounded,
     selectedIcon: Icons.pie_chart_rounded,
-    label: 'Ringkasan',
   ),
   _NavItem(
     permission: 'budgets',
     icon: Icons.calculate_outlined,
     selectedIcon: Icons.calculate_rounded,
-    label: 'Budget',
-  ),
-  _NavItem(
-    permission: 'btc-tracking',
-    icon: Icons.currency_bitcoin_outlined,
-    selectedIcon: Icons.currency_bitcoin_rounded,
-    label: 'Investment',
   ),
   _NavItem(
     permission: 'settings',
     icon: Icons.person_outline_rounded,
     selectedIcon: Icons.person_rounded,
-    label: 'Profile',
   ),
 ];
 
-/// Bottom nav shell for the 6 top-level destinations. Tabs the user's
+/// Bottom nav shell for the 5 top-level destinations. Tabs the user's
 /// `money_management_permissions` doesn't cover stay visible but locked
 /// (dimmed + lock badge) — tapping one redirects to Upgrade Membership
 /// instead of navigating, per
@@ -82,7 +95,7 @@ class MainShell extends ConsumerWidget {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
+      SnackBar(content: Text(AppLocalizations.of(context).appNavUpgradeRequired)),
     );
     context.push('/profile/membership');
   }
@@ -96,6 +109,7 @@ class MainShell extends ConsumerWidget {
     // inside the Profile branch — watching the mode here forces Riverpod
     // to rebuild it directly instead, see AppColors' class doc.
     ref.watch(themeModeProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: navigationShell,
@@ -108,7 +122,7 @@ class MainShell extends ConsumerWidget {
             NavigationDestination(
               icon: _NavIcon(icon: item.icon, locked: !_isAllowed(user, item)),
               selectedIcon: _NavIcon(icon: item.selectedIcon, locked: !_isAllowed(user, item)),
-              label: item.label,
+              label: _navLabelFor(l10n, item.permission),
             ),
         ],
       ),

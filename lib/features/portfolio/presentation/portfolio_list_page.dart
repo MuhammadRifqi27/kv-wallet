@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/investment_model.dart';
 import '../../../data/models/portfolio_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../master_data/application/investment_list_controller.dart';
@@ -26,7 +27,7 @@ void _openTransfers(BuildContext context, WidgetRef ref) {
     return;
   }
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Fitur ini butuh upgrade membership')),
+    SnackBar(content: Text(AppLocalizations.of(context).walletPortfolioListUpgradeRequired)),
   );
   context.push('/profile/membership');
 }
@@ -38,6 +39,7 @@ class PortfolioListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final portfoliosAsync = ref.watch(portfolioListControllerProvider);
     final controller = ref.read(portfolioListControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
     // Best-effort — if investments haven't loaded yet, tiles just fall back
     // to showing the raw provider id instead of its name.
     final investmentsById = {
@@ -47,7 +49,7 @@ class PortfolioListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Portfolio')),
+      appBar: AppBar(title: Text(l10n.walletPortfolioListTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/portfolio/form'),
         backgroundColor: AppColors.primary,
@@ -69,17 +71,17 @@ class PortfolioListPage extends ConsumerWidget {
                 ),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : 'Gagal memuat portfolio.',
+                    message: error is ApiException ? error.message : l10n.walletPortfolioListLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
                 data: (portfolios) {
                   if (portfolios.isEmpty) {
                     return scrollableCenter(
-                      const ListEmptyState(
+                      ListEmptyState(
                         icon: Icons.account_balance_wallet_outlined,
-                        title: 'Belum ada akun',
-                        subtitle: 'Tekan tombol + untuk menambah akun/dompet pertama Anda.',
+                        title: l10n.walletPortfolioListEmptyTitle,
+                        subtitle: l10n.walletPortfolioListEmptySubtitle,
                       ),
                     );
                   }
@@ -115,6 +117,7 @@ class _TransferMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
@@ -141,12 +144,12 @@ class _TransferMenuTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Transfer Antar Akun',
+                      l10n.walletPortfolioListTransferTitle,
                       style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Pindahkan dana antar akun/dompet Anda',
+                      l10n.walletPortfolioListTransferSubtitle,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                   ],
@@ -168,17 +171,18 @@ class _PortfolioTile extends ConsumerWidget {
   final String? providerName;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus akun?'),
-        content: Text('Akun "${portfolio.accountName}" akan dihapus permanen.'),
+        title: Text(l10n.walletPortfolioListDeleteDialogTitle),
+        content: Text(l10n.walletPortfolioListDeleteDialogContent(portfolio.accountName)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletPortfolioListCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Hapus', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.walletPortfolioListDeleteConfirm, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -196,6 +200,7 @@ class _PortfolioTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final balance = portfolio.balance;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -227,7 +232,7 @@ class _PortfolioTile extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  providerName ?? 'Provider #${portfolio.financeInvestmentId}',
+                  providerName ?? l10n.walletPortfolioListProviderFallback(portfolio.financeInvestmentId),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
@@ -255,9 +260,9 @@ class _PortfolioTile extends ConsumerWidget {
                 _confirmDelete(context, ref);
               }
             },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'delete', child: Text('Hapus')),
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'edit', child: Text(l10n.walletPortfolioListEditAction)),
+              PopupMenuItem(value: 'delete', child: Text(l10n.walletPortfolioListDeleteConfirm)),
             ],
           ),
         ],

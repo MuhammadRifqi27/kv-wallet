@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/savings_goal_model.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Maps the free-form `color` string from the API (`primary`/`success`/
 /// `info`/`warning`/`danger`) to an actual [Color] — the app decides this
@@ -53,8 +54,11 @@ IconData savingsGoalIconFor(String? key) => switch (key) {
       _ => Icons.savings_outlined,
     };
 
-String savingsGoalStatusLabel(SavingsGoalStatus status) => switch (status) {
-      SavingsGoalStatus.achieved => 'Tercapai',
-      SavingsGoalStatus.archived => 'Diarsipkan',
-      SavingsGoalStatus.active => 'Aktif',
-    };
+String savingsGoalStatusLabel(BuildContext context, SavingsGoalStatus status) {
+  final l10n = AppLocalizations.of(context);
+  return switch (status) {
+    SavingsGoalStatus.achieved => l10n.walletGoalStatusAchieved,
+    SavingsGoalStatus.archived => l10n.walletGoalStatusArchived,
+    SavingsGoalStatus.active => l10n.walletGoalStatusActive,
+  };
+}

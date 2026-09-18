@@ -18,6 +18,8 @@ import '../features/auth/presentation/register_page.dart';
 import '../features/budget/presentation/budget_form_page.dart';
 import '../features/budget/presentation/budget_list_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
+import '../features/emergency_fund/presentation/emergency_fund_calculator_page.dart';
+import '../features/fire_calculator/presentation/fire_calculator_page.dart';
 import '../features/investment/presentation/asset_detail_page.dart';
 import '../features/investment/presentation/btc_activity_page.dart';
 import '../features/investment/presentation/btc_entry_form_page.dart';
@@ -64,6 +66,8 @@ const _routePermissions = {
   '/home': 'dashboard',
   '/transactions/recurring': 'recurring',
   '/transactions': 'transactions',
+  '/emergency-fund-calculator': 'summary',
+  '/fire-calculator': 'summary',
   '/summary': 'summary',
   '/portfolio/transfers': 'internal-transfers',
   '/portfolio': 'portfolio',
@@ -202,11 +206,50 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: 'form',
-            builder: (context, state) => SavingsGoalFormPage(goal: state.extra as SavingsGoalModel?),
+            builder: (context, state) {
+              final extra = state.extra;
+              return SavingsGoalFormPage(
+                goal: extra is SavingsGoalModel ? extra : null,
+                draft: extra is SavingsGoalDraft ? extra : null,
+              );
+            },
           ),
           GoRoute(
             path: ':id',
             builder: (context, state) => SavingsGoalDetailPage(goal: state.extra as SavingsGoalModel),
+          ),
+        ],
+      ),
+      // Reached via a summary card on the Summary tab — see
+      // docs/plan-dev/kalkulator-dana-darurat-plan.txt. Off the bottom-nav
+      // shell, same precedent as Portfolio/Savings Goals above.
+      GoRoute(
+        path: '/emergency-fund-calculator',
+        builder: (context, state) => const EmergencyFundCalculatorPage(),
+      ),
+      // Reached via a summary card on the Summary tab — see
+      // docs/plan-dev/kalkulator-pensiun-fire-plan.txt. Off the bottom-nav
+      // shell, same precedent as the Emergency Fund Calculator above.
+      GoRoute(
+        path: '/fire-calculator',
+        builder: (context, state) => const FireCalculatorPage(),
+      ),
+      // Moved off the bottom-nav shell (was its own tab) to bring the bar
+      // down from 6 tabs to the recommended 4-5 — BTC tracking is a niche,
+      // premium-only feature, so it's now reached via a menu tile on the
+      // Profile page instead, same precedent as Portfolio/Savings Goals.
+      GoRoute(
+        path: '/investment',
+        builder: (context, state) => const InvestmentDashboardPage(),
+        routes: [
+          GoRoute(
+            path: 'entry-form',
+            builder: (context, state) => BtcEntryFormPage(entry: state.extra as BtcActivityItem?),
+          ),
+          GoRoute(path: 'activity', builder: (context, state) => const BtcActivityPage()),
+          GoRoute(
+            path: 'asset/:symbol',
+            builder: (context, state) => AssetDetailPage(asset: state.pathParameters['symbol']!),
           ),
         ],
       ),
@@ -254,25 +297,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'form',
                     builder: (context, state) => BudgetFormPage(budget: state.extra as BudgetCategoryItem?),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/investment',
-                builder: (context, state) => const InvestmentDashboardPage(),
-                routes: [
-                  GoRoute(
-                    path: 'entry-form',
-                    builder: (context, state) => BtcEntryFormPage(entry: state.extra as BtcActivityItem?),
-                  ),
-                  GoRoute(path: 'activity', builder: (context, state) => const BtcActivityPage()),
-                  GoRoute(
-                    path: 'asset/:symbol',
-                    builder: (context, state) => AssetDetailPage(asset: state.pathParameters['symbol']!),
                   ),
                 ],
               ),

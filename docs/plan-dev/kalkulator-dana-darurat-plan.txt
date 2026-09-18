@@ -1,0 +1,180 @@
+BLUEPRINT — KALKULATOR DANA DARURAT
+=============================================================
+
+Status: DRAFT PLAN - belum diimplementasikan.
+
+Ide #15 dari docs/ide-pengembangan-100.txt ("Kalkulator dana darurat —
+rekomendasi nominal ideal berdasarkan rata-rata pengeluaran bulanan
+tercatat"). Dokumen ini merinci scope, sumber data, dan rencana
+implementasi sebelum mulai coding.
+
+
+BAGIAN 0 — SCOPE & BATASAN (PENTING)
+-----------------------------------------
+- Ini murni KALKULATOR/REKOMENDASI, bukan modul keuangan baru dengan
+  tracking sendiri di backend. TIDAK ada tabel atau endpoint baru yang
+  perlu dibuat — semua data sumbernya sudah ada lewat endpoint Summary
+  yang sudah dipakai app ini (lihat BAGIAN 1).
+- Output kalkulator adalah rekomendasi angka, bukan aksi otomatis.
+  Kalkulator TIDAK pernah membuat Savings Goal secara otomatis — hanya
+  ada tombol opsional "Buat Goal dari Rekomendasi Ini" yang membawa user
+  ke form Savings Goal yang sudah ada (pre-filled), tetap harus
+  dikonfirmasi/submit manual oleh user seperti alur normal.
+- Tidak fetch transaksi mentah satu per satu untuk hitung rata-rata
+  sendiri di klien. `SummaryModel.monthlyTrend` (chart_data) dari
+  endpoint Summary yang sudah ada SUDAH berupa agregat expense per bulan
+  — reuse ini, jangan bikin agregasi ulang dari `TransactionRepository`
+  kecuali setelah verifikasi (BAGIAN 4.1) ternyata datanya tidak cukup.
+- Input manual (fallback ketika data transaksi belum cukup — lihat
+  BAGIAN 1.2 & BAGIAN 2.3) TIDAK dikirim/disimpan ke backend. Murni
+  state lokal di halaman kalkulator, hilang saat keluar halaman.
+
+
+BAGIAN 1 — SUMBER DATA & PERHITUNGAN
+-----------------------------------------
+1.1. Data pengeluaran bulanan: `SummaryModel.monthlyTrend` (field
+     `expense` per titik) dari `SummaryRepository.getSummary(month,
+     year)` — sudah dipakai untuk chart "Tren Pemasukan vs Pengeluaran"
+     di SummaryPage (lihat `_MonthlyTrendChart` di
+     lib/features/summary/presentation/summary_page.dart).
+     PERLU DIVERIFIKASI (lihat BAGIAN 4.1): apakah 1 panggilan
+     `getSummary(month, year)` sudah mengembalikan beberapa titik bulan
+     ke belakang (chart yang ada di Summary Page menampilkan banyak
+     titik, jadi kemungkinan besar YA), atau perlu beberapa panggilan
+     mundur per bulan. Keputusan implementasi BAGIAN 3 bergantung pada
+     ini.
+
+1.2. Rata-rata pengeluaran bulanan = rata-rata `expense` dari titik-titik
+     `monthlyTrend` yang > 0 (bulan tanpa transaksi di-exclude supaya
+     tidak menurunkan rata-rata secara tidak representatif untuk user
+     yang baru mulai pakai app).
+     - Kalau jumlah bulan dengan expense > 0 kurang dari 2: data dianggap
+       belum cukup -> tampilkan state fallback input manual (BAGIAN 2.3),
+       bukan menampilkan rata-rata dari 1 bulan yang belum tentu
+       representatif.
+
+1.3. Rekomendasi nominal = rata-rata pengeluaran bulanan × multiplier
+     bulan yang dipilih user — BUKAN angka tetap tunggal, karena
+     kebutuhan dana darurat berbeda per situasi (lajang vs berkeluarga,
+     karyawan tetap vs freelance/irregular income). Opsi multiplier:
+     3x / 6x / 9x / 12x bulan pengeluaran, default 6x (rule of thumb
+     paling umum), user bisa pilih chip lain untuk update rekomendasi
+     realtime.
+
+1.4. Kalau user sudah punya Savings Goal dengan nama/purpose yang
+     mengindikasikan "dana darurat" (deteksi best-effort dari field
+     `purpose`/`name`, case-insensitive contains "darurat" — bukan
+     matching strict, murni bantu tampilan), tampilkan progress saldo
+     saat ini vs rekomendasi di halaman kalkulator. Kalau tidak ada,
+     cukup tampilkan angka rekomendasi + CTA buat goal baru (BAGIAN 2.2).
+
+
+BAGIAN 2 — ALUR PENGGUNA (UX)
+-----------------------------------------
+1. Entry point: kartu baru di SummaryPage, diletakkan setelah
+   `_BudgetHealthCard` — judul "Kalkulator Dana Darurat", preview
+   singkat rekomendasi nominal (atau "Hitung rekomendasi kamu" kalau
+   belum pernah dibuka), tap -> push ke halaman kalkulator. Pola sama
+   seperti `_BudgetHealthCard` (Material + InkWell + `context.push`,
+   silent-hide kalau data gagal load — bukan fitur inti, tidak boleh
+   bikin SummaryPage error kalau kalkulator gagal fetch).
+
+2. Halaman kalkulator (baru, full page, di luar bottom-nav shell — pola
+   sama seperti `/savings-goals` & `/portfolio`):
+   a. Tampilkan rata-rata pengeluaran bulanan terhitung otomatis +
+      sumber datanya ("berdasarkan N bulan terakhir tercatat").
+   b. Chip pilihan multiplier bulan (3x / 6x / 9x / 12x), update
+      rekomendasi realtime saat dipilih.
+   c. Kalau ada Savings Goal dana darurat existing (BAGIAN 1.4):
+      tampilkan progress bar saldo saat ini / nominal rekomendasi.
+   d. CTA "Buat Goal Dana Darurat" -> push ke `SavingsGoalFormPage`
+      dengan draft ter-prefill (nama "Dana Darurat", targetAmount =
+      hasil kalkulasi saat ini) — lihat BAGIAN 4.2, perlu perubahan
+      kecil di SavingsGoalFormPage untuk mendukung prefill saat create
+      (bukan cuma edit goal existing).
+
+3. Fallback data belum cukup (BAGIAN 1.2): tampilkan input manual
+   ("Isi rata-rata pengeluaran bulanan kamu") berupa TextField angka
+   dengan format sama seperti input Jumlah di TransactionFormPage —
+   hasil kalkulasi dari input ini murni state lokal (BAGIAN 0), tidak
+   pernah dikirim ke backend.
+
+
+BAGIAN 3 — PERUBAHAN FILE (RENCANA)
+-----------------------------------------
+File baru:
+  lib/features/emergency_fund/application/emergency_fund_controller.dart
+    - Riverpod provider yang fetch data lewat `SummaryRepository`
+      (jumlah panggilan tergantung hasil verifikasi BAGIAN 4.1), hitung
+      rata-rata sesuai BAGIAN 1.2, dan expose state berisi
+      {averageExpense, monthsUsed, isDataSufficient}.
+    - Juga expose provider terpisah untuk deteksi Savings Goal dana
+      darurat existing (BAGIAN 1.4) — reuse `SavingsGoalRepository`
+      yang sudah ada, jangan endpoint baru.
+  lib/features/emergency_fund/presentation/emergency_fund_calculator_page.dart
+    - UI kalkulator sesuai BAGIAN 2 (chip multiplier, hasil realtime,
+      progress card, CTA buat goal, fallback input manual).
+
+File yang diubah:
+  lib/features/summary/presentation/summary_page.dart
+    - Tambah entry card baru setelah `_BudgetHealthCard`, pola sama
+      (Material + InkWell + `context.push('/emergency-fund-calculator')`).
+  lib/features/savings_goals/presentation/savings_goal_form_page.dart
+    - Tambah parameter constructor opsional (mis. `initialName`,
+      `initialTargetAmount`) yang hanya dipakai di jalur create
+      (`widget.goal == null`) untuk pre-fill `_nameController` /
+      `_targetAmountController` — TIDAK mengubah `_isEditing` (tetap
+      `false`, tetap manggil `createSavingsGoal` bukan `update`), lihat
+      BAGIAN 4.2 kenapa ini perlu.
+  lib/routing/app_router.dart
+    - Tambah `GoRoute(path: '/emergency-fund-calculator', ...)` di luar
+      `StatefulShellRoute` (sejajar dengan `/savings-goals` &
+      `/portfolio`, bukan tab bottom-nav utama).
+
+
+BAGIAN 4 — HAL YANG PERLU DIVERIFIKASI SEBELUM CODING
+-----------------------------------------
+1. Panjang histori `chart_data` dari `GET /money-management/summary`:
+   apakah 1 request `getSummary(month, year)` sudah balikin beberapa
+   titik bulan ke belakang (kemungkinan besar YA, karena
+   `_MonthlyTrendChart` di SummaryPage render banyak titik dari 1x
+   fetch), atau ternyata cuma 1 titik dan chart yang ada sekarang
+   sebenarnya manggil summary berkali-kali di controller lain — cek
+   `lib/features/summary/application/summary_controller.dart` +
+   response asli sebelum implementasi BAGIAN 1.1/3.
+2. CONFIRMED lewat baca kode: `SavingsGoalFormPage` saat ini cuma
+   menerima `SavingsGoalModel? goal` — null berarti "create kosong",
+   non-null berarti "edit goal existing" (`_isEditing` ikut jadi true,
+   yang mengubah submit jadi `updateSavingsGoal` bukan `createSavingsGoal`).
+   Tidak bisa dipakai apa adanya untuk "create dengan draft ter-prefill"
+   tanpa perubahan kecil di BAGIAN 3 (parameter baru, bukan pakai objek
+   `SavingsGoalModel` palsu dengan id dummy — itu akan salah trigger
+   jalur edit).
+3. Rentang multiplier default (3x/6x/9x/12x) dan angka default (6x) —
+   ini rule of thumb umum, bukan keputusan teknis murni. Perlu
+   dikonfirmasi ke stakeholder produk apakah sudah sesuai target
+   pengguna app ini.
+
+
+BAGIAN 5 — HAL YANG PERLU DIPUTUSKAN / DIDISKUSIKAN
+-----------------------------------------
+1. Single entry point (Summary Page saja) dulu untuk scope awal yang
+   kecil, vs entry point ganda (Summary + tile di Savings Goals List
+   Page). Condong ke satu entry point (Summary, karena searah dengan
+   data pengeluaran yang jadi basis kalkulasi) — entry kedua bisa
+   ditambah belakangan kalau dirasa kurang kelihatan, sama seperti
+   pertimbangan penempatan tombol di
+   docs/plan-dev/ (lihat pola serupa di
+   docs/flutter-ocr-scan-struk-plan.txt BAGIAN 5.2).
+2. Apakah fitur ini eksklusif untuk member premium atau gratis untuk
+   semua member — idea ini masuk kategori "Modul Keuangan Baru" di
+   ide-pengembangan-100.txt yang beberapa temannya (Stock Trading, IPO,
+   dll) memang premium-only, tapi kalkulator ini murni baca data yang
+   sudah bisa diakses semua member (Summary). Kalau diputuskan
+   premium-only, perlu tambah entry di `_routePermissions`
+   (lib/routing/app_router.dart) + permission key baru di backend App
+   Roles — kalau gratis, tidak perlu perubahan permission sama sekali.
+
+Kalau blueprint ini sudah oke, langkah berikutnya: verifikasi BAGIAN 4
+dulu (terutama poin 1 & 2, keduanya menentukan bentuk implementasi),
+baru lanjut implementasi BAGIAN 3 sesuai urutan file di atas.

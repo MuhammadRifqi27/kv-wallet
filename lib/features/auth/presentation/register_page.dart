@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -55,6 +57,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final authState = ref.watch(authControllerProvider);
     final error = authState.error;
     final generalError = error != null && error.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -75,7 +78,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const Center(child: AppLogo(size: 64, showWordmark: false)),
                     const SizedBox(height: 24),
                     Text(
-                      'Buat akun baru',
+                      l10n.authRegisterTitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 22,
@@ -85,7 +88,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Mulai kelola pemasukan & pengeluaran Anda',
+                      l10n.authRegisterSubtitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                     ),
@@ -103,7 +106,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Akun langsung aktif setelah daftar — Anda akan diminta membuat PIN 6 digit berikutnya.',
+                              l10n.authRegisterInfoBanner,
                               style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
                             ),
                           ),
@@ -115,73 +118,73 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       const SizedBox(height: 16),
                     ],
                     AppTextField(
-                      label: 'Nama lengkap',
+                      label: l10n.authRegisterNameLabel,
                       controller: _nameController,
                       icon: Icons.person_outline_rounded,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('name'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Nama wajib diisi';
+                        if (value == null || value.trim().isEmpty) return l10n.authRegisterNameRequired;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Username',
+                      label: l10n.authRegisterUsernameLabel,
                       controller: _usernameController,
                       icon: Icons.alternate_email_rounded,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('username'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Username wajib diisi';
-                        if (value.contains(' ')) return 'Username tidak boleh mengandung spasi';
+                        if (value == null || value.trim().isEmpty) return l10n.authRegisterUsernameRequired;
+                        if (value.contains(' ')) return l10n.authRegisterUsernameNoSpaces;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Email',
+                      label: l10n.authRegisterEmailLabel,
                       controller: _emailController,
                       icon: Icons.mail_outline_rounded,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('email'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email wajib diisi';
-                        if (!value.contains('@')) return 'Format email tidak valid';
+                        if (value == null || value.trim().isEmpty) return l10n.authRegisterEmailRequired;
+                        if (!value.contains('@')) return l10n.authRegisterEmailInvalid;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Kata sandi',
+                      label: l10n.authRegisterPasswordLabel,
                       controller: _passwordController,
                       icon: Icons.lock_outline_rounded,
                       obscureText: true,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('password'),
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Kata sandi wajib diisi';
-                        if (value.length < 8) return 'Minimal 8 karakter';
+                        if (value == null || value.isEmpty) return l10n.authRegisterPasswordRequired;
+                        if (value.length < 8) return l10n.authRegisterPasswordMinLength;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Konfirmasi kata sandi',
+                      label: l10n.authRegisterConfirmPasswordLabel,
                       controller: _confirmController,
                       icon: Icons.lock_outline_rounded,
                       obscureText: true,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
                       validator: (value) {
-                        if (value != _passwordController.text) return 'Kata sandi tidak cocok';
+                        if (value != _passwordController.text) return l10n.authRegisterPasswordMismatch;
                         return null;
                       },
                     ),
                     const SizedBox(height: 28),
                     PrimaryButton(
-                      label: 'Daftar',
+                      label: l10n.authRegisterSubmitButton,
                       isLoading: authState.isLoading,
                       onPressed: _submit,
                     ),
@@ -189,10 +192,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Sudah punya akun?', style: TextStyle(color: AppColors.textSecondary)),
+                        Text(l10n.authRegisterHaveAccountPrompt, style: TextStyle(color: AppColors.textSecondary)),
                         TextButton(
                           onPressed: () => context.go('/login'),
-                          child: const Text('Masuk'),
+                          child: Text(l10n.authRegisterLoginLink),
                         ),
                       ],
                     ),

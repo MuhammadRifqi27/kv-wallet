@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -52,7 +53,7 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
           );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password berhasil diperbarui.')),
+        SnackBar(content: Text(AppLocalizations.of(context).appChangePasswordSuccessMessage)),
       );
       Navigator.of(context).pop();
     } on ApiException catch (e) {
@@ -65,10 +66,11 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     final generalError = _error != null && _error!.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Ubah Password')),
+      appBar: AppBar(title: Text(l10n.appChangePasswordAppBarTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -82,46 +84,46 @@ class _ChangePasswordPageState extends ConsumerState<ChangePasswordPage> {
                   const SizedBox(height: 16),
                 ],
                 AppTextField(
-                  label: 'Password saat ini',
+                  label: l10n.appChangePasswordCurrentLabel,
                   controller: _currentController,
                   icon: Icons.lock_outline_rounded,
                   obscureText: true,
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('current_password'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Password saat ini wajib diisi';
+                    if (value == null || value.isEmpty) return l10n.appChangePasswordCurrentRequired;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Password baru',
+                  label: l10n.appChangePasswordNewLabel,
                   controller: _passwordController,
                   icon: Icons.lock_outline_rounded,
                   obscureText: true,
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('password'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Password baru wajib diisi';
-                    if (value.length < 8) return 'Minimal 8 karakter';
+                    if (value == null || value.isEmpty) return l10n.appChangePasswordNewRequired;
+                    if (value.length < 8) return l10n.appChangePasswordMinLength;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Konfirmasi password baru',
+                  label: l10n.appChangePasswordConfirmLabel,
                   controller: _confirmController,
                   icon: Icons.lock_outline_rounded,
                   obscureText: true,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
                   validator: (value) {
-                    if (value != _passwordController.text) return 'Password tidak cocok';
+                    if (value != _passwordController.text) return l10n.appChangePasswordMismatch;
                     return null;
                   },
                 ),
                 const SizedBox(height: 28),
-                PrimaryButton(label: 'Simpan', isLoading: _isSubmitting, onPressed: _submit),
+                PrimaryButton(label: l10n.appChangePasswordSaveButton, isLoading: _isSubmitting, onPressed: _submit),
               ],
             ),
           ),

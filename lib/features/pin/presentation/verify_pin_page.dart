@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
@@ -48,7 +50,8 @@ class _VerifyPinPageState extends ConsumerState<VerifyPinPage> {
     if (cachedPin == null || !mounted) return;
 
     setState(() => _isBiometricAttemptInFlight = true);
-    final authenticated = await ref.read(biometricServiceProvider).authenticate('Buka Flowr dengan biometrik');
+    final l10n = AppLocalizations.of(context);
+    final authenticated = await ref.read(biometricServiceProvider).authenticate(l10n.authVerifyPinBiometricReason);
     if (!mounted) return;
     if (!authenticated) {
       // User cancelled/failed the OS prompt (or hardware error) — no error
@@ -79,17 +82,18 @@ class _VerifyPinPageState extends ConsumerState<VerifyPinPage> {
   }
 
   Future<void> _logout() async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Bukan Anda?'),
-        content: const Text('Anda akan logout dan perlu login kembali dengan email/username & password.'),
+        title: Text(l10n.authVerifyPinLogoutDialogTitle),
+        content: Text(l10n.authVerifyPinLogoutDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.authVerifyPinLogoutDialogCancel)),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Keluar', style: TextStyle(color: AppColors.error)),
+            child: Text(l10n.authVerifyPinLogoutDialogConfirm, style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -106,6 +110,7 @@ class _VerifyPinPageState extends ConsumerState<VerifyPinPage> {
     final userName = ref.watch(authControllerProvider).user?.name;
     final biometricEnabled = ref.watch(biometricEnabledProvider);
     final showLoading = pinState.isLoading || _isBiometricAttemptInFlight;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -121,15 +126,15 @@ class _VerifyPinPageState extends ConsumerState<VerifyPinPage> {
                   const Center(child: AppLogo(size: 64, showWordmark: false)),
                   const SizedBox(height: 24),
                   Text(
-                    userName != null ? 'Halo, $userName' : 'Masukkan PIN',
+                    userName != null ? l10n.authVerifyPinGreeting(userName) : l10n.authVerifyPinEnterPinTitle,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     biometricEnabled
-                        ? 'Masukkan PIN atau gunakan sidik jari/Face ID untuk membuka aplikasi'
-                        : 'Masukkan PIN 6 digit untuk membuka aplikasi',
+                        ? l10n.authVerifyPinSubtitleBiometric
+                        : l10n.authVerifyPinSubtitleDefault,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                   ),
@@ -148,13 +153,13 @@ class _VerifyPinPageState extends ConsumerState<VerifyPinPage> {
                     TextButton.icon(
                       onPressed: _tryBiometricUnlock,
                       icon: const Icon(Icons.fingerprint_rounded, size: 20),
-                      label: const Text('Gunakan Biometrik'),
+                      label: Text(l10n.authVerifyPinUseBiometricButton),
                     ),
                   ],
                   const SizedBox(height: 28),
                   TextButton(
                     onPressed: _logout,
-                    child: const Text('Bukan Anda? Keluar'),
+                    child: Text(l10n.authVerifyPinNotYouLogout),
                   ),
                 ],
               ),

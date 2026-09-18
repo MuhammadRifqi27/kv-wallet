@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/investment_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../application/investment_list_controller.dart';
 import 'category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
@@ -17,10 +18,11 @@ class InvestmentListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final investmentsAsync = ref.watch(investmentListControllerProvider);
     final controller = ref.read(investmentListControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Provider Investasi')),
+      appBar: AppBar(title: Text(l10n.investProviderListTitle)),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: controller.refresh,
@@ -30,17 +32,17 @@ class InvestmentListPage extends ConsumerWidget {
           ),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat provider investasi.',
+              message: error is ApiException ? error.message : l10n.investProviderLoadError,
               onRetry: controller.refresh,
             ),
           ),
           data: (investments) {
             if (investments.isEmpty) {
               return scrollableCenter(
-                const ListEmptyState(
+                ListEmptyState(
                   icon: Icons.account_balance_outlined,
-                  title: 'Belum ada provider investasi',
-                  subtitle: 'Provider investasi dikelola oleh admin lewat aplikasi web.',
+                  title: l10n.investProviderEmptyTitle,
+                  subtitle: l10n.investProviderEmptySubtitle,
                 ),
               );
             }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -16,15 +17,16 @@ class PayrollSettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(payrollSettingsControllerProvider);
     final controller = ref.read(payrollSettingsControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Siklus Gajian')),
+      appBar: AppBar(title: Text(l10n.investPayrollCycleTitle)),
       body: settingsAsync.when(
         loading: () => scrollableCenter(const AppLoadingIndicator()),
         error: (error, _) => scrollableCenter(
           ListErrorState(
-            message: error is ApiException ? error.message : 'Gagal memuat pengaturan.',
+            message: error is ApiException ? error.message : l10n.investPayrollSettingsLoadError,
             onRetry: controller.refresh,
           ),
         ),
@@ -72,7 +74,7 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
           .updatePayrollStartDay(_useEndOfMonth ? 'last' : _day);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Siklus gajian berhasil disimpan.')),
+          SnackBar(content: Text(AppLocalizations.of(context).investPayrollSavedSnackbar)),
         );
       }
     } on ApiException catch (e) {
@@ -84,14 +86,14 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Tanggal mulai siklus gajian menentukan periode yang dipakai Dashboard, '
-            'Budget, dan Ringkasan — bukan tanggal 1-31 kalender biasa.',
+            l10n.investPayrollDescription,
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -110,18 +112,18 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
               onChanged: (value) => setState(() => _useEndOfMonth = value),
               activeThumbColor: AppColors.primary,
               title: Text(
-                'Pakai akhir bulan',
+                l10n.investUseEndOfMonthLabel,
                 style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
               ),
               subtitle: Text(
-                'Siklus mulai dari tanggal terakhir tiap bulan',
+                l10n.investUseEndOfMonthSubtitle,
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
               ),
             ),
           ),
           if (!_useEndOfMonth) ...[
             const SizedBox(height: 8),
-            Text('Tanggal mulai', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            Text(l10n.investStartDateLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             _DayPickerField(
               day: _day,
@@ -129,7 +131,7 @@ class _PayrollFormState extends ConsumerState<_PayrollForm> {
             ),
           ],
           const SizedBox(height: 28),
-          PrimaryButton(label: 'Simpan', isLoading: _isSubmitting, onPressed: _submit),
+          PrimaryButton(label: l10n.investSaveButton, isLoading: _isSubmitting, onPressed: _submit),
         ],
       ),
     );
@@ -158,6 +160,7 @@ class _DayPickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () => _openPicker(context),
@@ -174,7 +177,7 @@ class _DayPickerField extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Tanggal $day',
+                l10n.investDayLabel(day),
                 style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
               ),
             ),
@@ -193,6 +196,7 @@ class _DayPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -212,7 +216,7 @@ class _DayPickerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Pilih tanggal mulai',
+              l10n.investSelectStartDateTitle,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 16),

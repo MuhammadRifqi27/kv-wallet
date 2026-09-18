@@ -1,5 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../utils/formatters.dart';
 
 const _budgetChannel = AndroidNotificationChannel(
@@ -52,12 +54,17 @@ class NotificationService {
     required double amount,
     required int month,
     required int year,
+    required Locale locale,
   }) async {
     await _ensureInitialized();
+    // No BuildContext here (fired from a controller, not a widget build) —
+    // load the strings for the caller-resolved locale directly instead of
+    // `AppLocalizations.of(context)`. See [effectiveLocaleProvider]'s doc.
+    final l10n = await AppLocalizations.delegate.load(locale);
     await _plugin.show(
       id: categoryId,
-      title: 'Budget $categoryName Terlampaui',
-      body: 'Terpakai ${formatRupiah(spent)} dari budget ${formatRupiah(amount)} bulan ${monthName(month)} $year.',
+      title: l10n.notificationBudgetExceededTitle(categoryName),
+      body: l10n.notificationBudgetExceededBody(formatRupiah(spent), formatRupiah(amount), monthName(month, locale), year),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'budget_alerts',

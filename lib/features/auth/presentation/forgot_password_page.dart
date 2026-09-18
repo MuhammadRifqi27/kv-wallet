@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -53,6 +55,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final resetState = ref.watch(passwordResetControllerProvider);
     final error = resetState.error;
     final generalError = error != null && error.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -69,13 +72,13 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Lupa Kata Sandi',
+                      l10n.authForgotPasswordTitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Isi form di bawah, admin akan memproses pengajuanmu',
+                      l10n.authForgotPasswordSubtitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                     ),
@@ -93,8 +96,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Belum ada reset otomatis lewat email. Admin akan menghubungimu lewat '
-                              'WhatsApp/telepon untuk mengirim link reset kata sandi.',
+                              l10n.authForgotPasswordInfoBanner,
                               style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
                             ),
                           ),
@@ -106,32 +108,32 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                       const SizedBox(height: 16),
                     ],
                     AppTextField(
-                      label: 'Email atau Username',
+                      label: l10n.authForgotPasswordIdentifierLabel,
                       controller: _identifierController,
                       icon: Icons.person_outline_rounded,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('identifier'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email atau username wajib diisi';
+                        if (value == null || value.trim().isEmpty) return l10n.authForgotPasswordIdentifierRequired;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Nomor WhatsApp/telepon',
+                      label: l10n.authForgotPasswordPhoneLabel,
                       controller: _phoneController,
                       icon: Icons.phone_outlined,
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('phone'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Nomor WhatsApp/telepon wajib diisi';
+                        if (value == null || value.trim().isEmpty) return l10n.authForgotPasswordPhoneRequired;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Catatan (opsional)',
+                      label: l10n.authForgotPasswordNoteLabel,
                       controller: _noteController,
                       icon: Icons.edit_note_rounded,
                       textInputAction: TextInputAction.done,
@@ -140,7 +142,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     ),
                     const SizedBox(height: 28),
                     PrimaryButton(
-                      label: 'Kirim Pengajuan',
+                      label: l10n.authForgotPasswordSubmitButton,
                       isLoading: resetState.isLoading,
                       onPressed: _submit,
                     ),
@@ -151,7 +153,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           '/forgot-password/status',
                           extra: _identifierController.text.trim().isEmpty ? null : _identifierController.text.trim(),
                         ),
-                        child: const Text('Sudah pernah mengajukan? Cek status'),
+                        child: Text(l10n.authForgotPasswordCheckStatusLink),
                       ),
                     ),
                     const SizedBox(height: 12),

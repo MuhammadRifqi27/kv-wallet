@@ -8,6 +8,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/btc_tracking_model.dart';
 import '../../../data/models/portfolio_model.dart';
 import '../../../data/models/transfer_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -83,18 +84,19 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context);
     if (_fromAccountId == null || _toAccountId == null) {
-      setState(() => _accountError = 'Pilih akun asal dan akun tujuan.');
+      setState(() => _accountError = l10n.txnTransferSelectAccountsError);
       return;
     }
     if (_fromAccountId == _toAccountId) {
-      setState(() => _accountError = 'Akun asal dan tujuan tidak boleh sama.');
+      setState(() => _accountError = l10n.txnTransferSameAccountError);
       return;
     }
     final involvesCrypto = _involvesCrypto();
     final asset = _assetController.text.trim();
     if (involvesCrypto && asset.isEmpty) {
-      setState(() => _accountError = 'Isi simbol aset (mis. BTC) — salah satu akun tipe crypto.');
+      setState(() => _accountError = l10n.txnTransferAssetRequiredError);
       return;
     }
     setState(() => _accountError = null);
@@ -148,10 +150,12 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
       investmentsAsync.valueOrNull ?? const [],
     ).map((p) => p.id).toSet();
     final involvesCrypto = cryptoIds.contains(_fromAccountId) || cryptoIds.contains(_toAccountId);
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Transfer' : 'Transfer Antar Akun')),
+      appBar: AppBar(title: Text(_isEditing ? l10n.txnTransferFormTitleEdit : l10n.txnTransferListTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -164,26 +168,26 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                   ErrorBanner(message: _error!.message),
                   const SizedBox(height: 16),
                 ],
-                Text('Tanggal', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnCommonDateSectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 _TapField(
                   icon: Icons.calendar_today_outlined,
-                  label: formatIndonesianDate(_date),
+                  label: formatLocalizedDate(_date, locale),
                   onTap: _pickDate,
                 ),
                 const SizedBox(height: 16),
-                Text('Dari Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnTransferFromAccountLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat akun.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonAccountLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (portfolios) => _AccountPickerField(
                     portfolios: portfolios,
                     selectedId: _fromAccountId,
-                    placeholder: 'Pilih akun asal',
+                    placeholder: l10n.txnTransferFromAccountPlaceholder,
                     onChanged: (id) => setState(() {
                       _fromAccountId = id;
                       _accountError = null;
@@ -191,18 +195,18 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('Ke Akun', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.txnTransferToAccountLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat akun.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonAccountLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (portfolios) => _AccountPickerField(
                     portfolios: portfolios,
                     selectedId: _toAccountId,
-                    placeholder: 'Pilih akun tujuan',
+                    placeholder: l10n.txnTransferToAccountPlaceholder,
                     onChanged: (id) => setState(() {
                       _toAccountId = id;
                       _accountError = null;
@@ -215,16 +219,15 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                 ],
                 if (involvesCrypto) ...[
                   const SizedBox(height: 16),
-                  Text('Aset', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text(l10n.txnTransferAssetSectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text(
-                    'Salah satu akun tipe crypto — isi simbol asetnya supaya masuk breakdown per-aset di Investment '
-                    '(topup maupun withdrawal/profit taking).',
+                    l10n.txnTransferAssetHint,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   AppTextField(
-                    label: 'Simbol aset (mis. BTC)',
+                    label: l10n.txnTransferAssetFieldLabel,
                     controller: _assetController,
                     icon: Icons.currency_bitcoin_rounded,
                     textInputAction: TextInputAction.next,
@@ -233,22 +236,22 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                 ],
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah (Rp)',
+                  label: l10n.txnCommonAmountRpLabel,
                   controller: _amountController,
                   icon: Icons.payments_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed <= 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Deskripsi (opsional)',
+                  label: l10n.txnCommonDescriptionLabel,
                   controller: _descriptionController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
@@ -257,7 +260,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Transfer',
+                  label: _isEditing ? l10n.txnCommonSaveChanges : l10n.txnTransferSubmitLabel,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -338,7 +341,7 @@ class _AccountPickerField extends StatelessWidget {
     final selected = _selected;
     return _TapField(
       icon: Icons.account_balance_wallet_outlined,
-      label: selected?.accountName ?? (portfolios.isEmpty ? 'Belum ada akun' : placeholder),
+      label: selected?.accountName ?? (portfolios.isEmpty ? AppLocalizations.of(context).txnCommonNoAccountAvailable : placeholder),
       onTap: portfolios.isEmpty ? () {} : () => _openPicker(context),
     );
   }
@@ -367,7 +370,7 @@ class _AccountPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Pilih akun', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(AppLocalizations.of(context).txnCommonSelectAccountTitle, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),

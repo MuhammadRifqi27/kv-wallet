@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/investment_model.dart';
 import '../../../data/models/portfolio_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -46,7 +47,8 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedInvestmentId == null) {
-      setState(() => _error = ApiException(message: 'Pilih provider investasi terlebih dahulu.'));
+      final l10n = AppLocalizations.of(context);
+      setState(() => _error = ApiException(message: l10n.walletPortfolioFormProviderRequired));
       return;
     }
 
@@ -91,10 +93,11 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
   Widget build(BuildContext context) {
     final investmentsAsync = ref.watch(investmentListControllerProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Akun' : 'Tambah Akun')),
+      appBar: AppBar(title: Text(_isEditing ? l10n.walletPortfolioFormEditTitle : l10n.walletPortfolioFormCreateTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -107,12 +110,12 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                   ErrorBanner(message: _error!.message),
                   const SizedBox(height: 16),
                 ],
-                Text('Provider', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.walletPortfolioFormProviderLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 investmentsAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat daftar provider.',
+                  error: (error, _) => Text(
+                    l10n.walletPortfolioFormLoadProvidersError,
                     style: TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (investments) => _InvestmentPickerField(
@@ -123,19 +126,19 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Nama akun',
+                  label: l10n.walletPortfolioFormAccountNameLabel,
                   controller: _accountNameController,
                   icon: Icons.badge_outlined,
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('account_name'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Nama akun wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.walletPortfolioFormAccountNameRequired;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Nomor akun (opsional)',
+                  label: l10n.walletPortfolioFormAccountNumberLabel,
                   controller: _accountNumberController,
                   icon: Icons.numbers_rounded,
                   textInputAction: TextInputAction.next,
@@ -143,7 +146,7 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Deskripsi (opsional)',
+                  label: l10n.walletPortfolioFormDescriptionLabel,
                   controller: _descriptionController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
@@ -162,18 +165,18 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                     onChanged: (value) => setState(() => _isInvestmentAccount = value),
                     activeThumbColor: AppColors.primary,
                     title: Text(
-                      'Akun investasi',
+                      l10n.walletPortfolioFormInvestmentAccountTitle,
                       style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                     ),
                     subtitle: Text(
-                      'Dana masuk/keluar dicatat sebagai deposit/profit/withdrawal/loss, terpisah dari transaksi biasa',
+                      l10n.walletPortfolioFormInvestmentAccountSubtitle,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                   ),
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Tambah Akun',
+                  label: _isEditing ? l10n.walletPortfolioFormSaveChanges : l10n.walletPortfolioFormCreateTitle,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -217,6 +220,7 @@ class _InvestmentPickerField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = _selected;
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: investments.isEmpty ? null : () => _openPicker(context),
@@ -233,7 +237,7 @@ class _InvestmentPickerField extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                selected?.name ?? (investments.isEmpty ? 'Belum ada provider investasi' : 'Pilih provider'),
+                selected?.name ?? (investments.isEmpty ? l10n.walletPortfolioFormNoProviders : l10n.walletPortfolioFormSelectProvider),
                 style: TextStyle(
                   color: selected != null ? AppColors.textPrimary : AppColors.textDisabled,
                   fontSize: 15,
@@ -272,7 +276,7 @@ class _InvestmentPickerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Pilih provider investasi',
+              AppLocalizations.of(context).walletPortfolioFormSelectProviderSheetTitle,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 12),

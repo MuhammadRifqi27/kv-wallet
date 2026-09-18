@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/membership_plan_model.dart';
 import '../../../data/models/membership_status_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../auth/application/auth_controller.dart';
@@ -38,10 +39,11 @@ class MembershipPlansPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statusAsync = ref.watch(membershipStatusProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Upgrade Membership')),
+      appBar: AppBar(title: Text(l10n.investUpgradeMembershipTitle)),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () => _refreshMembership(ref),
@@ -49,7 +51,7 @@ class MembershipPlansPage extends ConsumerWidget {
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat status membership.',
+              message: error is ApiException ? error.message : l10n.investMembershipStatusLoadError,
               onRetry: () async => ref.invalidate(membershipStatusProvider),
             ),
           ),
@@ -68,6 +70,7 @@ class _MembershipBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final plansAsync = ref.watch(membershipPlansProvider);
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -80,7 +83,7 @@ class _MembershipBody extends ConsumerWidget {
         ],
         const SizedBox(height: 24),
         Text(
-          'Pilih Plan',
+          l10n.investChoosePlanTitle,
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 10),
@@ -90,7 +93,7 @@ class _MembershipBody extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
           ),
           error: (error, _) => ListErrorState(
-            message: error is ApiException ? error.message : 'Gagal memuat daftar plan.',
+            message: error is ApiException ? error.message : l10n.investPlanListLoadError,
             onRetry: () async => ref.invalidate(membershipPlansProvider),
           ),
           data: (plans) => Column(
@@ -114,25 +117,28 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final String title;
     final String subtitle;
     final Color color;
     final IconData icon;
 
     if (status.isPaidMember) {
-      title = status.membershipPlan?.name ?? 'Member';
+      title = status.membershipPlan?.name ?? l10n.investMemberFallbackName;
       final expiresAt = status.membershipExpiresAt;
-      subtitle = expiresAt != null ? 'Berlaku sampai ${formatIndonesianDate(expiresAt)}' : 'Aktif';
+      subtitle = expiresAt != null
+          ? l10n.investActiveUntil(formatLocalizedDate(expiresAt, Localizations.localeOf(context)))
+          : l10n.investActiveLabel;
       color = AppColors.success;
       icon = Icons.workspace_premium_rounded;
     } else if (status.isPendingVerification) {
-      title = status.membershipPlan?.name ?? 'Member';
-      subtitle = 'Menunggu verifikasi pembayaran dari admin';
+      title = status.membershipPlan?.name ?? l10n.investMemberFallbackName;
+      subtitle = l10n.investPendingVerificationSubtitle;
       color = AppColors.accent;
       icon = Icons.hourglass_top_rounded;
     } else {
-      title = 'Free';
-      subtitle = 'Belum upgrade membership';
+      title = l10n.investFreeLabel;
+      subtitle = l10n.investNoMembershipSubtitle;
       color = AppColors.textSecondary;
       icon = Icons.account_circle_outlined;
     }
@@ -193,6 +199,7 @@ class _PaymentInstructionsState extends ConsumerState<_PaymentInstructions> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final status = widget.status;
     final plansAsync = ref.watch(membershipPlansProvider);
     final planId = status.membershipPlan?.id;
@@ -208,18 +215,18 @@ class _PaymentInstructionsState extends ConsumerState<_PaymentInstructions> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Transfer Manual',
+          Text(
+            l10n.investManualTransferTitle,
             style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.primaryDark),
           ),
           const SizedBox(height: 10),
-          _InfoRow(label: 'Bank', value: _bankName),
-          _InfoRow(label: 'No. Rekening', value: _bankAccountNumber),
-          _InfoRow(label: 'Atas Nama', value: _bankAccountHolder),
-          if (price != null) _InfoRow(label: 'Nominal', value: formatRupiah(price)),
+          _InfoRow(label: l10n.investBankLabel, value: _bankName),
+          _InfoRow(label: l10n.investAccountNumberLabel, value: _bankAccountNumber),
+          _InfoRow(label: l10n.investAccountHolderLabel, value: _bankAccountHolder),
+          if (price != null) _InfoRow(label: l10n.investNominalLabel, value: formatRupiah(price)),
           const SizedBox(height: 12),
-          const Text(
-            'Setelah transfer, admin akan memverifikasi pembayaran dan mengaktifkan membership Anda secara manual.',
+          Text(
+            l10n.investTransferInstructionsNote,
             style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
           ),
           const SizedBox(height: 12),
@@ -233,7 +240,7 @@ class _PaymentInstructionsState extends ConsumerState<_PaymentInstructions> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2.2, color: AppColors.primary),
                     )
-                  : const Text('Saya sudah transfer, cek status'),
+                  : Text(l10n.investCheckStatusButton),
             ),
           ),
         ],
@@ -295,34 +302,33 @@ class _PlanCard extends ConsumerWidget {
   }
 
   Future<void> _confirmAndSelect(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
     final isSwitchingActivePlan = status.isPaidMember && !_isCurrentPlan;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Konfirmasi ${plan.name}'),
+        title: Text(l10n.investConfirmPlanDialogTitle(plan.name)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Anda akan upgrade ke plan ${plan.name} seharga ${formatRupiah(plan.price)} '
-              'untuk ${plan.durationDays} hari.',
+              l10n.investConfirmPlanDialogContent(plan.name, formatRupiah(plan.price), plan.durationDays),
             ),
             if (isSwitchingActivePlan) ...[
               const SizedBox(height: 12),
-              const Text(
-                'Plan Anda saat ini masih aktif. Mengganti ke plan lain akan mereset akses '
-                'Anda ke Free sampai pembayaran baru diverifikasi admin.',
+              Text(
+                l10n.investSwitchPlanWarning,
                 style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ],
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Konfirmasi')),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.investCancelButton)),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.investConfirmButton)),
         ],
       ),
     );
@@ -333,18 +339,19 @@ class _PlanCard extends ConsumerWidget {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Plan dipilih. Silakan transfer sesuai instruksi di atas.')),
+        SnackBar(content: Text(l10n.investPlanSelectedSnackbar)),
       );
     } else {
       final error = ref.read(selectPlanControllerProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error?.message ?? 'Gagal memilih plan.')),
+        SnackBar(content: Text(error?.message ?? l10n.investSelectPlanError)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final selectState = ref.watch(selectPlanControllerProvider);
 
     final isLockedActive = _isCurrentPlan && status.isPaidMember;
@@ -370,7 +377,7 @@ class _PlanCard extends ConsumerWidget {
                     Text(plan.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
                     const SizedBox(height: 2),
                     Text(
-                      '${formatRupiah(plan.price)} / ${plan.durationDays} hari',
+                      l10n.investPricePerDuration(formatRupiah(plan.price), plan.durationDays),
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                     ),
                   ],
@@ -379,12 +386,12 @@ class _PlanCard extends ConsumerWidget {
               if (isLockedActive)
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Text('Plan Aktif', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
+                  child: Text(l10n.investActivePlanLabel, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
                 )
               else
                 OutlinedButton(
                   onPressed: selectState.isLoading ? null : () => _showPlanDetail(context, ref),
-                  child: const Text('Pilih Plan'),
+                  child: Text(l10n.investSelectPlanButton),
                 ),
             ],
           ),
@@ -405,6 +412,7 @@ class _PlanDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
@@ -431,13 +439,13 @@ class _PlanDetailSheet extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${formatRupiah(plan.price)} / ${plan.durationDays} hari',
+              l10n.investPricePerDuration(formatRupiah(plan.price), plan.durationDays),
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 20),
             if (plan.benefits.isNotEmpty) ...[
               Text(
-                'Fitur yang didapat',
+                l10n.investPlanFeaturesTitle,
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 10),
@@ -451,13 +459,13 @@ class _PlanDetailSheet extends StatelessWidget {
               ),
             ] else
               Text(
-                'Detail fitur untuk plan ini belum tersedia.',
+                l10n.investPlanFeaturesUnavailable,
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: PrimaryButton(label: 'Pilih Plan', onPressed: onSelectPlan),
+              child: PrimaryButton(label: l10n.investSelectPlanButton, onPressed: onSelectPlan),
             ),
           ],
         ),

@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/named_amount.dart';
 import '../../../data/models/summary_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
@@ -34,9 +35,10 @@ class SummaryPage extends ConsumerWidget {
     // + MainShell's note on why this needs an explicit watch.
     ref.watch(themeModeProvider);
 
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Ringkasan')),
+      appBar: AppBar(title: Text(l10n.summaryAppBarTitle)),
       body: Column(
         children: [
           Padding(
@@ -54,7 +56,7 @@ class SummaryPage extends ConsumerWidget {
                 loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : 'Gagal memuat ringkasan.',
+                    message: error is ApiException ? error.message : l10n.summaryLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
@@ -75,6 +77,7 @@ class _SummaryBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final previous = ref.watch(previousMonthSummaryProvider).valueOrNull;
     final savingsRate = summary.totalIncome > 0 ? (summary.netProfit / summary.totalIncome * 100) : null;
 
@@ -91,7 +94,7 @@ class _SummaryBody extends ConsumerWidget {
           children: [
             Expanded(
               child: _StatCard(
-                label: 'Pemasukan',
+                label: l10n.summaryIncomeLabel,
                 value: formatRupiah(summary.totalIncome),
                 color: AppColors.success,
                 percentChange: previous != null ? _percentChange(summary.totalIncome, previous.totalIncome) : null,
@@ -102,7 +105,7 @@ class _SummaryBody extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _StatCard(
-                label: 'Pengeluaran',
+                label: l10n.summaryExpenseLabel,
                 value: formatRupiah(summary.totalExpense),
                 color: AppColors.error,
                 percentChange: previous != null ? _percentChange(summary.totalExpense, previous.totalExpense) : null,
@@ -113,7 +116,7 @@ class _SummaryBody extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _StatCard(
-                label: 'Untung Bersih',
+                label: l10n.summaryNetProfitLabel,
                 value: formatRupiah(summary.netProfit),
                 color: summary.netProfit >= 0 ? AppColors.primary : AppColors.error,
                 percentChange: previous != null ? _percentChange(summary.netProfit, previous.netProfit) : null,
@@ -128,27 +131,31 @@ class _SummaryBody extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         const _BudgetHealthCard(),
+        const SizedBox(height: 10),
+        const _EmergencyFundCalculatorCard(),
+        const SizedBox(height: 10),
+        const _FireCalculatorCard(),
         if (summary.assetAllocation.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const _SectionTitle('Alokasi Aset'),
+          _SectionTitle(l10n.summarySectionAssetAllocation),
           const SizedBox(height: 10),
           _ChartCard(child: _BreakdownChart(items: summary.assetAllocation)),
         ],
         if (summary.categorySummary.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const _SectionTitle('Breakdown Pengeluaran'),
+          _SectionTitle(l10n.summarySectionExpenseBreakdown),
           const SizedBox(height: 10),
           _ChartCard(child: _BreakdownChart(items: summary.categorySummary)),
         ],
         if (summary.monthlyTrend.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const _SectionTitle('Tren Pemasukan vs Pengeluaran'),
+          _SectionTitle(l10n.summarySectionMonthlyTrend),
           const SizedBox(height: 10),
           _ChartCard(child: _MonthlyTrendChart(points: summary.monthlyTrend)),
         ],
         if (summary.advice.isNotEmpty) ...[
           const SizedBox(height: 24),
-          const _SectionTitle('Smart Advisor'),
+          _SectionTitle(l10n.summarySectionSmartAdvisor),
           const SizedBox(height: 10),
           for (final tip in summary.advice) ...[
             _AdvisorTile(tip: tip),
@@ -199,6 +206,7 @@ class _NetWorthCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final delta = previousAmount != null ? amount - previousAmount! : null;
 
     return Container(
@@ -216,7 +224,7 @@ class _NetWorthCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Total Kekayaan Bersih',
+            l10n.summaryNetWorthTitle,
             style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
           ),
           const SizedBox(height: 8),
@@ -227,7 +235,7 @@ class _NetWorthCard extends StatelessWidget {
           if (delta != null && delta != 0) ...[
             const SizedBox(height: 6),
             Text(
-              '${delta > 0 ? '+' : '-'} ${formatRupiah(delta.abs())} dari bulan lalu',
+              l10n.summaryNetWorthDelta(delta > 0 ? '+' : '-', formatRupiah(delta.abs())),
               style: TextStyle(
                 color: AppColors.primaryDark.withValues(alpha: 0.65),
                 fontSize: 11.5,
@@ -316,7 +324,7 @@ class _ChangeBadge extends StatelessWidget {
         const SizedBox(width: 2),
         Flexible(
           child: Text(
-            '${percentChange.abs().toStringAsFixed(0)}% vs lalu',
+            AppLocalizations.of(context).summaryChangeBadge(percentChange.abs().toStringAsFixed(0)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w600),
@@ -357,7 +365,7 @@ class _SavingsRateCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Rasio Menabung',
+              AppLocalizations.of(context).summarySavingsRateTitle,
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
             ),
           ),
@@ -421,8 +429,9 @@ class _BudgetHealthCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       allOk
-                          ? 'Semua kategori masih dalam budget'
-                          : '$overBudgetCount dari ${summary.categories.length} kategori melebihi budget',
+                          ? AppLocalizations.of(context).summaryBudgetAllOk
+                          : AppLocalizations.of(context)
+                              .summaryBudgetOverCount(overBudgetCount, summary.categories.length),
                       style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
                     ),
                   ),
@@ -433,6 +442,117 @@ class _BudgetHealthCard extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Entry point to the Emergency Fund Calculator (plan doc:
+/// docs/plan-dev/kalkulator-dana-darurat-plan.txt) — a static CTA card, no
+/// fetch of its own here, the calculator page fetches its own data once
+/// opened.
+class _EmergencyFundCalculatorCard extends StatelessWidget {
+  const _EmergencyFundCalculatorCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => context.push('/emergency-fund-calculator'),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), shape: BoxShape.circle),
+                child: Icon(Icons.shield_outlined, color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.emergencyFundTitle,
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.summaryEmergencyFundCardSubtitle,
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Entry point to the Pensiun/FIRE Calculator (plan doc:
+/// docs/plan-dev/kalkulator-pensiun-fire-plan.txt) — same static-card
+/// pattern as [_EmergencyFundCalculatorCard] right above it.
+class _FireCalculatorCard extends StatelessWidget {
+  const _FireCalculatorCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => context.push('/fire-calculator'),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), shape: BoxShape.circle),
+                child: Icon(Icons.savings_outlined, color: AppColors.accent, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.fireTitle,
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.summaryFireCardSubtitle,
+                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -525,14 +645,15 @@ class _MonthlyTrendChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            _LegendDot(color: AppColors.success, label: 'Pemasukan'),
-            SizedBox(width: 14),
-            _LegendDot(color: AppColors.error, label: 'Pengeluaran'),
+            _LegendDot(color: AppColors.success, label: l10n.summaryIncomeLabel),
+            const SizedBox(width: 14),
+            _LegendDot(color: AppColors.error, label: l10n.summaryExpenseLabel),
           ],
         ),
         const SizedBox(height: 8),

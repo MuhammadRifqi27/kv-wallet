@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -44,6 +46,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final error = authState.error;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -61,7 +64,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const Center(child: AppLogo(size: 72)),
                     const SizedBox(height: 32),
                     Text(
-                      'Selamat datang kembali',
+                      l10n.authLoginWelcomeTitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 22,
@@ -71,7 +74,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Masuk untuk melanjutkan kelola keuangan Anda',
+                      l10n.authLoginWelcomeSubtitle,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                     ),
@@ -81,20 +84,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const SizedBox(height: 16),
                     ],
                     AppTextField(
-                      label: 'Email atau Username',
+                      label: l10n.authLoginEmailOrUsernameLabel,
                       controller: _loginController,
                       icon: Icons.person_outline_rounded,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       errorText: error?.errorFor('login'),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email atau username wajib diisi';
+                        if (value == null || value.trim().isEmpty) return l10n.authLoginEmailOrUsernameRequired;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Kata sandi',
+                      label: l10n.authLoginPasswordLabel,
                       controller: _passwordController,
                       icon: Icons.lock_outline_rounded,
                       obscureText: true,
@@ -102,7 +105,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       errorText: error?.errorFor('password'),
                       onFieldSubmitted: (_) => _submit(),
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Kata sandi wajib diisi';
+                        if (value == null || value.isEmpty) return l10n.authLoginPasswordRequired;
                         return null;
                       },
                     ),
@@ -110,12 +113,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => context.push('/forgot-password'),
-                        child: const Text('Lupa kata sandi?'),
+                        child: Text(l10n.authLoginForgotPasswordLink),
                       ),
                     ),
                     const SizedBox(height: 8),
                     PrimaryButton(
-                      label: 'Masuk',
+                      label: l10n.authLoginSubmitButton,
                       isLoading: authState.isLoading,
                       onPressed: _submit,
                     ),
@@ -123,10 +126,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Belum punya akun?', style: TextStyle(color: AppColors.textSecondary)),
+                        Text(l10n.authLoginNoAccountPrompt, style: TextStyle(color: AppColors.textSecondary)),
                         TextButton(
                           onPressed: () => context.go('/register'),
-                          child: const Text('Daftar'),
+                          child: Text(l10n.authLoginRegisterLink),
                         ),
                       ],
                     ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/pin_code_field.dart';
 import '../application/pin_controller.dart';
@@ -44,6 +46,7 @@ class _ConfirmPinSheetState extends ConsumerState<ConfirmPinSheet> {
   @override
   Widget build(BuildContext context) {
     final pinState = ref.watch(pinControllerProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -65,7 +68,7 @@ class _ConfirmPinSheetState extends ConsumerState<ConfirmPinSheet> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Konfirmasi PIN Anda',
+                l10n.authConfirmPinTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -74,7 +77,7 @@ class _ConfirmPinSheetState extends ConsumerState<ConfirmPinSheet> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Masukkan PIN 6 digit saat ini untuk mengaktifkan login biometrik',
+                l10n.authConfirmPinSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.textSecondary,

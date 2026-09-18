@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/budget_model.dart';
 import '../../../data/models/category_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -59,7 +60,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategoryId == null) {
-      setState(() => _error = ApiException(message: 'Pilih kategori terlebih dahulu.'));
+      setState(() => _error = ApiException(message: AppLocalizations.of(context).txnCommonSelectCategoryFirst));
       return;
     }
 
@@ -89,6 +90,8 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
     final categoriesAsync = ref.watch(categoryListControllerProvider);
     final period = ref.watch(selectedBudgetPeriodProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
 
     // Categories that already have a budget this period shouldn't be
     // pickable from "Tambah Budget" — re-adding one there would silently
@@ -103,7 +106,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Budget' : 'Tambah Budget')),
+      appBar: AppBar(title: Text(_isEditing ? l10n.txnBudgetFormTitleEdit : l10n.txnBudgetFormTitleAdd)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -113,7 +116,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Untuk periode ${monthName(period.month)} ${period.year}',
+                  l10n.txnBudgetFormPeriodLabel(monthName(period.month, locale), period.year),
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
@@ -122,15 +125,15 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                   const SizedBox(height: 16),
                 ],
                 Text(
-                  'Kategori Pengeluaran',
+                  l10n.txnBudgetExpenseCategoryLabel,
                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 8),
                 categoriesAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat kategori.',
-                    style: TextStyle(color: AppColors.error, fontSize: 13),
+                  error: (error, _) => Text(
+                    l10n.txnCommonCategoryLoadError,
+                    style: const TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (categories) {
                     final expenseCategories = categories
@@ -157,7 +160,9 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                             Expanded(
                               child: Text(
                                 selected?.name ??
-                                    (expenseCategories.isEmpty ? 'Semua kategori sudah punya budget' : 'Pilih kategori'),
+                                    (expenseCategories.isEmpty
+                                        ? l10n.txnBudgetAllCategoriesBudgeted
+                                        : l10n.txnCommonSelectCategoryTitle),
                                 style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                               ),
                             ),
@@ -171,7 +176,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah Budget (Rp)',
+                  label: l10n.txnBudgetAmountLabel,
                   controller: _amountController,
                   icon: Icons.calculate_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
@@ -179,15 +184,15 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                   errorText: _error?.errorFor('amount'),
                   onFieldSubmitted: (_) => _submit(),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed <= 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
                     return null;
                   },
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Tambah Budget',
+                  label: _isEditing ? l10n.txnCommonSaveChanges : l10n.txnBudgetFormTitleAdd,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -224,7 +229,7 @@ class _CategoryPickerSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Pilih kategori',
+              AppLocalizations.of(context).txnCommonSelectCategoryTitle,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 12),

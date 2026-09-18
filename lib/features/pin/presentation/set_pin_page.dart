@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -37,8 +39,9 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
   }
 
   Future<void> _onConfirmCompleted(String confirmPin) async {
+    final l10n = AppLocalizations.of(context);
     if (confirmPin != _pinController.text) {
-      setState(() => _confirmError = 'PIN tidak cocok, coba lagi');
+      setState(() => _confirmError = l10n.authSetPinMismatch);
       _confirmController.clear();
       return;
     }
@@ -64,6 +67,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
   @override
   Widget build(BuildContext context) {
     final pinState = ref.watch(pinControllerProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -79,15 +83,15 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                   const Center(child: AppLogo(size: 64, showWordmark: false)),
                   const SizedBox(height: 24),
                   Text(
-                    _confirming ? 'Konfirmasi PIN' : 'Buat PIN 6 Digit',
+                    _confirming ? l10n.authSetPinConfirmTitle : l10n.authSetPinCreateTitle,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _confirming
-                        ? 'Masukkan ulang PIN yang sama untuk konfirmasi'
-                        : 'PIN ini dipakai untuk membuka aplikasi setiap kali dibuka, mirip aplikasi m-banking',
+                        ? l10n.authSetPinConfirmSubtitle
+                        : l10n.authSetPinCreateSubtitle,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                   ),
@@ -124,7 +128,7 @@ class _SetPinPageState extends ConsumerState<SetPinPage> {
                           _confirmController.clear();
                         });
                       },
-                      child: const Text('Ulangi dari awal'),
+                      child: Text(l10n.authSetPinRestartButton),
                     ),
                   ],
                 ],

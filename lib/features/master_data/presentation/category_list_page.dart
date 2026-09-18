@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/category_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../application/category_list_controller.dart';
 
@@ -17,10 +18,11 @@ class CategoryListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(categoryListControllerProvider);
     final controller = ref.read(categoryListControllerProvider.notifier);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Kategori')),
+      appBar: AppBar(title: Text(l10n.investCategoryListTitle)),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: controller.refresh,
@@ -30,17 +32,17 @@ class CategoryListPage extends ConsumerWidget {
           ),
           error: (error, _) => scrollableCenter(
             ListErrorState(
-              message: error is ApiException ? error.message : 'Gagal memuat kategori.',
+              message: error is ApiException ? error.message : l10n.investCategoryLoadError,
               onRetry: controller.refresh,
             ),
           ),
           data: (categories) {
             if (categories.isEmpty) {
               return scrollableCenter(
-                const ListEmptyState(
+                ListEmptyState(
                   icon: Icons.category_outlined,
-                  title: 'Belum ada kategori',
-                  subtitle: 'Kategori dikelola oleh admin lewat aplikasi web.',
+                  title: l10n.investCategoryEmptyTitle,
+                  subtitle: l10n.investCategoryEmptySubtitle,
                 ),
               );
             }
@@ -163,6 +165,7 @@ class ListErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -172,7 +175,7 @@ class ListErrorState extends StatelessWidget {
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
           const SizedBox(height: 16),
-          TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
+          TextButton(onPressed: onRetry, child: Text(l10n.investRetryButton)),
         ],
       ),
     );

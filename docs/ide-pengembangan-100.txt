@@ -43,9 +43,9 @@ BAGIAN A — MODUL KEUANGAN BARU (1-20)
 14. Budget per goal — alokasi budget langsung ke goal tabungan, bukan
     cuma per kategori pengeluaran.
 15. Kalkulator dana darurat — rekomendasi nominal ideal berdasarkan
-    rata-rata pengeluaran bulanan tercatat.
+    rata-rata pengeluaran bulanan tercatat.✅
 16. Kalkulator pensiun/FIRE — proyeksi kapan bisa pensiun berdasarkan
-    saving rate saat ini.
+    saving rate saat ini.✅
 17. Bandingkan instrumen — data referensi bunga deposito/reksadana antar
     bank (konten edukasi, bukan transaksional).
 18. Crypto multi-exchange sync — sinkron otomatis dari Indodax/exchange
@@ -137,14 +137,14 @@ BAGIAN E — UX/UI & AKSESIBILITAS (63-75)
 63. Widget home-screen — lihat saldo/net worth tanpa buka app (native
     Android/iOS).
 64. Quick-add transaksi lewat notification action atau app shortcut.
-65. Multi-bahasa — tambah Bahasa Inggris (saat ini hardcode Indonesia).
+65. Multi-bahasa — tambah Bahasa Inggris (saat ini hardcode Indonesia).✅
 66. Dukungan penuh font scaling & screen reader (aksesibilitas).
 67. Onboarding interaktif/tour fitur untuk user baru (di luar slide
     perkenalan yang sudah ada).
 68. Kustomisasi urutan tab bottom nav (drag reorder).
 69. Kustomisasi ikon & warna kategori oleh user sendiri.
 70. Voice input catat transaksi ("catat pengeluaran makan 25 ribu").
-71. Scan struk/nota otomatis (OCR) untuk isi form transaksi.
+71. Scan struk/nota otomatis (OCR) untuk isi form transaksi.✅
 72. Scan QR untuk transfer/pembayaran cepat.
 73. Kalkulator terintegrasi langsung di field jumlah transaksi.
 74. App shortcuts (long-press ikon app) untuk lihat saldo cepat tanpa

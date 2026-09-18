@@ -90,6 +90,22 @@ class SavingsGoalModel {
   double get progress => (progressPercent / 100).clamp(0, 1);
 }
 
+/// Prefilled draft for creating a new goal — e.g. from the Emergency Fund
+/// Calculator's "Buat Goal Dana Darurat" CTA. Distinct from
+/// [SavingsGoalModel], which always represents a goal that already exists
+/// on the server (has an `id`, server-computed `savedAmount`/
+/// `progressPercent`/`status`). Passed as `state.extra` to the
+/// `/savings-goals/form` route alongside [SavingsGoalModel] — see
+/// app_router.dart's builder for how the two are told apart.
+class SavingsGoalDraft {
+  const SavingsGoalDraft({required this.name, required this.targetAmount, this.icon, this.color});
+
+  final String name;
+  final double targetAmount;
+  final String? icon;
+  final String? color;
+}
+
 enum SavingsGoalEntryType {
   contribution,
   withdrawal;

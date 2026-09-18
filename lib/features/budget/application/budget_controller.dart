@@ -58,6 +58,7 @@ class BudgetController extends AsyncNotifier<BudgetSummaryModel> {
               amount: category.amount,
               month: summary.month,
               year: summary.year,
+              locale: ref.read(effectiveLocaleProvider),
             );
       }
     }

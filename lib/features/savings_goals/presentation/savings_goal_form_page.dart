@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/portfolio_model.dart';
 import '../../../data/models/savings_goal_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
@@ -15,10 +16,14 @@ import '../application/savings_goal_controller.dart';
 import 'savings_goal_style.dart';
 
 class SavingsGoalFormPage extends ConsumerStatefulWidget {
-  const SavingsGoalFormPage({super.key, this.goal});
+  const SavingsGoalFormPage({super.key, this.goal, this.draft});
 
   /// Null means "create new"; non-null means "edit this goal".
   final SavingsGoalModel? goal;
+
+  /// Prefill for the create path only (ignored when [goal] is set) — e.g.
+  /// from the Emergency Fund Calculator's "Buat Goal Dana Darurat" CTA.
+  final SavingsGoalDraft? draft;
 
   @override
   ConsumerState<SavingsGoalFormPage> createState() => _SavingsGoalFormPageState();
@@ -26,16 +31,18 @@ class SavingsGoalFormPage extends ConsumerStatefulWidget {
 
 class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
   final _formKey = GlobalKey<FormState>();
-  late final _nameController = TextEditingController(text: widget.goal?.name);
+  late final _nameController = TextEditingController(text: widget.goal?.name ?? widget.draft?.name);
   late final _purposeController = TextEditingController(text: widget.goal?.purpose);
   late final _targetAmountController = TextEditingController(
-    text: widget.goal != null ? widget.goal!.targetAmount.toStringAsFixed(0) : '',
+    text: widget.goal != null
+        ? widget.goal!.targetAmount.toStringAsFixed(0)
+        : (widget.draft?.targetAmount.toStringAsFixed(0) ?? ''),
   );
 
   late int? _selectedPortfolioId = widget.goal?.portfolioId;
   late DateTime? _targetDate = widget.goal?.targetDate;
-  late String _icon = widget.goal?.icon ?? savingsGoalIconOptions.first;
-  late String _color = widget.goal?.color ?? savingsGoalColorOptions.first;
+  late String _icon = widget.goal?.icon ?? widget.draft?.icon ?? savingsGoalIconOptions.first;
+  late String _color = widget.goal?.color ?? widget.draft?.color ?? savingsGoalColorOptions.first;
 
   bool _isSubmitting = false;
   ApiException? _error;
@@ -127,10 +134,13 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
     final generalError = _error != null && _error!.fieldErrors == null;
     final selectedPortfolioName =
         portfoliosAsync.valueOrNull?.where((p) => p.id == _selectedPortfolioId).firstOrNull?.accountName;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Target Tabungan' : 'Target Tabungan Baru')),
+      appBar: AppBar(
+        title: Text(_isEditing ? l10n.walletSavingsGoalFormEditTitle : l10n.walletSavingsGoalFormCreateTitle),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -144,19 +154,19 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   const SizedBox(height: 16),
                 ],
                 AppTextField(
-                  label: 'Nama target',
+                  label: l10n.walletSavingsGoalFormNameLabel,
                   controller: _nameController,
                   icon: Icons.flag_outlined,
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('name'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Nama target wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.walletSavingsGoalFormNameRequired;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Tujuan (opsional)',
+                  label: l10n.walletSavingsGoalFormPurposeLabel,
                   controller: _purposeController,
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.next,
@@ -164,21 +174,21 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                 ),
                 const SizedBox(height: 16),
                 AppTextField(
-                  label: 'Jumlah Target (Rp)',
+                  label: l10n.walletSavingsGoalFormTargetAmountLabel,
                   controller: _targetAmountController,
                   icon: Icons.savings_outlined,
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('target_amount'),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) return 'Jumlah target wajib diisi';
+                    if (value == null || value.trim().isEmpty) return l10n.walletSavingsGoalFormTargetAmountRequired;
                     final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
-                    if (parsed == null || parsed <= 0) return 'Jumlah tidak valid';
+                    if (parsed == null || parsed <= 0) return l10n.walletSavingsGoalFormAmountInvalid;
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                Text('Tenggat (opsional)', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.walletSavingsGoalFormDeadlineLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 InkWell(
                   borderRadius: BorderRadius.circular(14),
@@ -196,7 +206,9 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            _targetDate != null ? formatIndonesianDate(_targetDate!) : 'Tanpa tenggat',
+                            _targetDate != null
+                                ? formatLocalizedDate(_targetDate!, Localizations.localeOf(context))
+                                : l10n.walletSavingsGoalFormNoDeadline,
                             style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                           ),
                         ),
@@ -210,13 +222,13 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('Akun sumber dana (opsional)',
+                Text(l10n.walletSavingsGoalFormSourceAccountLabel,
                     style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 portfoliosAsync.when(
                   loading: () => LinearProgressIndicator(color: AppColors.primary),
-                  error: (error, _) => const Text(
-                    'Gagal memuat daftar akun.',
+                  error: (error, _) => Text(
+                    l10n.walletSavingsGoalFormLoadAccountsError,
                     style: TextStyle(color: AppColors.error, fontSize: 13),
                   ),
                   data: (portfolios) => InkWell(
@@ -236,7 +248,9 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                           Expanded(
                             child: Text(
                               selectedPortfolioName ??
-                                  (portfolios.isEmpty ? 'Belum ada akun' : 'Tidak diikat ke akun manapun'),
+                                  (portfolios.isEmpty
+                                      ? l10n.walletSavingsGoalFormNoAccounts
+                                      : l10n.walletSavingsGoalFormNoAccountBound),
                               style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
                             ),
                           ),
@@ -247,7 +261,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text('Warna', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.walletSavingsGoalFormColorLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
@@ -262,7 +276,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('Ikon', style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(l10n.walletSavingsGoalFormIconLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
@@ -279,7 +293,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                 ),
                 const SizedBox(height: 28),
                 PrimaryButton(
-                  label: _isEditing ? 'Simpan Perubahan' : 'Buat Target',
+                  label: _isEditing ? l10n.walletSavingsGoalFormSaveChanges : l10n.walletSavingsGoalFormCreateAction,
                   isLoading: _isSubmitting,
                   onPressed: _submit,
                 ),
@@ -368,7 +382,10 @@ class _PortfolioPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Pilih akun sumber dana', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(
+              AppLocalizations.of(context).walletSavingsGoalFormPickAccountSheetTitle,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
@@ -391,7 +408,7 @@ class _PortfolioPickerSheet extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                'Tidak diikat ke akun manapun',
+                                AppLocalizations.of(context).walletSavingsGoalFormNoAccountBound,
                                 style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                               ),
                             ),

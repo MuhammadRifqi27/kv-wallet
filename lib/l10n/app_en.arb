@@ -1,0 +1,872 @@
+{
+  "@@locale": "en",
+
+  "profileAppBarTitle": "Profile",
+  "profileSectionPortfolio": "Portfolio",
+  "profilePortfolioTileTitle": "My Portfolio",
+  "profilePortfolioTileSubtitle": "Your accounts, wallets, and investments",
+  "profileSavingsGoalTileTitle": "Savings Goals",
+  "profileSavingsGoalTileSubtitle": "Set goals and track deposits/withdrawals",
+  "profileInvestmentTileTitle": "Investment / BTC Tracking",
+  "profileInvestmentTileSubtitle": "Track crypto assets and log profit/loss",
+  "profileSectionDisplay": "Display",
+  "profileThemeTitle": "App Theme",
+  "profileThemeSystem": "System",
+  "profileThemeLight": "Light",
+  "profileThemeDark": "Dark",
+  "profileLanguageTitle": "App Language",
+  "profileLanguageSystem": "System",
+  "profileLanguageIndonesian": "Indonesian",
+  "profileLanguageEnglish": "English",
+  "profileSectionMasterData": "Master Data",
+  "profileCategoryTileTitle": "Categories",
+  "profileCategoryTileSubtitle": "Income & expense categories",
+  "profileInvestmentProviderTileTitle": "Investment Providers",
+  "profileInvestmentProviderTileSubtitle": "Banks, exchanges, and brokers",
+  "profileSectionOther": "Other",
+  "profilePayrollTileTitle": "Payroll Cycle",
+  "profilePayrollTileSubtitle": "Set the payroll period start date",
+  "profileCustomerServiceTileTitle": "Contact Customer Service",
+  "profileCustomerServiceTileSubtitle": "Fill out the help form",
+  "profileCustomerServiceLaunchFailed": "Couldn't open the form.",
+  "profileSectionSecurity": "Security",
+  "profileChangePasswordTileTitle": "Change Password",
+  "profileChangePasswordTileSubtitle": "Change your account password",
+  "profileChangePinTileTitle": "Change PIN",
+  "profileChangePinTileSubtitle": "Change the 6-digit PIN used to unlock the app",
+  "profileBiometricTitle": "Biometric Login",
+  "profileBiometricSubtitleEnabled": "Enabled — tap \"Use Biometrics\" on the lock screen to sign in without typing your PIN",
+  "profileBiometricSubtitleDisabled": "Unlock the app with your fingerprint/Face ID instead of typing your PIN",
+  "profileBiometricUnsupported": "This device doesn't support biometrics or none are enrolled yet.",
+  "profileBiometricEnrollReason": "Enable biometric login for Flowr",
+  "profileBiometricEnrolledSuccess": "Biometrics enabled. From now on just tap \"Use Biometrics\" on the lock screen to sign in without a PIN.",
+  "profileBiometricEnrollFailed": "Biometric verification failed or was cancelled.",
+  "profileSectionAccount": "Account",
+  "profileLogoutTileTitle": "Log Out",
+  "profileLogoutTileSubtitle": "Sign out of this account",
+  "profileLogoutDialogTitle": "Log out?",
+  "profileLogoutDialogContent": "You'll need to log in again to access the app.",
+  "profileCancel": "Cancel",
+  "profileLogoutConfirm": "Log Out",
+  "profileEditTooltip": "Edit Profile",
+  "profileMembershipFallback": "Member",
+  "profileMembershipFree": "Free — membership not upgraded yet",
+  "profileAppVersion": "Version {version}",
+  "@profileAppVersion": {
+    "placeholders": {
+      "version": {"type": "String"}
+    }
+  },
+
+  "emergencyFundTitle": "Emergency Fund Calculator",
+  "emergencyFundLoadError": "Failed to load expense data.",
+  "emergencyFundRetry": "Retry",
+  "emergencyFundTargetLabel": "Target (months of expense)",
+  "emergencyFundCreateGoalButton": "Create Emergency Fund Goal",
+  "emergencyFundGoalName": "Emergency Fund",
+  "emergencyFundAverageLabel": "Average Monthly Expense",
+  "emergencyFundAverageBasis": "Based on the last {months} recorded months",
+  "@emergencyFundAverageBasis": {
+    "placeholders": {
+      "months": {"type": "int"}
+    }
+  },
+  "emergencyFundManualHint": "Your transaction data isn't enough yet to calculate an automatic average. Enter it manually below:",
+  "emergencyFundManualLabel": "Average monthly expense (Rp)",
+  "emergencyFundRecommendationLabel": "Emergency Fund Recommendation ({multiplier}x monthly expense)",
+  "@emergencyFundRecommendationLabel": {
+    "placeholders": {
+      "multiplier": {"type": "int"}
+    }
+  },
+  "emergencyFundExistingGoalProgress": "Progress on \"{name}\"",
+  "@emergencyFundExistingGoalProgress": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "emergencyFundExistingGoalAmounts": "{saved} of {target}",
+  "@emergencyFundExistingGoalAmounts": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+
+  "summaryAppBarTitle": "Summary",
+  "summaryLoadError": "Failed to load summary.",
+  "summaryIncomeLabel": "Income",
+  "summaryExpenseLabel": "Expense",
+  "summaryNetProfitLabel": "Net Profit",
+  "summarySectionAssetAllocation": "Asset Allocation",
+  "summarySectionExpenseBreakdown": "Expense Breakdown",
+  "summarySectionMonthlyTrend": "Income vs Expense Trend",
+  "summarySectionSmartAdvisor": "Smart Advisor",
+  "summaryNetWorthTitle": "Total Net Worth",
+  "summaryNetWorthDelta": "{sign} {amount} from last month",
+  "@summaryNetWorthDelta": {
+    "placeholders": {
+      "sign": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "summaryChangeBadge": "{percent}% vs last",
+  "@summaryChangeBadge": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "summarySavingsRateTitle": "Savings Rate",
+  "summaryBudgetAllOk": "All categories are within budget",
+  "summaryBudgetOverCount": "{over} of {total} categories are over budget",
+  "@summaryBudgetOverCount": {
+    "placeholders": {
+      "over": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "summaryEmergencyFundCardSubtitle": "Calculate the ideal recommended amount",
+
+  "notificationBudgetExceededTitle": "{category} Budget Exceeded",
+  "@notificationBudgetExceededTitle": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "notificationBudgetExceededBody": "Used {spent} of the {budget} budget for {month} {year}.",
+  "@notificationBudgetExceededBody": {
+    "placeholders": {
+      "spent": {"type": "String"},
+      "budget": {"type": "String"},
+      "month": {"type": "String"},
+      "year": {"type": "int"}
+    }
+  },
+
+  "appChangePasswordSuccessMessage": "Password updated successfully.",
+  "appChangePasswordAppBarTitle": "Change Password",
+  "appChangePasswordCurrentLabel": "Current password",
+  "appChangePasswordCurrentRequired": "Current password is required",
+  "appChangePasswordNewLabel": "New password",
+  "appChangePasswordNewRequired": "New password is required",
+  "appChangePasswordMinLength": "Minimum 8 characters",
+  "appChangePasswordConfirmLabel": "Confirm new password",
+  "appChangePasswordMismatch": "Passwords don't match",
+  "appChangePasswordSaveButton": "Save",
+  "appEditProfileSuccessMessage": "Profile updated successfully.",
+  "appEditProfileAppBarTitle": "Edit Profile",
+  "appEditProfileNameLabel": "Full name",
+  "appEditProfileNameRequired": "Name is required",
+  "appEditProfileUsernameLabel": "Username",
+  "appEditProfileUsernameRequired": "Username is required",
+  "appEditProfileUsernameNoSpaces": "Username cannot contain spaces",
+  "appEditProfileEmailLabel": "Email",
+  "appEditProfileEmailRequired": "Email is required",
+  "appEditProfileEmailInvalid": "Invalid email format",
+  "appEditProfileSaveButton": "Save",
+  "appEditProfileSecuritySectionLabel": "Security",
+  "appEditProfileChangePasswordTitle": "Change Password",
+  "appEditProfileChangePasswordSubtitle": "Change your account password",
+  "appEditProfileChangePinTitle": "Change PIN",
+  "appEditProfileChangePinSubtitle": "Change the 6-digit PIN used to unlock the app",
+  "appCyclePeriodThisMonth": "This Month",
+  "appCyclePeriodLastMonth": "Last Month",
+  "appCyclePeriodSelectMonth": "Select Month",
+  "appNavDashboard": "Dashboard",
+  "appNavTransactions": "Transactions",
+  "appNavSummary": "Summary",
+  "appNavBudgets": "Budget",
+  "appNavInvestment": "Investment",
+  "appNavProfile": "Profile",
+  "appNavUpgradeRequired": "This feature requires a membership upgrade",
+
+  "authLoginWelcomeTitle": "Welcome back",
+  "authLoginWelcomeSubtitle": "Log in to continue managing your finances",
+  "authLoginEmailOrUsernameLabel": "Email or Username",
+  "authLoginEmailOrUsernameRequired": "Email or username is required",
+  "authLoginPasswordLabel": "Password",
+  "authLoginPasswordRequired": "Password is required",
+  "authLoginForgotPasswordLink": "Forgot password?",
+  "authLoginSubmitButton": "Log In",
+  "authLoginNoAccountPrompt": "Don't have an account?",
+  "authLoginRegisterLink": "Sign Up",
+
+  "authRegisterTitle": "Create a new account",
+  "authRegisterSubtitle": "Start managing your income & expenses",
+  "authRegisterInfoBanner": "Your account is active immediately after signing up — you'll be asked to create a 6-digit PIN next.",
+  "authRegisterNameLabel": "Full name",
+  "authRegisterNameRequired": "Name is required",
+  "authRegisterUsernameLabel": "Username",
+  "authRegisterUsernameRequired": "Username is required",
+  "authRegisterUsernameNoSpaces": "Username cannot contain spaces",
+  "authRegisterEmailLabel": "Email",
+  "authRegisterEmailRequired": "Email is required",
+  "authRegisterEmailInvalid": "Invalid email format",
+  "authRegisterPasswordLabel": "Password",
+  "authRegisterPasswordRequired": "Password is required",
+  "authRegisterPasswordMinLength": "Minimum 8 characters",
+  "authRegisterConfirmPasswordLabel": "Confirm password",
+  "authRegisterPasswordMismatch": "Passwords don't match",
+  "authRegisterSubmitButton": "Sign Up",
+  "authRegisterHaveAccountPrompt": "Already have an account?",
+  "authRegisterLoginLink": "Log In",
+
+  "authForgotPasswordTitle": "Forgot Password",
+  "authForgotPasswordSubtitle": "Fill in the form below, an admin will process your request",
+  "authForgotPasswordInfoBanner": "There's no automatic email reset yet. An admin will contact you via WhatsApp/phone to send the password reset link.",
+  "authForgotPasswordIdentifierLabel": "Email or Username",
+  "authForgotPasswordIdentifierRequired": "Email or username is required",
+  "authForgotPasswordPhoneLabel": "WhatsApp/phone number",
+  "authForgotPasswordPhoneRequired": "WhatsApp/phone number is required",
+  "authForgotPasswordNoteLabel": "Note (optional)",
+  "authForgotPasswordSubmitButton": "Submit Request",
+  "authForgotPasswordCheckStatusLink": "Already submitted a request? Check status",
+
+  "authResetStatusAppBarTitle": "Check Request Status",
+  "authResetStatusDescription": "Enter the email or username you used when submitting the password reset request.",
+  "authResetStatusIdentifierLabel": "Email or Username",
+  "authResetStatusIdentifierRequired": "Email or username is required",
+  "authResetStatusCheckButton": "Check Status",
+  "authResetStatusPendingTitle": "Waiting for Admin Review",
+  "authResetStatusPendingDescription": "An admin will contact you via WhatsApp/phone at the number you registered to send the password reset link.",
+  "authResetStatusProcessedTitle": "Already Processed",
+  "authResetStatusProcessedDescription": "An admin has created the password reset link and should have already sent it via WhatsApp/phone. Open that link to set your new password.",
+  "authResetStatusRejectedTitle": "Request Rejected",
+  "authResetStatusRejectedDescription": "The admin rejected this password reset request. Please submit a new request via the form.",
+
+  "authOnboardingSlide1Title": "Welcome to Flowr",
+  "authOnboardingSlide1Description": "Manage your income, expenses, and investments in one app.",
+  "authOnboardingSlide2Title": "Track All Transactions",
+  "authOnboardingSlide2Description": "Log daily transactions, view financial summaries, and monitor your investment portfolio anytime.",
+  "authOnboardingSlide3Title": "Set Budgets & Get Alerts",
+  "authOnboardingSlide3Description": "Set spending limits per category and get notified as soon as you start going over.",
+  "authOnboardingSlide4Title": "Secured with a PIN",
+  "authOnboardingSlide4Description": "Your account is protected by a 6-digit PIN every time you open the app, just like a mobile banking app.",
+  "authOnboardingSkipButton": "Skip",
+  "authOnboardingStartButton": "Get Started",
+  "authOnboardingNextButton": "Next",
+
+  "authSplashTagline": "Manage your finances with ease",
+
+  "authConfirmPinTitle": "Confirm Your PIN",
+  "authConfirmPinSubtitle": "Enter your current 6-digit PIN to enable biometric login",
+
+  "authChangePinMismatch": "PINs don't match, try again",
+  "authChangePinSuccessSnackbar": "PIN updated successfully.",
+  "authChangePinAppBarTitle": "Change PIN",
+  "authChangePinStepCurrentTitle": "Enter Current PIN",
+  "authChangePinStepNewTitle": "Create New PIN",
+  "authChangePinStepConfirmTitle": "Confirm New PIN",
+  "authChangePinStepCurrentSubtitle": "Enter the 6-digit PIN you're currently using",
+  "authChangePinStepNewSubtitle": "Enter your new 6-digit PIN",
+  "authChangePinStepConfirmSubtitle": "Re-enter the new PIN to confirm",
+
+  "authVerifyPinBiometricReason": "Unlock Flowr with biometrics",
+  "authVerifyPinGreeting": "Hi, {userName}",
+  "@authVerifyPinGreeting": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "authVerifyPinEnterPinTitle": "Enter PIN",
+  "authVerifyPinSubtitleBiometric": "Enter your PIN or use fingerprint/Face ID to unlock the app",
+  "authVerifyPinSubtitleDefault": "Enter your 6-digit PIN to unlock the app",
+  "authVerifyPinUseBiometricButton": "Use Biometrics",
+  "authVerifyPinNotYouLogout": "Not you? Log out",
+  "authVerifyPinLogoutDialogTitle": "Not you?",
+  "authVerifyPinLogoutDialogContent": "You'll be logged out and will need to log in again with your email/username & password.",
+  "authVerifyPinLogoutDialogCancel": "Cancel",
+  "authVerifyPinLogoutDialogConfirm": "Log Out",
+
+  "authSetPinMismatch": "PINs don't match, try again",
+  "authSetPinConfirmTitle": "Confirm PIN",
+  "authSetPinCreateTitle": "Create a 6-Digit PIN",
+  "authSetPinConfirmSubtitle": "Re-enter the same PIN to confirm",
+  "authSetPinCreateSubtitle": "This PIN is used to unlock the app every time you open it, just like a mobile banking app",
+  "authSetPinRestartButton": "Start over",
+
+  "authBiometricPromptTitle": "Log in faster with biometrics?",
+  "authBiometricPromptContent": "Unlock Flowr with your fingerprint or Face ID, without typing your PIN every time. You can turn it on or off anytime from Profile.",
+  "authBiometricPromptLater": "Maybe later",
+  "authBiometricPromptEnable": "Enable",
+  "authBiometricPromptEnrollReason": "Enable biometric login for Flowr",
+  "authBiometricPromptSuccessTitle": "Biometrics enabled!",
+  "authBiometricPromptFailedTitle": "Failed to enable",
+  "authBiometricPromptSuccessContent": "Next time you can log in to Flowr without typing your PIN.",
+  "authBiometricPromptFailedContent": "Biometric verification failed or was cancelled. You can try again anytime from Profile.",
+  "authBiometricPromptOkButton": "OK",
+
+  "walletPortfolioListUpgradeRequired": "This feature requires a membership upgrade",
+  "walletPortfolioListTitle": "Portfolio",
+  "walletPortfolioListLoadError": "Failed to load portfolio.",
+  "walletPortfolioListEmptyTitle": "No accounts yet",
+  "walletPortfolioListEmptySubtitle": "Tap the + button to add your first account/wallet.",
+  "walletPortfolioListTransferTitle": "Transfer Between Accounts",
+  "walletPortfolioListTransferSubtitle": "Move funds between your accounts/wallets",
+  "walletPortfolioListDeleteDialogTitle": "Delete account?",
+  "walletPortfolioListDeleteDialogContent": "The account \"{accountName}\" will be permanently deleted.",
+  "@walletPortfolioListDeleteDialogContent": {
+    "placeholders": {
+      "accountName": {"type": "String"}
+    }
+  },
+  "walletPortfolioListCancel": "Cancel",
+  "walletPortfolioListDeleteConfirm": "Delete",
+  "walletPortfolioListProviderFallback": "Provider #{id}",
+  "@walletPortfolioListProviderFallback": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "walletPortfolioListEditAction": "Edit",
+
+  "walletPortfolioFormProviderRequired": "Please select an investment provider first.",
+  "walletPortfolioFormEditTitle": "Edit Account",
+  "walletPortfolioFormCreateTitle": "Add Account",
+  "walletPortfolioFormProviderLabel": "Provider",
+  "walletPortfolioFormLoadProvidersError": "Failed to load the list of providers.",
+  "walletPortfolioFormAccountNameLabel": "Account name",
+  "walletPortfolioFormAccountNameRequired": "Account name is required",
+  "walletPortfolioFormAccountNumberLabel": "Account number (optional)",
+  "walletPortfolioFormDescriptionLabel": "Description (optional)",
+  "walletPortfolioFormInvestmentAccountTitle": "Investment account",
+  "walletPortfolioFormInvestmentAccountSubtitle": "Money in/out is recorded as deposit/profit/withdrawal/loss, separate from regular transactions",
+  "walletPortfolioFormSaveChanges": "Save Changes",
+  "walletPortfolioFormNoProviders": "No investment providers yet",
+  "walletPortfolioFormSelectProvider": "Select provider",
+  "walletPortfolioFormSelectProviderSheetTitle": "Select investment provider",
+
+  "walletSavingsGoalListTitle": "Savings Goals",
+  "walletSavingsGoalListLoadError": "Failed to load savings goals.",
+  "walletSavingsGoalListEmptyTitle": "No savings goals yet",
+  "walletSavingsGoalListEmptySubtitle": "Tap the + button to create your first goal.",
+  "walletSavingsGoalListActiveLabel": "Active",
+  "walletSavingsGoalListAchievedLabel": "Achieved",
+  "walletSavingsGoalListSummarySuffix": "{label} Goal",
+  "@walletSavingsGoalListSummarySuffix": {
+    "placeholders": {
+      "label": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalListDeleteDialogTitle": "Delete goal?",
+  "walletSavingsGoalListDeleteDialogContent": "The goal \"{name}\" and all its deposit/withdrawal history will be permanently deleted.",
+  "@walletSavingsGoalListDeleteDialogContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalListCancel": "Cancel",
+  "walletSavingsGoalListDeleteConfirm": "Delete",
+  "walletSavingsGoalListArchiveDialogTitle": "Archive goal?",
+  "walletSavingsGoalListArchiveDialogContent": "The goal will stop counting as active/achieved, but its history stays saved. This can't be undone from the app.",
+  "walletSavingsGoalListArchiveConfirm": "Archive",
+  "walletSavingsGoalListEditAction": "Edit",
+  "walletSavingsGoalListProgressAmounts": "{saved} of {target}",
+  "@walletSavingsGoalListProgressAmounts": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalListOverAllocatedWarning": "Total allocation to this account exceeds its actual balance.",
+
+  "walletSavingsGoalFormEditTitle": "Edit Savings Goal",
+  "walletSavingsGoalFormCreateTitle": "New Savings Goal",
+  "walletSavingsGoalFormNameLabel": "Goal name",
+  "walletSavingsGoalFormNameRequired": "Goal name is required",
+  "walletSavingsGoalFormPurposeLabel": "Purpose (optional)",
+  "walletSavingsGoalFormTargetAmountLabel": "Target Amount (Rp)",
+  "walletSavingsGoalFormTargetAmountRequired": "Target amount is required",
+  "walletSavingsGoalFormAmountInvalid": "Invalid amount",
+  "walletSavingsGoalFormDeadlineLabel": "Deadline (optional)",
+  "walletSavingsGoalFormNoDeadline": "No deadline",
+  "walletSavingsGoalFormSourceAccountLabel": "Funding source account (optional)",
+  "walletSavingsGoalFormLoadAccountsError": "Failed to load the list of accounts.",
+  "walletSavingsGoalFormNoAccounts": "No accounts yet",
+  "walletSavingsGoalFormNoAccountBound": "Not tied to any account",
+  "walletSavingsGoalFormColorLabel": "Color",
+  "walletSavingsGoalFormIconLabel": "Icon",
+  "walletSavingsGoalFormSaveChanges": "Save Changes",
+  "walletSavingsGoalFormCreateAction": "Create Goal",
+  "walletSavingsGoalFormPickAccountSheetTitle": "Select funding source account",
+
+  "walletSavingsGoalDetailAddEntryTooltip": "Log Deposit/Withdrawal",
+  "walletSavingsGoalDetailHistoryTitle": "Deposit/Withdrawal History",
+  "walletSavingsGoalDetailLoadHistoryError": "Failed to load history.",
+  "walletSavingsGoalDetailEmptyTitle": "No history yet",
+  "walletSavingsGoalDetailEmptySubtitle": "Tap the + button to log your first deposit/withdrawal.",
+  "walletSavingsGoalDetailCollectedLabel": "Collected",
+  "walletSavingsGoalDetailTargetAmount": "Target {amount}",
+  "@walletSavingsGoalDetailTargetAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailRemainingAmount": "{amount} left to go",
+  "@walletSavingsGoalDetailRemainingAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailDeadline": "Deadline {date}",
+  "@walletSavingsGoalDetailDeadline": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailDefaultAccount": "Default account: {name}",
+  "@walletSavingsGoalDetailDefaultAccount": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletSavingsGoalDetailOverAllocatedWarning": "Total allocation to this account from all goals already exceeds its actual balance.",
+  "walletSavingsGoalDetailDeleteEntryTitle": "Delete this entry?",
+  "walletSavingsGoalDetailDeleteEntryContent": "This history entry will be permanently deleted and the goal's progress recalculated.",
+  "walletSavingsGoalDetailCancel": "Cancel",
+  "walletSavingsGoalDetailDeleteConfirm": "Delete",
+  "walletSavingsGoalDetailWithdrawLabel": "Withdraw",
+  "walletSavingsGoalDetailContributeLabel": "Deposit",
+  "walletSavingsGoalDetailDateLabel": "Date",
+  "walletSavingsGoalDetailAmountLabel": "Amount (Rp)",
+  "walletSavingsGoalDetailAmountRequired": "Amount is required",
+  "walletSavingsGoalDetailAmountInvalid": "Invalid amount",
+  "walletSavingsGoalDetailAccountLabel": "Account (optional)",
+  "walletSavingsGoalDetailLoadAccountsError": "Failed to load the list of accounts.",
+  "walletSavingsGoalDetailNoAccounts": "No accounts yet",
+  "walletSavingsGoalDetailNoAccountRecorded": "Not recorded to any account",
+  "walletSavingsGoalDetailNoteLabel": "Note (optional)",
+  "walletSavingsGoalDetailSaveAction": "Save",
+  "walletSavingsGoalDetailPickAccountSheetTitle": "Select account",
+
+  "walletGoalStatusAchieved": "Achieved",
+  "walletGoalStatusArchived": "Archived",
+  "walletGoalStatusActive": "Active",
+
+  "walletDashboardLoadError": "Failed to load dashboard.",
+  "walletDashboardCashBalanceLabel": "Cash Balance",
+  "walletDashboardInvestmentBalanceLabel": "Investment Balance",
+  "walletDashboardIncomeLabel": "Income",
+  "walletDashboardExpenseLabel": "Expense",
+  "walletDashboardDailyAccountsTitle": "Daily Accounts",
+  "walletDashboardInvestmentAccountsTitle": "Investment Accounts",
+  "walletDashboardIncomeSourcesTitle": "Income Sources",
+  "walletDashboardTopCategoriesTitle": "Top Categories",
+  "walletDashboardRecentTransactionsTitle": "Recent Transactions",
+  "walletDashboardGreeting": "Hi, {name}",
+  "@walletDashboardGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardCycleRange": "Cycle {start} — {end}",
+  "@walletDashboardCycleRange": {
+    "placeholders": {
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
+  "walletDashboardNetWorthLabel": "Total Net Worth",
+  "walletDashboardSavingsGoalsCardTitle": "Savings Goals",
+  "walletDashboardSavingsGoalsSummary": "{active} active · {achieved} achieved",
+  "@walletDashboardSavingsGoalsSummary": {
+    "placeholders": {
+      "active": {"type": "int"},
+      "achieved": {"type": "int"}
+    }
+  },
+  "walletDashboardSavingsGoalProgress": "{saved} of {target}",
+  "@walletDashboardSavingsGoalProgress": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+
+  "txnCommonCancel": "Cancel",
+  "txnCommonDelete": "Delete",
+  "txnCommonEdit": "Edit",
+  "txnIncomeLabel": "Income",
+  "txnExpenseLabel": "Expense",
+  "txnFilterAll": "All",
+  "txnCommonSaveChanges": "Save Changes",
+  "txnCommonAmountRequired": "Amount is required",
+  "txnCommonAmountInvalid": "Invalid amount",
+  "txnCommonSelectCategoryFirst": "Please select a category first.",
+  "txnCommonCategoryLoadError": "Failed to load categories.",
+  "txnCommonAccountLoadError": "Failed to load accounts.",
+  "txnCommonDescriptionLabel": "Description (optional)",
+  "txnCommonAmountRpLabel": "Amount (Rp)",
+  "txnCommonSelectCategoryTitle": "Select category",
+  "txnCommonNoCategoryForType": "No categories yet for this type",
+  "txnCommonSelectAccountTitle": "Select account",
+  "txnCommonNoneOption": "None",
+  "txnCommonDateSectionLabel": "Date",
+  "txnCommonTypeSectionLabel": "Type",
+  "txnCommonCategorySectionLabel": "Category",
+  "txnCommonNoAccountAvailable": "No accounts yet",
+  "txnCategoryFallbackName": "Category #{id}",
+  "@txnCategoryFallbackName": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "txnAccountFallbackName": "Account #{id}",
+  "@txnAccountFallbackName": {
+    "placeholders": {
+      "id": {"type": "int"}
+    }
+  },
+  "txnRecurringMenuTileTitle": "Recurring Transactions",
+
+  "txnFeatureRequiresUpgrade": "This feature requires a membership upgrade",
+  "txnListTitle": "Transactions",
+  "txnListLoadError": "Failed to load transactions.",
+  "txnListEmptyTitle": "No transactions yet",
+  "txnListEmptySubtitle": "Tap the + button to record income or expenses.",
+  "txnListNoResultsTitle": "No results",
+  "txnListNoResultsSubtitle": "No transactions match this search.",
+  "txnSearchHint": "Search category, note, or account",
+  "txnNetBalanceLabel": "Net Balance",
+  "txnDeleteDialogTitle": "Delete transaction?",
+  "txnDeleteDialogContent": "This transaction will be permanently deleted.",
+  "txnRecurringMenuTileSubtitle": "Manage recurring bills/income",
+  "txnPickDateLabel": "Select Date",
+  "txnFilterThisMonth": "This Month",
+  "txnFilterLastMonth": "Last Month",
+  "txnFilterLast7Days": "Last 7 Days",
+  "txnFilterLast30Days": "Last 30 Days",
+
+  "txnScanReceiptFailedMessage": "Couldn't read this receipt, please fill in manually.",
+  "txnScanReceiptAutofilledMessage": "Auto-filled from the receipt — please double-check before saving.",
+  "txnFormTitleEdit": "Edit Transaction",
+  "txnFormTitleAdd": "Add Transaction",
+  "txnFormAccountOptionalLabel": "Account (optional)",
+  "txnScanReceiptScanning": "Reading receipt...",
+  "txnScanReceiptButtonLabel": "Scan Receipt",
+  "txnScanSourceCamera": "Take Photo",
+  "txnScanSourceGallery": "Choose from Gallery",
+
+  "txnRecurringListLoadError": "Failed to load recurring transactions.",
+  "txnRecurringListEmptyTitle": "No recurring transactions yet",
+  "txnRecurringListEmptySubtitle": "Tap the + button to create a template, e.g. a monthly bill.",
+  "txnRecurringDeleteDialogTitle": "Delete recurring transaction?",
+  "txnRecurringDeleteDialogContent": "The \"{name}\" template will be permanently deleted. Transactions already generated from it won't be removed.",
+  "@txnRecurringDeleteDialogContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "txnRecurringNextDateLabel": "Next {date}",
+  "@txnRecurringNextDateLabel": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+
+  "txnRecurringSelectAccountFirst": "Please select an account first.",
+  "txnRecurringFormTitleEdit": "Edit Recurring Transaction",
+  "txnRecurringFormTitleAdd": "Add Recurring Transaction",
+  "txnRecurringNameLabel": "Name",
+  "txnRecurringNameRequired": "Name is required",
+  "txnRecurringAccountSectionLabel": "Account",
+  "txnRecurringFrequencyLabel": "Frequency",
+  "txnRecurringStartDateLabel": "Start Date",
+  "txnRecurringStartDateHistoricalNote": "This template has already been processed, so changing this date won't shift the next schedule — it just records when it was first created.",
+  "txnRecurringSubmitAdd": "Add",
+  "txnRecurringPickFrequencyTitle": "Select frequency",
+
+  "txnTransferListTitle": "Account Transfer",
+  "txnTransferListLoadError": "Failed to load transfers.",
+  "txnTransferListEmptyTitle": "No transfers yet",
+  "txnTransferListEmptySubtitle": "Tap the + button to move funds between your accounts.",
+  "txnTransferDeleteDialogTitle": "Delete transfer?",
+  "txnTransferDeleteDialogContent": "This transfer will be permanently deleted, and both account balances will be adjusted back.",
+
+  "txnTransferSelectAccountsError": "Select the source and destination accounts.",
+  "txnTransferSameAccountError": "Source and destination accounts can't be the same.",
+  "txnTransferAssetRequiredError": "Enter the asset symbol (e.g. BTC) — one of the accounts is a crypto account.",
+  "txnTransferFormTitleEdit": "Edit Transfer",
+  "txnTransferFromAccountLabel": "From Account",
+  "txnTransferFromAccountPlaceholder": "Select source account",
+  "txnTransferToAccountLabel": "To Account",
+  "txnTransferToAccountPlaceholder": "Select destination account",
+  "txnTransferAssetSectionLabel": "Asset",
+  "txnTransferAssetHint": "One of the accounts is a crypto account — enter its asset symbol so it's included in the per-asset breakdown in Investment (both top-ups and withdrawals/profit taking).",
+  "txnTransferAssetFieldLabel": "Asset symbol (e.g. BTC)",
+  "txnTransferSubmitLabel": "Transfer",
+
+  "txnBudgetListTitle": "Budget",
+  "txnBudgetListLoadError": "Failed to load budget.",
+  "txnBudgetListEmptyMessage": "No budget yet for this month.\nTap the + button to add one.",
+  "txnBudgetPerCategoryLabel": "By Category",
+  "txnBudgetTapToEditHint": "Tap one to change its budget amount.",
+  "txnBudgetTotalLabel": "Total Budget",
+  "txnBudgetUsedAmount": "Used {amount}",
+  "@txnBudgetUsedAmount": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "txnBudgetCategoryOverBudget": "Used {spent} — over budget",
+  "@txnBudgetCategoryOverBudget": {
+    "placeholders": {
+      "spent": {"type": "String"}
+    }
+  },
+  "txnBudgetCategoryUsedOfTotal": "Used {spent} of {total}",
+  "@txnBudgetCategoryUsedOfTotal": {
+    "placeholders": {
+      "spent": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+
+  "txnBudgetFormTitleEdit": "Edit Budget",
+  "txnBudgetFormTitleAdd": "Add Budget",
+  "txnBudgetFormPeriodLabel": "For the {month} {year} period",
+  "@txnBudgetFormPeriodLabel": {
+    "placeholders": {
+      "month": {"type": "String"},
+      "year": {"type": "int"}
+    }
+  },
+  "txnBudgetExpenseCategoryLabel": "Expense Category",
+  "txnBudgetAllCategoriesBudgeted": "All categories already have a budget",
+  "txnBudgetAmountLabel": "Budget Amount (Rp)",
+
+  "investDashboardTitle": "Investment",
+  "investActivityHistoryLabel": "Activity History",
+  "investRecordProfitLossTooltip": "Record Profit/Loss",
+  "investLoadErrorMessage": "Failed to load investment data.",
+  "investYourAssetsLabel": "Your Assets",
+  "investTotalCryptoValueLabel": "Total Crypto Value",
+  "investAssetCountEmpty": "No assets yet",
+  "investAssetCountTracked": "{count} assets tracked",
+  "@investAssetCountTracked": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "investPnl24hFull": "PnL {amount} (24h)",
+  "@investPnl24hFull": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "investPnl24hShort": "PnL {amount} (24h)",
+  "@investPnl24hShort": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "investPriceUnavailable": "Price unavailable",
+  "investEmptyCryptoAccountsTitle": "No crypto accounts yet",
+  "investEmptyCryptoAccountsSubtitle": "Add an account with a Crypto-type provider via Portfolio, then top up its balance via Account Transfer.",
+
+  "investHeldInAccountsTitle": "Held in Accounts",
+  "investHeldInAccountsSubtitle": "Calculated from activity history — check the code comments if the numbers look off.",
+  "investCurrentPriceLabel": "Current Price",
+  "investChangePercent24h": "{percent}% (24h)",
+  "@investChangePercent24h": {
+    "placeholders": {
+      "percent": {"type": "String"}
+    }
+  },
+  "investTotalHeldLabel": "Total You Hold",
+  "investApproxQuantityBtc": "≈ {quantity} BTC",
+  "@investApproxQuantityBtc": {
+    "placeholders": {
+      "quantity": {"type": "String"}
+    }
+  },
+  "investPerformanceTitle": "Performance (Floating PnL)",
+  "investPeriod24h": "24 Hours",
+  "investPeriod1w": "1 Week",
+  "investPeriod1m": "1 Month",
+  "investPeriod3m": "3 Months",
+  "investPeriod6m": "6 Months",
+  "investPeriod5y": "5 Years",
+  "investDataUnavailable": "Data unavailable",
+  "investMarketPriceUnavailable": "Market price for this asset isn't available yet.",
+  "investNoBalanceRecorded": "No balance recorded for this asset yet.",
+  "investAccountFallbackName": "Account #{accountId}",
+  "@investAccountFallbackName": {
+    "placeholders": {
+      "accountId": {"type": "int"}
+    }
+  },
+
+  "investActivityLoadError": "Failed to load history.",
+  "investActivityEmptyTitle": "No activity yet",
+  "investActivityEmptySubtitle": "Top up via Account Transfer, or record Profit/Loss with the + button.",
+  "investLabelDeposit": "Deposit",
+  "investLabelWithdrawal": "Withdrawal",
+  "investLabelProfit": "Profit",
+  "investLabelLoss": "Loss",
+  "investLabelTransfer": "Transfer",
+  "investFromTransferSuffix": "from Transfer",
+  "investDeleteEntryDialogTitle": "Delete entry?",
+  "investDeleteEntryDialogContent": "This entry will be permanently deleted from tracking.",
+  "investCancelButton": "Cancel",
+  "investDeleteButton": "Delete",
+  "investManageFromTransferTooltip": "Manage from Account Transfer",
+  "investFromTransferSnackbar": "This entry is from Transfer — manage it from the Account Transfer menu.",
+
+  "investSelectCryptoAccountFirstError": "Please select a crypto account first.",
+  "investEditProfitLossTitle": "Edit Profit/Loss",
+  "investRecordProfitLossTitle": "Record Profit/Loss",
+  "investCryptoAccountLabel": "Crypto Account",
+  "investSelectAccountPlaceholder": "Select account",
+  "investAssetSymbolLabel": "Asset symbol (e.g. BTC)",
+  "investAssetSymbolRequiredError": "Asset symbol is required",
+  "investTypeLabel": "Type",
+  "investDateLabel": "Date",
+  "investAmountLabel": "Amount (Rp)",
+  "investAmountRequiredError": "Amount is required",
+  "investAmountInvalidError": "Invalid amount",
+  "investDescriptionLabel": "Description (optional)",
+  "investSaveChangesButton": "Save Changes",
+  "investSaveButton": "Save",
+  "investSelectCryptoAccountSheetTitle": "Select crypto account",
+
+  "investUpgradeMembershipTitle": "Upgrade Membership",
+  "investMembershipStatusLoadError": "Failed to load membership status.",
+  "investChoosePlanTitle": "Choose a Plan",
+  "investPlanListLoadError": "Failed to load plan list.",
+  "investMemberFallbackName": "Member",
+  "investActiveUntil": "Active until {date}",
+  "@investActiveUntil": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "investActiveLabel": "Active",
+  "investPendingVerificationSubtitle": "Waiting for payment verification from admin",
+  "investFreeLabel": "Free",
+  "investNoMembershipSubtitle": "Haven't upgraded membership yet",
+  "investManualTransferTitle": "Manual Transfer",
+  "investBankLabel": "Bank",
+  "investAccountNumberLabel": "Account Number",
+  "investAccountHolderLabel": "Account Holder",
+  "investNominalLabel": "Amount",
+  "investTransferInstructionsNote": "After transferring, admin will verify the payment and activate your membership manually.",
+  "investCheckStatusButton": "I've transferred, check status",
+  "investConfirmPlanDialogTitle": "Confirm {planName}",
+  "@investConfirmPlanDialogTitle": {
+    "placeholders": {
+      "planName": {"type": "String"}
+    }
+  },
+  "investConfirmPlanDialogContent": "You will upgrade to the {planName} plan for {price} for {days} days.",
+  "@investConfirmPlanDialogContent": {
+    "placeholders": {
+      "planName": {"type": "String"},
+      "price": {"type": "String"},
+      "days": {"type": "int"}
+    }
+  },
+  "investSwitchPlanWarning": "Your current plan is still active. Switching to another plan will reset your access to Free until the new payment is verified by admin.",
+  "investConfirmButton": "Confirm",
+  "investPlanSelectedSnackbar": "Plan selected. Please transfer according to the instructions above.",
+  "investSelectPlanError": "Failed to select plan.",
+  "investActivePlanLabel": "Active Plan",
+  "investSelectPlanButton": "Select Plan",
+  "investPricePerDuration": "{price} / {days} days",
+  "@investPricePerDuration": {
+    "placeholders": {
+      "price": {"type": "String"},
+      "days": {"type": "int"}
+    }
+  },
+  "investPlanFeaturesTitle": "Features included",
+  "investPlanFeaturesUnavailable": "Feature details for this plan aren't available yet.",
+
+  "investCategoryListTitle": "Categories",
+  "investCategoryLoadError": "Failed to load categories.",
+  "investCategoryEmptyTitle": "No categories yet",
+  "investCategoryEmptySubtitle": "Categories are managed by admin via the web app.",
+  "investRetryButton": "Retry",
+
+  "investProviderListTitle": "Investment Providers",
+  "investProviderLoadError": "Failed to load investment providers.",
+  "investProviderEmptyTitle": "No investment providers yet",
+  "investProviderEmptySubtitle": "Investment providers are managed by admin via the web app.",
+
+  "investPayrollCycleTitle": "Payroll Cycle",
+  "investPayrollSettingsLoadError": "Failed to load settings.",
+  "investPayrollSavedSnackbar": "Payroll cycle saved successfully.",
+  "investPayrollDescription": "The payroll cycle start date determines the period used by Dashboard, Budget, and Summary — not the regular calendar 1-31 date.",
+  "investUseEndOfMonthLabel": "Use end of month",
+  "investUseEndOfMonthSubtitle": "Cycle starts from the last date of each month",
+  "investStartDateLabel": "Start date",
+  "investDayLabel": "Day {day}",
+  "@investDayLabel": {
+    "placeholders": {
+      "day": {"type": "int"}
+    }
+  },
+  "investSelectStartDateTitle": "Select start date",
+
+  "fireTitle": "Retirement/FIRE Calculator",
+  "fireLoadError": "Failed to load financial data.",
+  "fireRetry": "Retry",
+  "fireReturnRateLabel": "Assumed Annual Investment Return",
+  "fireCreateGoalButton": "Create Retirement/FIRE Goal",
+  "fireGoalName": "Retirement/FIRE Fund",
+  "fireAverageIncomeLabel": "Average Monthly Income",
+  "fireAverageExpenseLabel": "Average Monthly Expense",
+  "fireSavingsRateLabel": "Savings Rate",
+  "fireAverageBasis": "Based on the last {months} recorded months",
+  "@fireAverageBasis": {
+    "placeholders": {
+      "months": {"type": "int"}
+    }
+  },
+  "fireManualHint": "Your transaction data isn't enough yet to calculate an automatic average. Enter it manually below:",
+  "fireManualIncomeLabel": "Average monthly income (Rp)",
+  "fireManualExpenseLabel": "Average monthly expense (Rp)",
+  "fireReturnRateConservative": "Conservative",
+  "fireReturnRateModerate": "Moderate",
+  "fireReturnRateAggressive": "Aggressive",
+  "fireProjectionLabel": "Estimated Time to Financial Independence",
+  "fireYearsToGo": "{years} years to go",
+  "@fireYearsToGo": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "fireNotReachableWithinCap": "Not reached within {years} years",
+  "@fireNotReachableWithinCap": {
+    "placeholders": {
+      "years": {"type": "int"}
+    }
+  },
+  "fireTargetYear": "Target reached by ±{year} · Amount needed {amount}",
+  "@fireTargetYear": {
+    "placeholders": {
+      "year": {"type": "int"},
+      "amount": {"type": "String"}
+    }
+  },
+  "fireTargetAmountOnly": "Amount needed {amount} — increase your savings rate to speed this up",
+  "@fireTargetAmountOnly": {
+    "placeholders": {
+      "amount": {"type": "String"}
+    }
+  },
+  "fireExistingGoalProgress": "Progress on \"{name}\"",
+  "@fireExistingGoalProgress": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "fireExistingGoalAmounts": "{saved} of {target}",
+  "@fireExistingGoalAmounts": {
+    "placeholders": {
+      "saved": {"type": "String"},
+      "target": {"type": "String"}
+    }
+  },
+  "summaryFireCardSubtitle": "Project when you can retire"
+}

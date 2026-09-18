@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/password_reset_ticket_model.dart';
 import '../../../shared/widgets/app_text_field.dart';
@@ -56,10 +58,11 @@ class _PasswordResetStatusPageState extends ConsumerState<PasswordResetStatusPag
   Widget build(BuildContext context) {
     final resetState = ref.watch(passwordResetControllerProvider);
     final ticket = resetState.ticket;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Cek Status Pengajuan')),
+      appBar: AppBar(title: Text(l10n.authResetStatusAppBarTitle)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -72,24 +75,24 @@ class _PasswordResetStatusPageState extends ConsumerState<PasswordResetStatusPag
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Masukkan email atau username yang dipakai saat mengajukan reset kata sandi.',
+                      l10n.authResetStatusDescription,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5),
                     ),
                     const SizedBox(height: 16),
                     AppTextField(
-                      label: 'Email atau Username',
+                      label: l10n.authResetStatusIdentifierLabel,
                       controller: _identifierController,
                       icon: Icons.person_outline_rounded,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _checkStatus(),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Email atau username wajib diisi';
+                        if (value == null || value.trim().isEmpty) return l10n.authResetStatusIdentifierRequired;
                         return null;
                       },
                     ),
                     const SizedBox(height: 16),
                     PrimaryButton(
-                      label: 'Cek Status',
+                      label: l10n.authResetStatusCheckButton,
                       isLoading: resetState.isLoading,
                       onPressed: _checkStatus,
                     ),
@@ -114,6 +117,7 @@ class _TicketStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final IconData icon;
     final Color color;
     final String title;
@@ -122,20 +126,18 @@ class _TicketStatusCard extends StatelessWidget {
     if (ticket.isPending) {
       icon = Icons.hourglass_top_rounded;
       color = AppColors.accent;
-      title = 'Menunggu Diproses Admin';
-      description = 'Admin akan menghubungimu lewat WhatsApp/telepon di nomor yang kamu daftarkan '
-          'untuk mengirim link reset kata sandi.';
+      title = l10n.authResetStatusPendingTitle;
+      description = l10n.authResetStatusPendingDescription;
     } else if (ticket.isProcessed) {
       icon = Icons.mark_email_read_outlined;
       color = AppColors.success;
-      title = 'Sudah Diproses';
-      description = 'Admin sudah membuat link reset kata sandi dan seharusnya sudah mengirimkannya '
-          'lewat WhatsApp/telepon. Buka link tersebut untuk mengatur kata sandi baru.';
+      title = l10n.authResetStatusProcessedTitle;
+      description = l10n.authResetStatusProcessedDescription;
     } else {
       icon = Icons.cancel_outlined;
       color = AppColors.error;
-      title = 'Pengajuan Ditolak';
-      description = 'Admin menolak pengajuan reset kata sandi ini. Silakan ajukan ulang lewat form.';
+      title = l10n.authResetStatusRejectedTitle;
+      description = l10n.authResetStatusRejectedDescription;
     }
 
     return Container(

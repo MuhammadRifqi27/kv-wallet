@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flowr/l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../auth/application/auth_controller.dart';
@@ -42,6 +44,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -55,7 +58,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with SingleTickerProvid
                 AppLogo(size: 100),
                 SizedBox(height: 12),
                 Text(
-                  'Kelola keuangan Anda dengan mudah',
+                  l10n.authSplashTagline,
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                 ),
                 SizedBox(height: 40),

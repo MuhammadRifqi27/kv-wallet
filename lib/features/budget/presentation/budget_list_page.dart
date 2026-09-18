@@ -7,6 +7,7 @@ import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/budget_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
@@ -23,10 +24,11 @@ class BudgetListPage extends ConsumerWidget {
     // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
     // + MainShell's note on why this needs an explicit watch.
     ref.watch(themeModeProvider);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Budget')),
+      appBar: AppBar(title: Text(l10n.txnBudgetListTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/budget/form'),
         child: const Icon(Icons.add_rounded),
@@ -48,7 +50,7 @@ class BudgetListPage extends ConsumerWidget {
                 loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : 'Gagal memuat budget.',
+                    message: error is ApiException ? error.message : l10n.txnBudgetListLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
@@ -69,10 +71,11 @@ class _BudgetBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (summary.categories.isEmpty) {
       return scrollableCenter(
         Text(
-          'Belum ada budget untuk bulan ini.\nTap tombol + untuk menambah.',
+          l10n.txnBudgetListEmptyMessage,
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5),
         ),
@@ -86,12 +89,12 @@ class _BudgetBody extends StatelessWidget {
         _SummaryCard(summary: summary),
         const SizedBox(height: 16),
         Text(
-          'Per Kategori',
+          l10n.txnBudgetPerCategoryLabel,
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 4),
         Text(
-          'Tap salah satu untuk mengubah jumlah budget-nya.',
+          l10n.txnBudgetTapToEditHint,
           style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
         ),
         const SizedBox(height: 10),
@@ -112,6 +115,7 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overBudget = summary.totalSpent > summary.totalBudget;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -127,7 +131,7 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Total Budget', style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13)),
+          Text(l10n.txnBudgetTotalLabel, style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13)),
           const SizedBox(height: 6),
           Text(
             formatRupiah(summary.totalBudget),
@@ -145,7 +149,7 @@ class _SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Terpakai ${formatRupiah(summary.totalSpent)}',
+            l10n.txnBudgetUsedAmount(formatRupiah(summary.totalSpent)),
             style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 12.5),
           ),
         ],
@@ -163,6 +167,7 @@ class _BudgetCategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final overBudget = item.isOverBudget;
     final barColor = overBudget ? AppColors.error : AppColors.primary;
+    final l10n = AppLocalizations.of(context);
 
     return Material(
       color: AppColors.surface,
@@ -209,8 +214,8 @@ class _BudgetCategoryCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 overBudget
-                    ? 'Terpakai ${formatRupiah(item.spent)} — melebihi budget'
-                    : 'Terpakai ${formatRupiah(item.spent)} dari ${formatRupiah(item.amount)}',
+                    ? l10n.txnBudgetCategoryOverBudget(formatRupiah(item.spent))
+                    : l10n.txnBudgetCategoryUsedOfTotal(formatRupiah(item.spent), formatRupiah(item.amount)),
                 style: TextStyle(color: overBudget ? AppColors.error : AppColors.textSecondary, fontSize: 12),
               ),
             ],
