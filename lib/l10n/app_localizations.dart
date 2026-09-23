@@ -2041,11 +2041,41 @@ abstract class AppLocalizations {
   /// **'Transaksi Terbaru'**
   String get walletDashboardRecentTransactionsTitle;
 
-  /// No description provided for @walletDashboardGreeting.
+  /// No description provided for @walletDashboardGreetingMorning.
   ///
   /// In id, this message translates to:
-  /// **'Halo, {name}'**
-  String walletDashboardGreeting(String name);
+  /// **'Selamat Pagi, {name}'**
+  String walletDashboardGreetingMorning(String name);
+
+  /// No description provided for @walletDashboardGreetingMidday.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Siang, {name}'**
+  String walletDashboardGreetingMidday(String name);
+
+  /// No description provided for @walletDashboardGreetingAfternoon.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Sore, {name}'**
+  String walletDashboardGreetingAfternoon(String name);
+
+  /// No description provided for @walletDashboardGreetingNight.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Malam, {name}'**
+  String walletDashboardGreetingNight(String name);
+
+  /// No description provided for @walletDashboardGreetingPayday.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat Gajian, {name}'**
+  String walletDashboardGreetingPayday(String name);
+
+  /// No description provided for @walletDashboardGreetingEndingSoon.
+  ///
+  /// In id, this message translates to:
+  /// **'Gajian Sebentar Lagi, {name}'**
+  String walletDashboardGreetingEndingSoon(String name);
 
   /// No description provided for @walletDashboardCycleRange.
   ///
@@ -2268,6 +2298,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tidak ada transaksi yang cocok dengan pencarian ini.'**
   String get txnListNoResultsSubtitle;
+
+  /// No description provided for @txnListLoadMore.
+  ///
+  /// In id, this message translates to:
+  /// **'Muat transaksi lebih lama'**
+  String get txnListLoadMore;
 
   /// No description provided for @txnSearchHint.
   ///
@@ -3472,6 +3508,156 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Proyeksi kapan bisa pensiun'**
   String get summaryFireCardSubtitle;
+
+  /// No description provided for @profileFeatureTourTileTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat Tour Fitur'**
+  String get profileFeatureTourTileTitle;
+
+  /// No description provided for @profileFeatureTourTileSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ulangi panduan singkat fitur-fitur utama app'**
+  String get profileFeatureTourTileSubtitle;
+
+  /// No description provided for @tourNetWorthTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo & Kekayaan Bersih'**
+  String get tourNetWorthTitle;
+
+  /// No description provided for @tourNetWorthDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat total saldo dan net worth kamu di sini, update otomatis dari semua akun & transaksi.'**
+  String get tourNetWorthDescription;
+
+  /// No description provided for @tourStatsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan Keuangan'**
+  String get tourStatsTitle;
+
+  /// No description provided for @tourStatsDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Cash balance, investasi, pemasukan, dan pengeluaran periode berjalan — semua dalam satu tampilan.'**
+  String get tourStatsDescription;
+
+  /// No description provided for @tourSavingsGoalsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Target Tabungan'**
+  String get tourSavingsGoalsTitle;
+
+  /// No description provided for @tourSavingsGoalsDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Pantau progres target tabunganmu, tap untuk lihat detail atau buat target baru.'**
+  String get tourSavingsGoalsDescription;
+
+  /// No description provided for @tourNavDashboardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Beranda'**
+  String get tourNavDashboardTitle;
+
+  /// No description provided for @tourNavDashboardDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan keuangan lengkap kamu ada di sini.'**
+  String get tourNavDashboardDescription;
+
+  /// No description provided for @tourNavTransactionsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi'**
+  String get tourNavTransactionsTitle;
+
+  /// No description provided for @tourNavTransactionsDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Catat & lihat semua transaksi harianmu di sini.'**
+  String get tourNavTransactionsDescription;
+
+  /// No description provided for @tourNavSummaryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan'**
+  String get tourNavSummaryTitle;
+
+  /// No description provided for @tourNavSummaryDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Analisis pengeluaran & pemasukan dalam bentuk grafik.'**
+  String get tourNavSummaryDescription;
+
+  /// No description provided for @tourNavBudgetsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Anggaran'**
+  String get tourNavBudgetsTitle;
+
+  /// No description provided for @tourNavBudgetsDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Atur & pantau anggaran bulananmu per kategori.'**
+  String get tourNavBudgetsDescription;
+
+  /// No description provided for @tourNavProfileTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Profil'**
+  String get tourNavProfileTitle;
+
+  /// No description provided for @tourNavProfileDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Kelola akun, tema, bahasa, dan pengaturan lainnya.'**
+  String get tourNavProfileDescription;
+
+  /// No description provided for @tourPayrollTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Atur Siklus Gajian Dulu'**
+  String get tourPayrollTitle;
+
+  /// No description provided for @tourPayrollDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Setting tanggal gajian kamu di sini dulu, supaya data periode di seluruh app — termasuk portfolio — lebih akurat.'**
+  String get tourPayrollDescription;
+
+  /// No description provided for @tourPortfolioTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Terakhir, Portfolio Investasi'**
+  String get tourPortfolioTitle;
+
+  /// No description provided for @tourPortfolioDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Atur portfolio investasimu di sini supaya datanya ikut muncul di Dashboard.'**
+  String get tourPortfolioDescription;
+
+  /// No description provided for @profileUserGuideTileTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Panduan Pengguna'**
+  String get profileUserGuideTileTitle;
+
+  /// No description provided for @profileUserGuideTileSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buku panduan lengkap cara pakai aplikasi (PDF)'**
+  String get profileUserGuideTileSubtitle;
+
+  /// No description provided for @profileUserGuideOpenFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu.'**
+  String get profileUserGuideOpenFailed;
 }
 
 class _AppLocalizationsDelegate

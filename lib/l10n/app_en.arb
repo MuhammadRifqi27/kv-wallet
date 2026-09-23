@@ -453,8 +453,38 @@
   "walletDashboardIncomeSourcesTitle": "Income Sources",
   "walletDashboardTopCategoriesTitle": "Top Categories",
   "walletDashboardRecentTransactionsTitle": "Recent Transactions",
-  "walletDashboardGreeting": "Hi, {name}",
-  "@walletDashboardGreeting": {
+  "walletDashboardGreetingMorning": "Good Morning, {name}",
+  "@walletDashboardGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingMidday": "Good Afternoon, {name}",
+  "@walletDashboardGreetingMidday": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingAfternoon": "Good Evening, {name}",
+  "@walletDashboardGreetingAfternoon": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingNight": "Good Evening, {name}",
+  "@walletDashboardGreetingNight": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingPayday": "Happy Payday, {name}",
+  "@walletDashboardGreetingPayday": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingEndingSoon": "Payday's Coming Up, {name}",
+  "@walletDashboardGreetingEndingSoon": {
     "placeholders": {
       "name": {"type": "String"}
     }
@@ -526,6 +556,7 @@
   "txnListEmptySubtitle": "Tap the + button to record income or expenses.",
   "txnListNoResultsTitle": "No results",
   "txnListNoResultsSubtitle": "No transactions match this search.",
+  "txnListLoadMore": "Load older transactions",
   "txnSearchHint": "Search category, note, or account",
   "txnNetBalanceLabel": "Net Balance",
   "txnDeleteDialogTitle": "Delete transaction?",
@@ -868,5 +899,33 @@
       "target": {"type": "String"}
     }
   },
-  "summaryFireCardSubtitle": "Project when you can retire"
+  "summaryFireCardSubtitle": "Project when you can retire",
+
+  "profileFeatureTourTileTitle": "Feature Tour",
+  "profileFeatureTourTileSubtitle": "Replay the quick guide to the app's main features",
+
+  "tourNetWorthTitle": "Balance & Net Worth",
+  "tourNetWorthDescription": "See your total balance and net worth here, updated automatically from all accounts & transactions.",
+  "tourStatsTitle": "Financial Summary",
+  "tourStatsDescription": "Cash balance, investments, income, and expenses for the current period — all in one view.",
+  "tourSavingsGoalsTitle": "Savings Goals",
+  "tourSavingsGoalsDescription": "Track your savings goal progress, tap to see details or create a new goal.",
+  "tourNavDashboardTitle": "Home",
+  "tourNavDashboardDescription": "Your complete financial summary lives here.",
+  "tourNavTransactionsTitle": "Transactions",
+  "tourNavTransactionsDescription": "Record & view all your daily transactions here.",
+  "tourNavSummaryTitle": "Summary",
+  "tourNavSummaryDescription": "Analyze your income & expenses in chart form.",
+  "tourNavBudgetsTitle": "Budget",
+  "tourNavBudgetsDescription": "Set & track your monthly budget per category.",
+  "tourNavProfileTitle": "Profile",
+  "tourNavProfileDescription": "Manage your account, theme, language, and other settings.",
+  "tourPayrollTitle": "Set Up Your Payroll Cycle First",
+  "tourPayrollDescription": "Set your payday date here first, so period data across the app — including portfolio — is more accurate.",
+  "tourPortfolioTitle": "Lastly, Your Investment Portfolio",
+  "tourPortfolioDescription": "Set up your investment portfolio here so its data shows up on your Dashboard too.",
+
+  "profileUserGuideTileTitle": "User Guide",
+  "profileUserGuideTileSubtitle": "Full guide on how to use the app (PDF)",
+  "profileUserGuideOpenFailed": "Couldn't open the guide. Make sure you have a PDF reader app installed."
 }

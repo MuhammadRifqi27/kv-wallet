@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/providers/core_providers.dart';
+import '../../../core/providers/user_data_reset.dart';
 import '../../pin/application/pin_controller.dart';
 import 'auth_state.dart';
 
@@ -71,6 +72,11 @@ class AuthController extends StateNotifier<AuthState> {
     // app restart) would inherit the previous session's unlocked PIN gate.
     _ref.read(pinVerifiedProvider.notifier).state = false;
     await _clearBiometricLogin();
+    // Otherwise a different user logging in right after would see THIS
+    // user's dashboard/transactions/budget/etc. still cached until they
+    // happen to pull-to-refresh each page manually — see
+    // invalidateUserDataProviders' doc comment.
+    invalidateUserDataProviders(_ref);
   }
 
   /// Invoked by [ApiClient] when a request comes back 401 — token is already
@@ -79,6 +85,7 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(status: AuthStatus.unauthenticated, clearError: true, clearUser: true);
     _ref.read(pinVerifiedProvider.notifier).state = false;
     _clearBiometricLogin();
+    invalidateUserDataProviders(_ref);
   }
 
   /// Biometric login (see ProfilePage's toggle) is really "biometrics unlock

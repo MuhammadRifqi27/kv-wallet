@@ -94,7 +94,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
 
     final name = _nameController.text.trim();
     final purpose = _purposeController.text.trim();
-    final targetAmount = double.parse(_targetAmountController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final targetAmount = parseRupiahInput(_targetAmountController.text)!;
     final controller = ref.read(savingsGoalControllerProvider.notifier);
 
     try {
@@ -182,7 +182,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                   errorText: _error?.errorFor('target_amount'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.walletSavingsGoalFormTargetAmountRequired;
-                    final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
+                    final parsed = parseRupiahInput(value);
                     if (parsed == null || parsed <= 0) return l10n.walletSavingsGoalFormAmountInvalid;
                     return null;
                   },

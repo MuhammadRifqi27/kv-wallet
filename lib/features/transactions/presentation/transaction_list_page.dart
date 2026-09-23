@@ -39,6 +39,7 @@ class TransactionListPage extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionListControllerProvider);
     final controller = ref.read(transactionListControllerProvider.notifier);
     final searchQuery = ref.watch(transactionSearchQueryProvider);
+    final isLoadingMore = ref.watch(transactionLoadingMoreProvider);
     final l10n = AppLocalizations.of(context);
     // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
     // + MainShell's note on why this needs an explicit watch.
@@ -94,24 +95,42 @@ class TransactionListPage extends ConsumerWidget {
 
                   final filtered = filterTransactionsByQuery(result.transactions, searchQuery);
                   if (filtered.isEmpty) {
+                    // Search is client-side over whatever pages are already
+                    // loaded (see transactionSearchQueryProvider's doc
+                    // comment) — if the server still has more pages that
+                    // might contain a match, offer "load more" here too
+                    // instead of a dead-end "no results" screen. See
+                    // docs/ide-improvement-fitur-existing.txt BAGIAN A #5.
                     return scrollableCenter(
-                      ListEmptyState(
-                        icon: Icons.search_off_rounded,
-                        title: l10n.txnListNoResultsTitle,
-                        subtitle: l10n.txnListNoResultsSubtitle,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListEmptyState(
+                            icon: Icons.search_off_rounded,
+                            title: l10n.txnListNoResultsTitle,
+                            subtitle: l10n.txnListNoResultsSubtitle,
+                          ),
+                          if (result.hasMorePages) ...[
+                            const SizedBox(height: 12),
+                            _LoadMoreButton(isLoading: isLoadingMore, onTap: controller.loadMore),
+                          ],
+                        ],
                       ),
                     );
                   }
 
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                    itemCount: filtered.length + 1,
+                    itemCount: filtered.length + 1 + (result.hasMorePages ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: _SummaryRow(result: result),
                         );
+                      }
+                      if (index == filtered.length + 1) {
+                        return _LoadMoreButton(isLoading: isLoadingMore, onTap: controller.loadMore);
                       }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 10),
@@ -124,6 +143,34 @@ class TransactionListPage extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Footer shown whenever `TransactionListResult.hasMorePages` is true — see
+/// docs/ide-improvement-fitur-existing.txt BAGIAN A #5. An explicit tap
+/// (rather than scroll-position-triggered infinite scroll) keeps the
+/// loading behavior predictable and easy to reason about.
+class _LoadMoreButton extends StatelessWidget {
+  const _LoadMoreButton({required this.isLoading, required this.onTap});
+
+  final bool isLoading;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: isLoading
+            ? SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primary),
+              )
+            : TextButton(onPressed: onTap, child: Text(l10n.txnListLoadMore)),
       ),
     );
   }

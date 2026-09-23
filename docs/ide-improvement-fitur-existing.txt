@@ -1,0 +1,559 @@
+IDE IMPROVEMENT — FITUR YANG SUDAH JALAN (BUKAN MODUL BARU)
+=============================================================
+
+Beda dari docs/ide-pengembangan-100.txt (yang isinya 550 ide MODUL/
+FITUR BARU) — dokumen ini fokus ke PERBAIKAN fitur yang SUDAH
+diimplementasikan dan jalan di production sekarang: bug kecil, state
+yang belum di-handle, inkonsistensi pola antar-layar, gap dark mode/
+l10n, dan celah UX. Disusun dari audit menyeluruh ke seluruh
+lib/features/* + lib/core/* + lib/shared/widgets/*, semua temuan
+sudah diverifikasi baca kode langsung (bukan tebakan), dengan
+referensi file:line supaya gampang ditindaklanjuti.
+
+Bukan roadmap resmi — kumpulan temuan untuk disaring & diprioritaskan,
+sama seperti dokumen 550-ide sebelumnya.
+
+
+BAGIAN A — BUG PRIORITAS TINGGI
+---------------------------------------
+1. ✅ **Bug pola `Material`/`ListTile` — ditemukan di 8 lokasi berbeda,
+   akar masalah sama.** `ListTile`/`SwitchListTile` dibungkus langsung
+   di dalam `Container(decoration: BoxDecoration(color: ...))` tanpa
+   `Material` widget di antaranya, sehingga ink-splash-nya
+   berpotensi tidak kelihatan & Flutter debug assertion "ListTile
+   background color or ink splashes may be invisible" muncul terus-
+   menerus. Lokasi:
+   - lib/shared/widgets/settings_tile.dart:18-38 — dipakai di 14
+     tempat (profile_page.dart baris 196,204,211,230,237,252,260,
+     267,274,282,289,302 + edit_profile_page.dart:152,159).
+   - lib/features/profile/presentation/profile_page.dart:493-499
+     (`_BiometricToggleTile`).
+   - lib/features/master_data/presentation/payroll_settings_page.dart:
+     104-123 (toggle akhir bulan).
+   - lib/features/portfolio/presentation/portfolio_form_page.dart:
+     157-176 (toggle akun investasi).
+   Perbaikan: bungkus tiap `ListTile`/`SwitchListTile` dengan
+   `Material(color: Colors.transparent, child: ...)` di dalam
+   `Container`-nya, atau refactor `SettingsTile` sendiri supaya
+   sudah include `Material` lalu 3 lokasi lain reuse widget itu.
+   Area yang SUDAH BENAR (pola pembanding): `_SavingsGoalsCard`
+   (dashboard_page.dart), `_GoalCard`/`_PlanCard`
+   (savings_goal_list_page.dart, membership_plans_page.dart),
+   `_AssetRow` (investment_dashboard_page.dart) — semua pakai
+   `Material` + `InkWell` dengan benar.
+
+2. ✅ **Kontras teks gagal di dark mode — bug nyata, bukan cuma debug-
+   warning.** `_AdvisorTile` (summary_page.dart:746-770) pakai
+   background `AppColors.primaryLight` (theme-aware, jadi ungu gelap
+   di dark mode) tapi teksnya `AppColors.primaryDark` — warna TETAP
+   `Color(0xFF333333)` yang menurut doc comment-nya sendiri
+   (app_colors.dart:36-38) memang cuma didesain untuk teks DI ATAS
+   `primaryGradient`, bukan di atas `primaryLight`. Hasilnya teks
+   nyaris hitam di atas kartu ungu gelap — tidak terbaca. Perbaikan:
+   ganti ke `AppColors.textPrimary`.
+
+3. ✅ **Kontras global di SEMUA `ElevatedButton` saat dark mode.**
+   lib/core/theme/app_theme.dart:92-95 — `foregroundColor: Colors.
+   white` hardcode di atas `backgroundColor: AppColors.primary`.
+   Di light mode primary = merah marun gelap (kontras bagus dengan
+   putih), tapi di dark mode primary = pink pastel terang
+   (app_colors.dart:94) — teks putih di atas pink muda nyaris tidak
+   kebaca (gagal WCAG AA). Ini GLOBAL, ngaruh ke SEMUA tombol utama
+   di seluruh app saat dark mode aktif. Pola sama berulang di:
+   - lib/shared/widgets/filter_pill_bar.dart:56,64,70 (pill terpilih).
+   - lib/shared/widgets/month_period_selector.dart:84,92 (sel bulan
+     terpilih).
+   - lib/features/emergency_fund/presentation/
+     emergency_fund_calculator_page.dart:250 (`_MultiplierChip`).
+   - lib/features/fire_calculator/presentation/fire_calculator_page.
+     dart:343 (`_ReturnRateChip`).
+   Perbaikan: tambah token `AppColors.onPrimary` yang theme-aware
+   (mis. tetap putih di light, tapi teks gelap/`textPrimary` di dark),
+   pakai di semua 5 lokasi ini sekaligus.
+
+4. ✅ **Parsing nominal rupiah salah untuk input pakai titik ribuan.**
+   Ditemukan di savings_goal_form_page.dart:97,185,
+   savings_goal_detail_page.dart:403,509,
+   emergency_fund_calculator_page.dart:47,220,
+   fire_calculator_page.dart (input manual serupa),
+   transaction_form_page.dart:125, budget_form_page.dart:73,
+   recurring_form_page.dart:144 — semua pakai idiom yang sama:
+   `value.replaceAll(RegExp(r'[^0-9.]'), '')` lalu `double.parse`.
+   Karena `formatRupiah` menampilkan titik sebagai pemisah ribuan
+   ("Rp 1.000.000"), user yang ngetik "1.000.000" bisa gagal parse
+   (banyak titik) atau — lebih parah — "1.000" ke-parse jadi `1.0`
+   (nominal 1000x lebih kecil) TANPA error apa pun. Perbaikan: strip
+   titik/koma sebagai pemisah grouping SEBELUM parse, atau batasi
+   input via `inputFormatters` digit-only. Sekalian jadi kandidat
+   kuat untuk 1 helper `parseRupiahInput()` bersama (lihat BAGIAN M).
+
+5. ✅ **Riwayat transaksi diam-diam cuma nampilin halaman 1.**
+   lib/data/repositories/transaction_repository.dart:15-33 — request
+   ke `getTransactions()` tidak pernah kirim parameter `page`, dan
+   `parseListResponse` (json_parsing.dart:24-28) buang info
+   `current_page`/`last_page`/`total` dari response Laravel
+   paginator. Filter default "Semua" (transaction_list_controller.
+   dart:45) berarti transaksi lama otomatis TIDAK BISA DIAKSES lagi
+   begitu lewat 1 halaman backend — tidak ada "load more"/infinite
+   scroll di transaction_list_page.dart:106-121. Lebih parah lagi,
+   ringkasan chip total (`_SummaryRow`) menghitung dari SELURUH data
+   terfilter, sementara list yang kelihatan cuma halaman 1 — angka
+   ringkasan tidak match sama isi layar. Perbaikan: track & kirim
+   `page`, tambah infinite scroll/"muat lebih banyak".
+
+6. ✅ **`dashboard_controller.dart:21-35` — refresh bisa gagal total
+   kalau proses recurring gagal.** `refresh()` await
+   `recurringRepositoryProvider.processDue()` TANPA try/catch SEBELUM
+   set `state = AsyncLoading()`/`AsyncValue.guard(...)`. Kalau
+   `processDue()` throw, seluruh method reject dan Dashboard diam-diam
+   tetap nampilin data lama — pull-to-refresh kelihatan seperti tidak
+   ngapa-ngapain, tanpa pesan error. Perbaikan: bungkus panggilan
+   `processDue()` sendiri dengan try/catch (sesuai niat "best-effort"
+   yang sudah ada di komentar kodenya).
+
+
+BAGIAN B — LOKALISASI (BAHASA INGGRIS BELUM KONSISTEN)
+---------------------------------------
+Catatan baik: cakupan l10n secara umum SUDAH BAGUS (588 key
+konsisten di app_id.arb & app_en.arb, digrep menyeluruh dan hampir
+tidak ada `Text('...')` literal yang lolos). Tapi ada beberapa celah
+spesifik:
+
+7. `CategoryTypeLabel.label` (lib/data/models/category_model.dart:
+   4-7) hardcode `'Pemasukan'`/`'Pengeluaran'`, dipakai di
+   transaction_form_page.dart:465 — subtitle kategori tetap Bahasa
+   Indonesia meski app di-switch ke English.
+8. `RecurringFrequencyLabel.label` (lib/data/models/
+   recurring_transaction_model.dart:6-12) hardcode
+   `'Harian'/'Mingguan'/'Bulanan'/'Tahunan'`, dipakai di 3 tempat
+   (recurring_list_page.dart:141, recurring_form_page.dart:278,373).
+9. `formatCompactRupiah()` (core/utils/formatters.dart:66-73)
+   hardcode singkatan Indonesia "jt"/"rb"/"M" tanpa parameter
+   `Locale`, dipakai buat label sumbu Y grafik tren bulanan
+   (summary_page.dart:677) — user berbahasa Inggris tetap lihat
+   "5.0jt"/"3rb" di grafik.
+10. `tradingview_chart.dart:70` — `"locale": "id"` hardcode di config
+    JS widget TradingView, tidak ngikut locale app.
+11. `main_shell.dart:30-45,50-65` (`_navLabelFor`/`_navTourCopyFor`) —
+    fallback `default: return permission;` bakal nampilin string
+    permission mentah (mis. literal "portfolio") kalau ada tab baru
+    ditambah tanpa update switch-case-nya. Belum ke-trigger sekarang,
+    tapi jebakan laten untuk tab berikutnya.
+12. `savings_goal_style.dart:24-30` (`savingsGoalColorLabel`) — dead
+    code (tidak dipanggil di manapun, sudah dikonfirmasi grep), isinya
+    campur Indonesia ("Hijau"/"Biru") + Inggris ("Rose"), lewat l10n
+    sama sekali. Hapus kalau memang tidak dipakai, atau rapikan lewat
+    l10n kalau mau dipakai nanti.
+
+
+BAGIAN C — DARK MODE & THEMING KONSISTENSI (SELAIN BAGIAN A)
+---------------------------------------
+13. ✅ `lib/shared/widgets/tradingview_chart.dart:31,67,68,71` — chart
+    TradingView di AssetDetailPage SELALU tampil tema terang
+    (`setBackgroundColor(Colors.white)`, `"theme": "light"`,
+    `"toolbar_bg": "#f7f8fc"`), tidak pernah ngikut dark mode app —
+    kotak putih terang mencolok di halaman yang lagi dark mode.
+14. ✅ Palet warna chart/avatar di-hardcode di 2 tempat berbeda dengan
+    nilai yang SAMA persis, alih-alih reuse `AppColors`:
+    `investment_dashboard_page.dart:228-234` (`_AssetRow._palette`)
+    dan `summary_page.dart:567-574` (`_BreakdownChart._palette`) —
+    keduanya punya `Color(0xFF0EA5A4)` & `Color(0xFFE2B4BD)` sendiri-
+    sendiri (padahal `0xFFE2B4BD` itu sudah ada sebagai
+    `AppColors.primaryGradient[0]`). Perbaikan: satu
+    `AppColors.chartPalette` bersama.
+15. ✅ `savings_goal_style.dart:12` — `_infoColor = Color(0xFF2563EB)`
+    warna biru fixed di luar `AppColors`, belum pernah dicek
+    kontrasnya terhadap surface/background dark mode.
+16. ✅ `lib/shared/widgets/primary_button.dart:23` —
+    `CircularProgressIndicator(color: Colors.white)` di atas tombol
+    `AppColors.primary` — severity rendah (spinner, bukan teks), tapi
+    pola sama seperti BAGIAN A #3, belum diverifikasi kontrasnya di
+    dark mode.
+
+
+BAGIAN D — VALIDASI FORM & INPUT
+---------------------------------------
+17. `transaction_form_page.dart:57-65` — tanggal transaksi biasa bisa
+    dipilih sampai 365 hari ke DEPAN tanpa peringatan (transaksi kan
+    seharusnya sesuatu yang sudah terjadi). Beda dengan recurring yang
+    memang wajar punya start date di masa depan.
+18. `savings_goal_form_page.dart:60-66` (`_pickTargetDate`) —
+    `firstDate: DateTime(2020)` tanpa batas bawah "hari ini", target
+    tanggal goal bisa di-set ke masa lalu.
+19. `savings_goal_detail_page.dart:372-378` (`_pickDate`) — tanggal
+    kontribusi/penarikan bisa dipilih sampai 1 TAHUN ke depan,
+    padahal ini catatan uang yang SUDAH berpindah (semestinya tidak
+    boleh di masa depan).
+20. Validasi email cuma cek `value.contains('@')` — lolos untuk input
+    seperti "@" doang. Dipakai di register_page.dart:154 DAN
+    edit_profile_page.dart:135 (duplikat, sama-sama lemah). Perbaikan:
+    regex email yang benar, satu validator dipakai bersama.
+21. `forgot_password_page.dart:122-133` — field nomor HP cuma validasi
+    "tidak boleh kosong", tidak ada cek format angka.
+22. `emergency_fund_calculator_page.dart:216-221` &
+    `fire_calculator_page.dart:295-307` — input manual rata-rata
+    income/expense tidak dikasih `validator`/`errorText` sama sekali
+    (padahal `AppTextField` sudah support parameter itu). Input salah/
+    kosong cuma bikin kartu rekomendasi nampilin "—" tanpa penjelasan,
+    dan tombol "Buat Goal" disabled tanpa alasan yang jelas ke user.
+23. `fire_calculator_page.dart:100` — `hasUsableData` tidak pernah
+    cek `income > expense`; kalau pengeluaran > pemasukan (saving rate
+    negatif), hasilnya "belum tercapai" setelah simulasi 60 tahun
+    tanpa penjelasan KENAPA (bukan karena kurang data, tapi karena
+    memang minus tiap bulan).
+24. `fire_calculator_controller.dart:105-123` (`projectFire`) — tidak
+    ada guard untuk `annualReturnRate <= -1` (bikin saldo
+    collapse/negatif tiap tahun). Belum ke-trigger karena UI cuma
+    kasih pilihan chip tetap, tapi fungsinya sendiri tidak defensif
+    kalau nanti ditambah input custom.
+25. `crypto_price_model.dart:82-85` (`_floatingPnl`) — pembagian
+    `currentValueIdr * pct / (100 + pct)` bisa division-by-zero/NaN
+    kalau `pct == -100` (harga collapse total), hasilnya lolos ke
+    `formatRupiah` tanpa guard.
+26. `btc_entry_form_page.dart:209-214` — validator amount lolosin
+    `parsed == 0` (entry Profit/Loss Rp 0), tidak konsisten dengan
+    `transfer_form_page.dart:245-250` yang menolak `<= 0`.
+27. `transfer_form_page.dart` — tidak ada cek saldo cukup di sisi
+    klien sama sekali (murni delegasi ke error backend), DAN
+    `_AccountPickerField`/`_AccountPickerSheet` (baris 308-419) tidak
+    pernah nampilin saldo tiap akun — user tidak tahu transfer bakal
+    gagal sebelum submit.
+28. `transfer_form_page.dart:344-345` — `_AccountPickerField.onTap`
+    pakai no-op `() {}` (bukan `null`) saat daftar akun kosong, jadi
+    InkWell keliatan "aktif"/ripple padahal tidak ngapa-ngapain —
+    beda dengan `btc_entry_form_page.dart:165` yang sudah benar pakai
+    `null` buat disable tap target.
+29. `payroll_cycle_provider.dart:30-33` — kalau backend lupa kirim
+    `cycle_start_date`/`cycle_end_date`, provider diam-diam fallback
+    ke tanggal 1 s/d akhir bulan kalender, MENGABAIKAN
+    `payroll_start_day` yang user set — bisa bikin Dashboard/Budget/
+    Summary tampil rentang tanggal yang salah tanpa error apa pun
+    (komentar kode sendiri sudah mengakui risiko "silently drifting"
+    ini). Perbaikan: perlakukan data cycle yang hilang sebagai error
+    state, bukan fallback diam-diam.
+
+
+BAGIAN E — EMPTY/LOADING/ERROR STATE BELUM KONSISTEN
+---------------------------------------
+30. Tiap section di Dashboard (akun harian, akun investasi, sumber
+    pemasukan, kategori terbesar, transaksi terbaru —
+    dashboard_page.dart:201-254) langsung HILANG total kalau datanya
+    kosong (`if (x.isNotEmpty)`), tidak ada CTA/pesan "belum ada
+    data" — user baru lihat Dashboard nyaris kosong tanpa panduan.
+    9 halaman list lain di app ini (Portfolio, Transaction, Category,
+    dst.) sudah konsisten pakai widget bersama `ListEmptyState` untuk
+    kasus ini, Dashboard/Summary belum sama sekali.
+31. `budget_list_page.dart:75-83` — empty state cuma `Text` polos di
+    tengah layar, tidak pakai `ListEmptyState` (icon+title+subtitle)
+    seperti Transaction/Recurring list yang sudah konsisten satu sama
+    lain.
+32. `membership_plans_page.dart:90-107` — kalau list paket kosong,
+    cuma render `Column` kosong di bawah heading "Pilih Paket", tanpa
+    `ListEmptyState` sama sekali.
+33. `asset_detail_page.dart:61` — error fetch harga (network gagal,
+    rate limit CoinGecko 429) diperlakukan SAMA seperti "belum ada
+    data" (`SizedBox.shrink()`), padahal ada widget `_NoPriceNotice`
+    yang sengaja dibuat untuk kasus "harga null tapi request sukses"
+    — dua kondisi beda ini jadi tidak terbedakan ke user.
+34. `portfolio_list_page.dart:240-250` — kalau `balance == null`,
+    baris saldo di tile langsung HILANG tanpa placeholder apa pun
+    ("—" misalnya), kelihatan seperti tile-nya rusak/setengah jadi.
+35. `_SavingsGoalsCard` (dashboard_page.dart:436-438) dan
+    `_BudgetHealthCard`/badge % month-over-month (summary_page.dart:
+    387-397, summary_controller.dart:33-46) — error fetch & "tidak
+    ada data" sama-sama menghasilkan `SizedBox.shrink()`, tidak
+    terbedakan (disengaja untuk "jangan sampai fitur pelengkap bikin
+    halaman utama crash", tapi user tidak pernah tahu ada yang gagal
+    vs memang belum ada apa-apa).
+36. Inkonsistensi visual widget error: dashboard_page.dart &
+    summary_page.dart pakai `ListErrorState` bersama (icon+pesan+
+    tombol retry), tapi emergency_fund_calculator_page.dart:64-83 dan
+    fire_calculator_page.dart:77-96 bikin blok error sendiri yang
+    MIRIP tapi TANPA ikon. Perbaikan: `ListErrorState` dipindah ke
+    lib/shared/widgets/ resmi, dipakai di semua kalkulator juga.
+
+
+BAGIAN F — PERFORMA & SKALABILITAS
+---------------------------------------
+37. `transaction_list_page.dart:38-41` — `searchQuery` di-watch di
+    level PALING ATAS `build()`, jadi tiap ketikan huruf di search box
+    rebuild SELURUH halaman (AppBar, filter bar, FAB), bukan cuma
+    list-nya. Perbaikan: pindahkan watch+filter ke `Consumer` kecil
+    yang cuma bungkus `ListView.builder`.
+38. List yang dibangun EAGER (`ListView` + `for` loop, bukan
+    `.builder`/`.separated`) di banyak tempat, tidak konsisten dengan
+    pola lazy yang sudah dipakai di Transaction/Category/Recurring
+    list: budget_list_page.dart:85-106, savings_goal_list_page.dart:
+    53, savings_goal_detail_page.dart:55,85,
+    investment_dashboard_page.dart:106-131, dashboard_page.dart
+    (`_DashboardBody`, 122-256), summary_page.dart (`_SummaryBody`,
+    84-166). Risiko rendah sekarang (jumlah item masih kecil), tapi
+    tidak akan scale & tidak konsisten kalau dibiarkan.
+39. `recurring_list_page.dart` build() memanggil `GET
+    /money-management/recurring` yang punya SIDE EFFECT diam-diam
+    (auto-proses recurring yang jatuh tempo) tiap kali halaman dibuka
+    — sama seperti `processDue()` yang dipanggil dari Dashboard
+    refresh. Tidak ada toast/banner "N transaksi berulang otomatis
+    dibuat" ke user (padahal ini sudah jadi ide #37 di
+    ide-pengembangan-100.txt, belum dibangun) — transaksi baru bisa
+    muncul di riwayat tanpa sebab yang kelihatan bagi user.
+
+
+BAGIAN G — NOTIFIKASI (GAP RENCANA VS IMPLEMENTASI)
+---------------------------------------
+Merujuk docs/flutter-notifications-plan.txt yang statusnya MASIH
+tertulis "DRAFT PLAN - belum diimplementasikan" padahal Fase 1 & 2
+sudah jalan — dokumennya sendiri sudah usang (lihat BAGIAN L).
+
+40. `notification_service.dart:37-39` — `_plugin.initialize(...)`
+    tidak pernah dikasih `onDidReceiveNotificationResponse`. Tap
+    notifikasi budget-terlampaui TIDAK melakukan apa-apa, padahal
+    rencana aslinya (BAGIAN 2.3 & Fase 3 dokumen plan) jelas minta
+    "tap notifikasi → buka halaman Budget".
+41. Tidak ada notifikasi "Budget hampir habis (>=80%)" — cuma ada
+    untuk yang SUDAH over budget (`budget_controller.dart:50-51` cuma
+    cek `isOverBudget`), padahal ini item pertama yang direkomendasikan
+    di plan doc-nya sendiri (BAGIAN 1.1.b).
+42. Tidak ada toast/riwayat "N transaksi berulang otomatis dibuat"
+    (plan BAGIAN 1.1.c) — lihat juga BAGIAN F #39 di atas.
+43. Tidak ada UI riwayat notifikasi in-app maupun preferensi
+    notifikasi di Profile (mute/threshold custom) — sekali notifikasi
+    budget-terlampaui hilang dari tray OS, tidak ada cara lihat lagi
+    dari dalam app.
+
+
+BAGIAN H — PERMISSION GATING BELUM KONSISTEN
+---------------------------------------
+44. Tile menu di ProfilePage (Portfolio, Savings Goal, Investment/BTC
+    — profile_page.dart:196-216) pakai `context.push(...)` polos,
+    TIDAK cek `user.hasPermission(...)` dulu — beda dengan pola yang
+    sudah dipakai konsisten di bottom-nav (main_shell.dart),
+    transaction_list_page.dart:22-32, dan portfolio_list_page.dart:
+    23-33 (semuanya: cek permission → kalau tidak boleh, snackbar +
+    redirect upgrade). User dengan permission terbatas yang tap tile
+    ini cuma "dipental" diam-diam oleh redirect defense-in-depth di
+    router (app_router.dart:156-159), tanpa penjelasan sama sekali.
+45. docs/flutter-navbar-permission-gating-plan.txt BAGIAN 0 (baris
+    53-59) secara eksplisit memutuskan Kategori/Provider Investasi/
+    Siklus Gajian TIDAK BOLEH digating permission apa pun — tapi kode
+    aktualnya (app_router.dart:65-78) menggating ketiganya lewat
+    warisan permission `settings` dari prefix `/profile`. Implementasi
+    menyimpang dari keputusan yang sudah didokumentasikan.
+46. `/savings-goals` digating permission code `'savings-goals'`
+    (app_router.dart:74), tapi kode ini TIDAK ADA di tabel kanonis
+    permission plan doc (baris 30-44) — perlu diverifikasi ke admin
+    panel apakah kode ini benar-benar ada di backend App Roles, kalau
+    tidak, semua user permanen terkunci dari Savings Goals.
+47. `/profile/membership` (halaman upgrade) ada DI DALAM `/profile`
+    yang sendirinya butuh permission `settings` — user tanpa
+    `settings` tidak punya jalan reachable buat upgrade sama sekali
+    (risiko redirect loop balik ke diri sendiri). Sudah diprediksi di
+    plan doc-nya (baris 117-126, 148-155) tapi belum diperbaiki.
+
+
+BAGIAN I — AKSESIBILITAS
+---------------------------------------
+48. Toggle mata "sembunyikan nominal" di Net Worth card
+    (dashboard_page.dart:369-380) area tap-nya cuma ~28x28 (di bawah
+    minimum 48x48), dan tidak ada `Semantics`/`Tooltip` label sama
+    sekali.
+49. `Semantics`/`Tooltip` HAMPIR TIDAK PERNAH dipakai di seluruh app —
+    digrep di Dashboard/Summary/kalkulator, nol hasil. Semua ikon-
+    only affordance (chevron "buka halaman X", eye toggle, dst) tidak
+    punya nama yang bisa diumumkan screen reader.
+50. `lib/shared/widgets/pin_code_field.dart:76-88` — `TextField`
+    tersembunyi yang jadi input PIN tidak punya label aksesibilitas
+    apa pun — screen reader cuma dengar "text field kosong", tidak
+    tahu ini input PIN digit ke berapa.
+
+
+BAGIAN J — TUR ONBOARDING (FITUR BARU, PERLU POLISH)
+---------------------------------------
+51. Urutan step gelombang 2 tour_controller.dart:159-163
+    ([tourPayrollTileKey, tourPortfolioTileKey]) TIDAK match urutan
+    visual di halaman: tile Portfolio ada DI ATAS (profile_page.dart:
+    189-202, dekat header) sedangkan tile Payroll jauh di BAWAH
+    (section "Lainnya", baris 245-258). Karena scroll ProfilePage
+    reset ke 0 tiap dibuka, tur jadi auto-scroll ke BAWAH dulu
+    (Payroll) baru MELOMPAT balik ke ATAS (Portfolio) — pengalaman
+    yang membingungkan. Perbaikan: cocokkan urutan tur dengan urutan
+    visual top-to-bottom di halaman (Portfolio dulu, baru Payroll),
+    atau reorder tile di halaman biar match urutan tur.
+52. Tidak ada tombol "Lewati Tur" yang eksplisit — satu-satunya cara
+    membatalkan tur di tengah jalan adalah tap area gelap di luar
+    spotlight (implisit, tidak terdokumentasi ke user lewat UI apa
+    pun).
+
+
+BAGIAN K — SCAN STRUK OCR (FITUR BARU, PERLU POLISH)
+---------------------------------------
+53. transaction_form_page.dart:89-109 — pesan sukses "berhasil diisi
+    otomatis" muncul TANPA SYARAT begitu OCR berhasil BACA teks, meski
+    ketiga parser (amount/date/description) semuanya balikin `null`
+    dan tidak ada satu field pun yang ke-isi. Foto apa pun yang ada
+    tulisannya (bukan struk sekalipun) bisa kebaca "sukses" dengan
+    form tetap kosong.
+54. Tidak ada indikator visual permanen field mana yang ke-isi dari
+    OCR (cuma snackbar sekali muncul lalu hilang) — sudah diprediksi
+    sebagai nice-to-have di docs/flutter-ocr-scan-struk-plan.txt
+    BAGIAN 5.1 tapi belum dibangun. User yang sudah geser dari
+    snackbar tidak tahu lagi field mana yang perlu di-double-check.
+55. `receipt_parser.dart:25-45` — fallback pencarian nominal
+    (`_largestNumberIn`) ambil angka terbesar ≥4 digit di MANA PUN di
+    teks struk kalau tidak ketemu baris "total" — bisa salah ambil
+    nomor telepon/nomor invoice/nomor kartu member yang kebetulan
+    lebih besar dari nominal transaksi sungguhan, tanpa indikator
+    "ini hasil tebakan" vs "ini match kata kunci total".
+
+
+BAGIAN L — DOKUMENTASI YANG SUDAH USANG (STALE DOCS)
+---------------------------------------
+56. docs/flutter-navbar-permission-gating-plan.txt — header masih
+    "Status: DRAFT PLAN - belum diimplementasikan, siap eksekusi" dan
+    checklist-nya (baris 185-196) semua masih `[ ]` kosong, padahal
+    fiturnya SUDAH lengkap jalan di main_shell.dart/app_router.dart.
+    Gating-nya sendiri juga sudah berkembang jauh melebihi 5-route
+    yang direview di plan (baris 136-142) — recurring, internal-
+    transfers, savings-goals, budgets, btc-tracking, plus 2
+    kalkulator, semua ditambahkan tanpa update balik ke dokumen
+    plan-nya. Tidak ada satu sumber kebenaran yang up-to-date soal
+    aturan gating saat ini.
+57. docs/flutter-notifications-plan.txt — sama, header masih "DRAFT
+    PLAN - belum diimplementasikan" dan checklist (baris 197-213)
+    semua kosong, padahal Fase 1 (setup native) & Fase 2 (budget-
+    exceeded) sudah jelas dibangun (lihat BAGIAN G).
+58. lib/features/recurring/presentation/recurring_list_page.dart:
+    15-18 — komentar class secara eksplisit bilang "No edit here (the
+    API only has create/delete...)" — ini SALAH TOTAL, edit recurring
+    sudah berfungsi penuh (tile `onTap` push ke form dengan data
+    existing, controller punya `editRecurring()`, repository panggil
+    `PUT`). Komentar usang ini bisa nyesatin developer berikutnya
+    (mengira fitur edit belum ada, atau malah "membenerkan" sesuatu
+    yang sudah benar).
+
+
+BAGIAN M — CODE QUALITY / DRY / DEAD CODE
+---------------------------------------
+59. Format tanggal API `DateFormat('yyyy-MM-dd').format(...)`
+    diulang 12x di 6 file berbeda (btc_tracking_repository.dart,
+    recurring_repository.dart, savings_goal_repository.dart,
+    transaction_repository.dart, transfer_repository.dart) alih-alih
+    1 helper `formatApiDate()` bersama di formatters.dart.
+60. Format persen (`toStringAsFixed(0)` + manual `'%'`) diulang di 5
+    lokasi (summary_page.dart baris 327,373,627,
+    fire_calculator_page.dart baris 216,341) — kandidat
+    `formatPercent()` bersama.
+61. Idiom parsing nominal (BAGIAN A #4) + validatornya di-copy-paste
+    persis 3x (transaction_form_page.dart, budget_form_page.dart,
+    recurring_form_page.dart) — sekali butuh ubah aturan (mis. tambah
+    batas maksimal), harus diubah manual di 3 tempat.
+62. `MembershipPlan.isActive` (membership_plan_model.dart:37) di-parse
+    dari API tapi TIDAK PERNAH dipakai di manapun (dikonfirmasi grep)
+    — kalau backend suatu saat balikin paket nonaktif/retired, tetap
+    tampil & bisa dipilih normal tanpa filter/badge apa pun.
+63. `_AppFooter`'s `FutureBuilder<PackageInfo>` (profile_page.dart:
+    437-446) manggil `PackageInfo.fromPlatform()` ULANG tiap kali
+    ProfilePage rebuild (mis. tiap ganti tema/bahasa), sempat kedip
+    balik ke versi fallback "1.0.0" sebelum resolve lagi. Perbaikan:
+    cache lewat `Provider`/`FutureProvider`.
+64. Tahun copyright hardcode literal `'© 2026 Kodevisual...'`
+    (profile_page.dart:472) — bakal salah otomatis mulai 2027 kalau
+    tidak ada yang inget update manual.
+65. `biometric_enable_prompt.dart:27-30` — `incrementShownCount()`
+    dipanggil SEBELUM cek `context.mounted`, jadi kalau context
+    ke-unmount di antara 2 await, 1 dari 3 kesempatan seumur hidup
+    buat nawarin enroll biometrik terbakar diam-diam tanpa dialog-nya
+    pernah kelihatan ke user.
+66. `change_pin_page.dart:42-88` — kesalahan PIN LAMA baru ketahuan di
+    langkah PALING TERAKHIR (setelah PIN baru+konfirmasi diketik
+    semua), dan kalau gagal, SELURUH alur 3 langkah reset ke awal
+    (baris 78-87) — user harus ngetik ulang PIN baru & konfirmasi
+    juga padahal cuma PIN lama yang salah. Perbaikan: validasi PIN
+    lama langsung setelah langkah 1.
+67. Tidak ada jalur "lupa PIN" di manapun (dikonfirmasi grep) — satu-
+    satunya "keluar" dari VerifyPinPage adalah logout total
+    (verify_pin_page.dart:160-163), tapi login ulang balik lagi ke
+    `/pin/verify` karena akun masih `hasPin: true` — dead end murni,
+    padahal password sudah punya alur reset lengkap via admin.
+68. `biometric_enable_prompt.dart:56-73` — dialog gagal enroll
+    biometrik cuma kasih tombol "OK", tidak ada "Coba Lagi" — user
+    harus cari sendiri toggle-nya lagi di Profile.
+69. `_ProfileHeader` avatar (profile_page.dart:342-352) — kalau
+    `avatarUrl` ada tapi gambar gagal load (404/network), tidak ada
+    `onBackgroundImageError` fallback ke inisial nama — user lihat
+    lingkaran kosong/rusak.
+70. User Guide PDF tile (profile_page.dart, `_openUserGuide`) tidak
+    ada indikator loading selagi nyalin asset ~200KB & buka share
+    sheet — di device lambat, tap-nya kelihatan tidak merespons.
+
+
+BAGIAN N — LAIN-LAIN (KONSISTENSI UX KECIL)
+---------------------------------------
+71. `budget_list_page.dart:117,141-149` (`_SummaryCard`) — status over
+    budget TOTAL cuma ditandai lewat WARNA progress bar berubah merah,
+    teks caption-nya sama persis baik over maupun under budget (beda
+    dengan `_BudgetCategoryCard` yang memang ganti kata-katanya kalau
+    over) — sinyal warna-doang murni untuk kartu total.
+72. `budget_model.dart:72` — `progress` di-clamp 0-1, jadi begitu over
+    budget, progress bar-nya mentok 100% terlepas dari over-nya 1%
+    atau 300% — cuma angka Rupiah di caption yang kasih tahu
+    besarannya.
+73. Tidak ada status "hampir habis" (mis. >=80%) di model/controller/
+    UI budget manapun (dikonfirmasi grep) — user cuma dikasih tahu
+    SETELAH sudah kebablasan lewat 100%, tanpa peringatan dini (ini
+    juga terhubung ke BAGIAN G #41 soal notifikasi).
+74. Recurring list (`recurring_list_page.dart`) sama sekali tidak
+    punya search/filter apa pun, padahal Transaction list di sebelahnya
+    (struktur mirip) punya 3 dimensi filter sekaligus (pencarian,
+    tanggal, tipe) — inkonsistensi UX yang belum dijelaskan alasannya.
+75. Tile recurring (recurring_list_page.dart:104-128) pakai ikon SAMA
+    (`Icons.autorenew_rounded`) untuk income maupun expense, cuma
+    warna lingkarannya beda — beda dengan tile Transaction utama yang
+    pakai ikon arah BEDA (panah atas/bawah) + warna. Tanda "+"/"-" di
+    nominal masih membantu bedain, tapi sinyalnya lebih lemah.
+76. 3 filter independen di Transaction list (pencarian, shortcut
+    tanggal, tipe) bisa aktif bersamaan tanpa badge "N filter aktif"
+    ataupun tombol "reset semua" — user harus clear satu-satu.
+77. Kategori/picker kosong (transaction_form_page.dart:474-480,
+    budget_form_page.dart:102-105,138-148) nampilin pesan "belum ada
+    kategori untuk tipe ini" tapi `onTap`-nya no-op — tidak ada jalan
+    pintas ke halaman buat kategori baru, user stuck.
+
+
+Kalau ada yang mau diprioritaskan buat dikerjakan duluan, kandidat
+paling berdampak: BAGIAN A (semua) — terutama #1 (bug Material di 8
+lokasi, perbaikannya murah tapi menyebar luas), #3 (kontras tombol
+dark mode, global), #4 (parsing nominal salah, bisa bikin data
+finansial user SALAH tanpa error), dan #5 (riwayat transaksi kepotong
+diam-diam di halaman 1).
+
+
+BAGIAN A.1 — TAMBAHAN: DATA AKUN LAMA MASIH MUNCUL SETELAH GANTI AKUN
+---------------------------------------
+Dilaporkan langsung oleh user (bukan dari audit awal) — masuk kategori
+prioritas tinggi yang sama seperti BAGIAN A, ditambahkan di sini biar
+tidak perlu renumbering seluruh dokumen.
+
+78. ✅ Setelah logout lalu login pakai akun BERBEDA di device/sesi yang
+    sama (tanpa restart app), Dashboard/Transaksi/Budget/Portfolio/
+    Savings Goals/Recurring/Summary/BTC Tracking/Kategori/Provider
+    Investasi/Siklus Gajian/Transfer semua masih nampilin data akun
+    LAMA sampai user pull-to-refresh manual tiap halaman satu-satu.
+    Akar masalah: 13 provider `AsyncNotifierProvider` (satu per modul
+    di atas) sengaja BUKAN `autoDispose` (biar data tetap ada saat
+    pindah tab, tidak fetch ulang tiap kali), tapi `AuthController.
+    logout()`/`forceLogout()` (lib/features/auth/application/
+    auth_controller.dart) cuma reset state auth + PIN + biometric —
+    tidak pernah bilang ke 13 provider itu "data kamu sudah tidak
+    valid lagi". Perbaikan: file baru
+    lib/core/providers/user_data_reset.dart — fungsi
+    `invalidateUserDataProviders(ref)` yang panggil `ref.invalidate()`
+    ke semua 13 provider sekaligus, dipanggil dari `logout()` DAN
+    `forceLogout()` (kasus token expired/401 butuh reset yang sama).
+    Provider `.autoDispose` (kalkulator, harga crypto, dst.) sengaja
+    TIDAK dimasukkan — itu sudah otomatis bersih sendiri begitu
+    halamannya ke-unmount saat redirect ke /login.
+    PENTING buat developer berikutnya: provider data-per-user BARU
+    yang dibuat (AsyncNotifierProvider non-autoDispose) HARUS
+    ditambahkan ke daftar di user_data_reset.dart juga, atau bug yang
+    sama bakal muncul lagi diam-diam.

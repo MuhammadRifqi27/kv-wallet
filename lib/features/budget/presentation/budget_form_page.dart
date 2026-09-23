@@ -70,7 +70,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
       _error = null;
     });
 
-    final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final amount = parseRupiahInput(_amountController.text)!;
 
     try {
       await ref.read(budgetControllerProvider.notifier).addBudget(
@@ -185,7 +185,7 @@ class _BudgetFormPageState extends ConsumerState<BudgetFormPage> {
                   onFieldSubmitted: (_) => _submit(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
-                    final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
+                    final parsed = parseRupiahInput(value);
                     if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
                     return null;
                   },

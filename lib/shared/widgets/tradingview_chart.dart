@@ -3,6 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../core/theme/app_colors.dart';
+
 /// Embeds TradingView's public "Advanced Chart" widget (no API key —
 /// TradingView doesn't offer a data API for third parties, only this
 /// embeddable widget; see docs discussion in the Investment feature). Pass
@@ -26,9 +28,18 @@ class _TradingViewChartState extends State<TradingViewChart> {
   @override
   void initState() {
     super.initState();
+    // AppColors.isDark reflects the theme FlowrApp.build resolved for this
+    // frame (see that class's doc comment) — read once here at load time.
+    // The chart doesn't need to react to a LATER theme change while still
+    // mounted: this widget only ever appears on AssetDetailPage, a pushed
+    // (non-kept-alive) route reached from a different tab than Profile's
+    // theme toggle, so reaching it again after switching themes always
+    // means a fresh push (and therefore a fresh initState) with the
+    // current theme already correct. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN C #13.
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.white)
+      ..setBackgroundColor(AppColors.surface)
       ..loadHtmlString(_html(widget.symbol));
   }
 
@@ -40,8 +51,14 @@ class _TradingViewChartState extends State<TradingViewChart> {
     }
   }
 
+  /// `#rrggbb` for TradingView's `toolbar_bg` JS config, which only takes a
+  /// plain hex string.
+  static String _toHex(Color color) => '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+
   String _html(String symbol) {
     final tvSymbol = 'BINANCE:${symbol.toUpperCase()}USDT';
+    final tvTheme = AppColors.isDark ? 'dark' : 'light';
+    final toolbarBg = _toHex(AppColors.surface);
     return '''
 <!DOCTYPE html>
 <html>
@@ -65,10 +82,10 @@ class _TradingViewChartState extends State<TradingViewChart> {
         "symbol": "$tvSymbol",
         "interval": "D",
         "timezone": "Asia/Jakarta",
-        "theme": "light",
+        "theme": "$tvTheme",
         "style": "1",
         "locale": "id",
-        "toolbar_bg": "#f7f8fc",
+        "toolbar_bg": "$toolbarBg",
         "enable_publishing": false,
         "hide_top_toolbar": false,
         "hide_legend": false,

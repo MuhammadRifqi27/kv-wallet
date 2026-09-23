@@ -9,6 +9,13 @@ import '../../../l10n/app_localizations.dart';
 /// mapping, per docs/mobile-api-reference.md's note that `color` is "app
 /// yang menentukan pemetaan ke aset ikon di sisi mobile". `info` has no
 /// existing token in [AppColors], so a plain blue is used just for this.
+/// Deliberately NOT theme-aware, same as [AppColors.success]/[accent]/
+/// [error] — [AppColors]' own class doc establishes semantic colors as
+/// fixed across both themes, and this is a goal-color option of the exact
+/// same kind, not a UI surface color. Verified against both theme
+/// backgrounds: sufficiently saturated to read clearly on both the light
+/// (`0xFFF7F8FC`) and dark (`0xFF14131A`) background tokens. See
+/// docs/ide-improvement-fitur-existing.txt BAGIAN C #15.
 const _infoColor = Color(0xFF2563EB);
 
 const savingsGoalColorOptions = ['primary', 'success', 'info', 'warning', 'danger'];

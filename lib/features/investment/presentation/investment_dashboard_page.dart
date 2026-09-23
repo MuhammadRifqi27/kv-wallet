@@ -228,9 +228,9 @@ class _AssetRow extends StatelessWidget {
   static List<Color> get _palette => [
         AppColors.primary,
         AppColors.accent,
-        const Color(0xFF0EA5A4),
-        const Color(0xFF6366F1),
-        const Color(0xFFE2B4BD),
+        AppColors.chartTeal,
+        AppColors.chartIndigo,
+        AppColors.primaryGradient[0],
       ];
 
   Color get _avatarColor => _palette[balance.asset.hashCode.abs() % _palette.length];

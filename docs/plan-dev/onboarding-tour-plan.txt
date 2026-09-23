@@ -1,0 +1,381 @@
+BLUEPRINT — ONBOARDING INTERAKTIF / TOUR FITUR
+=============================================================
+
+Status: SUDAH DIIMPLEMENTASIKAN (kode selesai, `flutter analyze` bersih,
+sudah dites jalan di device fisik Android — lihat CATATAN
+IMPLEMENTASI di BAGIAN 3 untuk API `showcaseview` v5 yang berbeda
+dari rencana awal, dan CATATAN TEMUAN di akhir dokumen untuk 1 bug
+pra-existing yang ketemu saat testing, di luar scope tur ini).
+
+Ide #67 dari docs/ide-pengembangan-100.txt ("Onboarding interaktif/tour
+fitur untuk user baru, di luar slide perkenalan yang sudah ada").
+Dokumen ini merinci scope, pendekatan teknis, dan rencana implementasi
+sebelum mulai coding.
+
+
+BAGIAN 0 — SCOPE & KEPUTUSAN YANG SUDAH DIAMBIL
+-----------------------------------------
+Slide perkenalan yang sudah ada (lib/features/onboarding/presentation/
+onboarding_page.dart) adalah carousel marketing 4 slide yang tampil
+SEBELUM login/register — tidak menjelaskan elemen UI nyata di dalam
+app. Fitur ini terpisah: coach-mark/spotlight yang menyorot elemen UI
+sungguhan setelah user berada di Dashboard.
+
+Keputusan (sudah dikonfirmasi, bukan open decision):
+- Package: `showcaseview` — bukan hand-rolled Overlay/CustomPainter.
+  App ini sengaja minim dependency (17 dependency non-dev saat ini,
+  tidak ada package tutorial/coach-mark sama sekali), tapi effort
+  hand-rolled spotlight+tooltip+positioning dinilai tidak sepadan untuk
+  fitur ini.
+- Scope v1: Dashboard (Net Worth card, grid statistik, Savings Goals
+  card) + 5 ikon bottom-nav (Dashboard/Transactions/Summary/Budget/
+  Profile), ditutup dengan 2 step tambahan di halaman Profile: tile
+  "Atur Siklus Gajian" (Payroll) dulu, baru tile Portfolio — urutan ini
+  sesuai arahan user, karena setting payroll dianggap sumber data buat
+  portfolio mereka di app ini (catatan: ini keputusan urutan UX dari
+  user, bukan dependency teknis yang sudah diverifikasi dari kode —
+  Portfolio page tetap berfungsi walau Payroll belum di-setting).
+  TIDAK masuk ke dalam tiap halaman tab lainnya (mis. tidak menyorot
+  FAB "tambah transaksi" di Transactions, tidak menyorot isi halaman
+  Portfolio/Payroll itu sendiri, cukup tile pintasannya di Profile) —
+  itu scope v2 kalau dirasa perlu.
+- Trigger: auto-tampil SEKALI per device saat user baru pertama
+  mendarat di Dashboard dengan data ter-load, plus tombol manual
+  "Lihat Tour Fitur" di Profile untuk mengulang kapan saja (mengabaikan
+  status "sudah pernah lihat").
+- Persist status "sudah pernah lihat" per-device (SharedPreferences),
+  BUKAN per-akun — pola sama persis seperti OnboardingService (lihat
+  BAGIAN 1).
+
+
+BAGIAN 1 — INSIGHT ARSITEKTUR YANG MENYEDERHANAKAN IMPLEMENTASI
+-----------------------------------------
+MainShell (lib/routing/main_shell.dart) me-render `NavigationBar`
+dengan 5 `NavigationDestination` sebagai sibling permanen dari
+`navigationShell` (body) — BUKAN per-tab. Kelima ikon bottom-nav
+SELALU ter-mount di layar terlepas dari tab mana yang aktif.
+
+Konsekuensi: seluruh tur (3 elemen Dashboard + 5 ikon nav) bisa
+dijalankan sebagai SATU `ShowCaseWidget.startShowCase()` dengan daftar
+GlobalKey berurutan, tanpa logic navigasi antar-tab/route selama tur
+berjalan. Tidak perlu orkestrasi "pindah tab -> tunggu frame -> mulai
+showcase lagi" yang jauh lebih rawan bug. `showcaseview` juga punya
+`enableAutoScroll` untuk men-scroll body Dashboard yang panjang supaya
+tiap target Dashboard (mis. Savings Goals card yang mungkin di bawah
+fold) otomatis masuk viewport.
+
+Pengecualian: 2 step terakhir (Payroll & Portfolio) ada di halaman
+Profile, bukan Dashboard — konten `SettingsTile` di ProfilePage cuma
+ter-paint saat branch Profile aktif (beda dengan ikon nav yang selalu
+ter-paint karena di luar IndexedStack). Jadi tur ini tetap butuh 1 kali
+transisi navigasi: setelah step ikon nav "Profile" selesai,
+TourController panggil `context.go('/profile')` supaya
+StatefulShellRoute pindah ke branch Profile, tunggu 1 frame
+(`addPostFrameCallback`), baru jalankan `startShowCase` gelombang kedua
+untuk key Payroll lalu Portfolio. Cuma 1 transisi ini yang diperlukan
+(bukan orkestrasi pindah-tab di setiap step seperti yang sebelumnya
+sengaja dihindari di dokumen ini) — dan karena ProfilePage juga
+`ListView` (Scrollable), `enableAutoScroll` tetap menangani posisi tile
+Payroll yang cukup jauh di bawah, sama seperti pola di Dashboard.
+
+Pola persist status yang sudah ada dan akan di-mirror:
+- OnboardingService (lib/core/storage/onboarding_service.dart) — key
+  SharedPreferences `has_seen_onboarding`, method `hasSeenOnboarding()`
+  / `markSeen()`.
+- `hasSeenOnboardingProvider` dibaca sinkron sebelum `runApp` di
+  main.dart karena dipakai router redirect. Tour TIDAK butuh ini —
+  tour berjalan setelah user sudah landing di /home, independen total
+  dari alur redirect auth/onboarding di app_router.dart. Statusnya
+  cukup dicek async di dalam DashboardPage, tidak perlu di-override di
+  main.dart.
+
+
+BAGIAN 2 — ALUR PENGGUNA (UX)
+-----------------------------------------
+1. User baru selesai register/login pertama kali -> mendarat di
+   Dashboard (/home) -> setelah data dashboard selesai load (state
+   `data:` pada `dashboardAsync.when`), tur otomatis mulai:
+   a. Spotlight Net Worth card (kartu gradient saldo/net worth).
+   b. Spotlight grid statistik (Cash Balance/Investment Balance/
+      Income/Expense) sebagai satu grup, bukan 4 step terpisah.
+   c. Spotlight Savings Goals card.
+   d. Spotlight tiap ikon bottom-nav berurutan (Dashboard ->
+      Transactions -> Summary -> Budget -> Profile), skip tab yang
+      terkunci (lihat BAGIAN 4 poin 2).
+   e. Setelah step d selesai, tur otomatis pindah ke halaman Profile
+      (lihat BAGIAN 1 "Pengecualian") lalu spotlight tile "Atur
+      Siklus Gajian" (Payroll) — dorong user setting payroll dulu.
+   f. Spotlight tile Portfolio — dorong user setting/lihat portfolio
+      mereka, sebagai step terakhir/penutup tur.
+2. Replay manual: tile baru "Lihat Tour Fitur" di Profile -> pindah ke
+   tab Dashboard -> tur mulai dari awal (mengabaikan status "sudah
+   pernah lihat"), termasuk step e & f di atas.
+
+
+BAGIAN 2.1 — DRAFT COPY (untuk diisi ke ARB saat implementasi)
+-----------------------------------------
+Judul + deskripsi per step, draft awal (boleh diubah wording saat
+implementasi, urutan HARUS sama dengan BAGIAN 2):
+
+1. Net Worth card — "Saldo & Kekayaan Bersih" / "Lihat total saldo dan
+   net worth kamu di sini, update otomatis dari semua akun &
+   transaksi."
+2. Grid statistik — "Ringkasan Keuangan" / "Cash balance, investasi,
+   pemasukan, dan pengeluaran periode berjalan — semua dalam satu
+   tampilan."
+3. Savings Goals card — "Target Tabungan" / "Pantau progres target
+   tabunganmu, tap untuk lihat detail atau buat target baru."
+4. Tab Dashboard — "Beranda" / "Ringkasan keuangan lengkap kamu ada di
+   sini."
+5. Tab Transactions — "Transaksi" / "Catat & lihat semua transaksi
+   harianmu di sini."
+6. Tab Summary — "Ringkasan" / "Analisis pengeluaran & pemasukan dalam
+   bentuk grafik."
+7. Tab Budget — "Anggaran" / "Atur & pantau anggaran bulananmu per
+   kategori."
+8. Tab Profile — "Profil" / "Kelola akun, tema, bahasa, dan pengaturan
+   lainnya."
+9. Tile Payroll — "Atur Siklus Gajian Dulu" / "Setting tanggal gajian
+   kamu di sini dulu, supaya data periode di seluruh app — termasuk
+   portfolio — lebih akurat."
+10. Tile Portfolio — "Terakhir, Portfolio Investasi" / "Atur portfolio
+    investasimu di sini supaya datanya ikut muncul di Dashboard."
+
+
+BAGIAN 3 — PERUBAHAN FILE (RENCANA)
+-----------------------------------------
+Dependency baru (pubspec.yaml):
+  showcaseview: ^5.1.0 (ter-resolve otomatis lewat `flutter pub add
+  showcaseview` — lihat CATATAN IMPLEMENTASI di bawah, API v5 beda dari
+  asumsi awal paragraf ini/BAGIAN 1).
+
+File baru:
+  lib/core/storage/tour_service.dart
+    - Mirror persis OnboardingService: key SharedPreferences
+      `has_seen_feature_tour`, method `hasSeenTour()` / `markSeen()`.
+  lib/features/tour/application/tour_controller.dart
+    - Daftar GlobalKey tur sebagai top-level constants (netWorthCard,
+      statsGrid, savingsGoalsCard, navDashboard, navTransactions,
+      navSummary, navBudgets, navProfile, payrollTile, portfolioTile)
+      — diimport dari dashboard_page.dart, main_shell.dart, dan
+      profile_page.dart.
+    - Urutan dipecah 2 gelombang (lihat BAGIAN 1 "Pengecualian"):
+      gelombang 1 = [netWorthCard, statsGrid, savingsGoalsCard,
+      navDashboard, navTransactions, navSummary, navBudgets,
+      navProfile] (semua di Dashboard, tidak perlu navigasi apa pun di
+      antaranya); gelombang 2 = [payrollTile, portfolioTile] (di
+      Profile, perlu 1x `context.go('/profile')` + 1 frame sebelum
+      mulai).
+    - `maybeAutoStart(context, ref)`: cek `TourService.hasSeenTour()`
+      async, kalau belum pernah DAN belum ditangani sesi berjalan
+      (guard in-memory, mis. StateProvider<bool> supaya tidak
+      auto-trigger berulang tiap DashboardPage rebuild), set flag
+      sesi + `markSeen()`, lalu jalankan gelombang 1 lewat
+      `ShowCaseWidget.of(context).startShowCase(...)`.
+    - Pakai `onFinish` bawaan `ShowCaseWidget` (dipasang sekali di
+      lib/main.dart) untuk mendeteksi gelombang 1 selesai ->
+      `context.go('/profile')` -> `addPostFrameCallback` -> jalankan
+      gelombang 2. Satu callback global ini cukup, tidak perlu state
+      "gelombang mana" tambahan karena baik alur auto maupun replay
+      manual selalu urut gelombang 1 -> gelombang 2.
+    - `startManually(context)`: langsung mulai gelombang 1 tanpa cek
+      status "sudah pernah lihat", dipakai tombol replay Profile;
+      transisi ke gelombang 2 tetap lewat mekanisme `onFinish` yang
+      sama.
+    - Filter key nav tab sesuai `user.hasPermission(item.permission)`
+      sebelum membentuk urutan gelombang 1 (lihat BAGIAN 4 poin 2).
+
+File yang diubah:
+  lib/main.dart
+    - CATATAN IMPLEMENTASI (setelah baca source `showcaseview` versi
+      yang ter-resolve, 5.1.0): `ShowCaseWidget` (widget yang di-wrap
+      di sekitar `MaterialApp.router`, rencana awal paragraf ini) sudah
+      DEPRECATED di versi ini, diganti pola baru
+      `ShowcaseView.register(...)` (registrasi service sekali, TIDAK
+      terikat widget tree — tidak perlu widget wrapper sama sekali) +
+      `ShowcaseView.get()` (akses singleton dari mana saja tanpa
+      `BuildContext`) + `onComplete: (index, key) => ...` (bukan
+      `onFinish`, supaya transisi gelombang 1 -> 2 bisa dicek persis
+      di key `tourNavProfileKey`, bukan "showcase manapun selesai").
+      `GoRouter` juga punya method `.go()` langsung di instance-nya
+      (tidak wajib lewat `context.go`), jadi transisi navigasi
+      Dashboard -> Profile dipanggil lewat
+      `ref.read(appRouterProvider).go('/profile')` tanpa
+      `BuildContext` sama sekali.
+    - Implementasi aktual: `TourController` (Provider biasa, bukan
+      widget) meregistrasi `ShowcaseView` sekali di constructor-nya;
+      `FlowrApp.build` (lib/main.dart) memanggil
+      `ref.read(tourControllerProvider)` di awal, sebelum
+      `MaterialApp.router(...)` di-return, supaya registrasi selalu
+      terjadi sebelum widget `Showcase` manapun (di MainShell atau
+      DashboardPage) sempat di-build — menghindari ketergantungan pada
+      urutan build antar-widget yang tidak dijamin Flutter.
+  lib/features/dashboard/presentation/dashboard_page.dart
+    - Bungkus `_NetWorthCard`, container grid `_StatCard` x4, dan
+      `_SavingsGoalsCard` masing-masing dengan `Showcase(key: ...,
+      title: ..., description: ..., child: ...)`.
+    - Di state `data:` pada `dashboardAsync.when`, panggil
+      `TourController.maybeAutoStart` lewat
+      `WidgetsBinding.instance.addPostFrameCallback` supaya semua
+      target sudah punya ukuran/posisi final sebelum overlay dihitung.
+  lib/routing/main_shell.dart
+    - Bungkus tiap `_NavIcon` di dalam `NavigationDestination.icon`
+      (bukan `selectedIcon` sekaligus — cukup salah satu supaya tidak
+      2 GlobalKey sama dipakai dua kali dalam satu tree) dengan
+      `Showcase(key: ..., ...)`, mapping permission -> key lewat
+      helper kecil mirip `_navLabelFor`.
+  lib/features/profile/presentation/profile_page.dart
+    - Bungkus `SettingsTile` "Atur Siklus Gajian" (Payroll, existing di
+      section Lainnya) dan `SettingsTile` Portfolio (existing di
+      section Portfolio) masing-masing dengan `Showcase(key: ...,
+      title: ..., description: ..., child: ...)` — key sesuai urutan
+      gelombang 2 (Payroll dulu baru Portfolio, lihat BAGIAN 2 poin
+      e/f), terlepas dari urutan tampil aslinya di ListView (Portfolio
+      justru lebih tinggi secara visual; `enableAutoScroll` yang
+      menangani lompatan scroll-nya, lihat BAGIAN 4 poin 4).
+    - Tambah 1 `SettingsTile` baru (section existing atau baru, putuskan
+      saat implementasi mana yang lebih pas), label "Lihat Tour Fitur"
+      -> pindah ke tab Dashboard (mis. `navigationShell.goBranch(0)`
+      lewat context yang tersedia) -> `TourController.startManually`
+      dalam `addPostFrameCallback`.
+  lib/core/providers/core_providers.dart
+    - Tambah `tourServiceProvider` (pola sama `onboardingServiceProvider`).
+      TIDAK perlu di-override di main.dart (lihat BAGIAN 1).
+  lib/l10n/app_id.arb + lib/l10n/app_en.arb
+    - Key baru prefix `tour*` untuk title/description tiap step,
+      termasuk step Payroll & Portfolio (~20 key total — lihat draft
+      copy BAGIAN 2.1), plus title/subtitle tile Profile baru "Lihat
+      Tour Fitur". Regenerate otomatis lewat `flutter gen-l10n` (jalan
+      otomatis saat `flutter pub get`/build karena `generate: true`).
+
+
+BAGIAN 4 — HAL YANG PERLU DIPERHATIKAN SAAT IMPLEMENTASI
+-----------------------------------------
+1. Dark mode: styling `Showcase` (warna tooltip/teks) pakai
+   `AppColors.*` getter, bukan warna hardcode — konsisten dengan 45+
+   file lain yang sudah pakai pola ini (lihat class doc AppColors).
+2. Tab terkunci (membership/permission gating): jangan sorot tab yang
+   `user.hasPermission(item.permission)` false untuk user aktif — pola
+   deteksi sama seperti `MainShell._isAllowed`
+   (docs/flutter-navbar-permission-gating-plan.txt). Kalau tidak
+   difilter, tur bisa menyorot tab lalu trigger snackbar "upgrade
+   required" di tengah alur, pengalaman yang jelek.
+3. Semua copy tur lewat `AppLocalizations.of(context)`, bukan string
+   literal — konsisten dengan pola `authOnboardingSlide1Title` di
+   slide onboarding yang sudah ada.
+4. Andalkan `enableAutoScroll: true` bawaan `ShowCaseWidget` untuk
+   target yang mungkin di bawah fold — baik di Dashboard (grid
+   statistik/Savings Goals card) maupun di ProfilePage (tile Payroll
+   di section "Lainnya", cukup jauh dari atas ListView) — jangan bikin
+   logic scroll manual sendiri.
+5. Tidak ada perubahan apa pun di app_router.dart/router redirect —
+   tur ini sepenuhnya independen dari alur onboarding/auth redirect
+   yang sudah ada.
+6. Satu-satunya navigasi antar-halaman dalam tur ini adalah transisi
+   gelombang 1 -> gelombang 2 (Dashboard -> Profile) lewat
+   `context.go('/profile')`, dipicu `onFinish` (lihat BAGIAN 3). Ini
+   tetap konsisten dengan prinsip BAGIAN 1: bukan "pindah tab tiap
+   step", cuma 1x transisi di titik yang sudah pasti (akhir gelombang
+   1), bukan per-step seperti pola yang sengaja dihindari.
+
+
+BAGIAN 5 — VERIFIKASI SETELAH IMPLEMENTASI
+-----------------------------------------
+1. `flutter pub get` setelah menambah `showcaseview`, lalu
+   `flutter analyze` — pastikan tidak ada lint baru.
+2. Register/login akun baru (atau reset SharedPreferences key
+   `has_seen_feature_tour`) -> pastikan tur auto-muncul begitu
+   Dashboard selesai load data, urut sesuai BAGIAN 2.
+3. Toggle dark mode dari Profile, ulangi tur lewat tombol replay ->
+   pastikan warna tooltip kontras & konsisten di kedua tema.
+4. Uji dengan user yang punya tab terkunci (permission terbatas) ->
+   pastikan tab terkunci tidak muncul sebagai step tur.
+5. Tekan "Lihat Tour Fitur" di Profile dari tab lain (mis. sedang di
+   tab Budget) -> pastikan pindah ke Dashboard lalu tur berjalan lagi
+   dari awal walau `has_seen_feature_tour` sudah true.
+6. Ganti bahasa ke English dari Profile, ulangi tur -> pastikan semua
+   copy step muncul dalam bahasa Inggris.
+7. Pastikan setelah step ikon nav "Profile" selesai, app otomatis
+   pindah ke halaman Profile dan lanjut spotlight tile Payroll lalu
+   Portfolio tanpa jeda/flicker aneh, termasuk saat tile Payroll perlu
+   di-scroll ke bawah dulu.
+
+Kalau blueprint ini sudah oke, langkah berikutnya: implementasi
+BAGIAN 3 sesuai urutan file di atas, lalu verifikasi BAGIAN 5.
+
+
+CATATAN TEMUAN SAAT TESTING (2026-09-23)
+-----------------------------------------
+Saat tur otomatis dites end-to-end di device fisik (Android, akun
+member premium dengan semua permission), transisi gelombang 1 ->
+gelombang 2 (pindah ke halaman Profile) memicu Flutter debug
+assertion yang SUDAH ADA sebelum fitur ini, BUKAN bug baru dari tur
+ini:
+
+  "ListTile background color or ink splashes may be invisible."
+
+Ini muncul untuk SEMUA `SettingsTile` di ProfilePage (bukan cuma
+Payroll/Portfolio yang baru dibungkus `Showcase`) — akar masalahnya
+ada di `lib/shared/widgets/settings_tile.dart`: `SettingsTile`
+membungkus `ListTile` langsung di dalam `Container(decoration:
+BoxDecoration(color: ...))` tanpa `Material` widget di antaranya,
+sehingga `ListTile` tidak menemukan `Material` ancestor terdekat untuk
+ink splash-nya. Ini murni bug lama yang kebetulan baru "ketahuan" di
+sesi testing ini karena navigasi otomatis tur adalah yang pertama kali
+memaksa ProfilePage ter-build penuh dalam sesi debug tsb — assertion
+ini debug-only (tidak crash, tidak muncul di release build, app tetap
+jalan normal setelahnya) dan di luar scope dokumen ini. Perbaikannya
+(kalau mau dikerjakan terpisah): bungkus `ListTile` di
+`SettingsTile.build()` dengan `Material(color: Colors.transparent,
+child: ...)` di dalam `Container` yang ada, pola serupa
+`_SavingsGoalsCard` di dashboard_page.dart yang sudah pakai
+`Material` + `InkWell` alih-alih `Container` + `ListTile` langsung.
+
+Selain itu: tidak ada exception Dart lain (tidak ada duplicate
+GlobalKey, null error, dsb) sepanjang sesi — build APK sukses,
+`flutter analyze` bersih, app tetap responsif setelah tur berjalan.
+
+
+CATATAN TEMUAN SAAT TESTING (2026-09-23, ronde 2)
+-----------------------------------------
+Setelah fix ronde 1 (nav icon Dashboard), tur berhasil jalan melewati
+Dashboard + semua ikon nav, tapi step Payroll/Portfolio (gelombang 2)
+tetap tidak pernah muncul di kedua flow (auto & tombol "Lihat Tour
+Fitur"). Root cause & perbaikan di
+lib/features/tour/application/tour_controller.dart:
+
+1. Transisi gelombang 1 -> 2 sebelumnya dipicu dari `onComplete`
+   dengan mencocokkan `key == tourNavProfileKey`. Masalahnya:
+   `skipIfTargetNotPresent: true` (safety net dari fix ronde 1) bisa
+   membuat sebuah step ter-SKIP alih-alih ter-COMPLETE — dan skip
+   TIDAK memicu `onComplete` untuk key itu, jadi transisi ke gelombang
+   2 tidak pernah terpicu meskipun tur kelihatan "selesai" secara
+   visual. Diganti pakai `onFinish` (dipicu begitu SELURUH antrian
+   `startShowCase` habis, baik lewat completed atau skip) + flag
+   `_TourWave` internal supaya tetap bisa dibedakan "baru selesai
+   gelombang 1" vs "baru selesai gelombang 2" (mencegah infinite loop
+   kalau dipakai naif).
+2. `_wave1Keys()` sebelumnya cuma baca `savingsGoalControllerProvider`
+   dengan `.valueOrNull` sesaat — kalau request Savings Goals belum
+   selesai (independen dari request Dashboard yang jadi trigger tur),
+   step Savings Goals ke-skip diam-diam padahal user sebenarnya punya
+   goals. Ditambahkan `await` ber-timeout 3 detik ke
+   `savingsGoalControllerProvider.future` sebelum membentuk daftar
+   key gelombang 1, kalau providernya masih loading.
+3. Ditambahkan `delay: Duration(milliseconds: 250)` ke `startShowCase`
+   gelombang 2, sebagai lapisan pengaman tambahan setelah
+   `addPostFrameCallback` — insurance murah kalau ada race timing
+   yang belum sepenuhnya dipahami di transisi pindah branch
+   `StatefulShellRoute`.
+4. Ditambahkan debug-only logging (`onStart`/`onComplete`/
+   `onDismiss`/`onFinish`, pakai `debugLabel` tiap GlobalKey biar
+   kebaca) supaya diagnosis berikutnya (kalau masih ada yang miss)
+   tinggal baca log `flutter run`, tidak perlu tebak-tebak lagi.
+
+Belum sempat re-test langsung di device fisik untuk ronde 2 ini
+(device sedang dipakai user secara paralel, testing otomatis lewat
+`flutter run` bentrok) — perbaikan di atas berdasarkan audit kode
+menyeluruh, bukan re-verifikasi runtime. Mohon ditest ulang dari
+kedua flow (auto & tombol Profile), dan kalau masih ada step yang
+miss, log debug di atas akan langsung menunjukkan step mana yang
+skip/tidak start.

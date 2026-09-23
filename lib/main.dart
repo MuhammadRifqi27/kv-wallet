@@ -9,6 +9,7 @@ import 'core/storage/onboarding_service.dart';
 import 'core/storage/theme_preference_service.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
+import 'features/tour/application/tour_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'routing/app_router.dart';
 
@@ -48,6 +49,13 @@ class FlowrApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
+    // Eagerly create TourController here (root of the tree) so its
+    // `ShowcaseView.register()` call (see tour_controller.dart) always runs
+    // before any descendant's `Showcase` widget builds — MainShell's nav
+    // icons and DashboardPage's cards both need the registration to already
+    // exist, and relying on which of those two happens to build first would
+    // be fragile.
+    ref.read(tourControllerProvider);
 
     // AppColors is a static namespace read directly by ~45 files instead of
     // through `Theme.of(context)` (see AppColors' class doc for why) — this

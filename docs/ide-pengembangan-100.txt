@@ -1,4 +1,4 @@
-100 IDE PENGEMBANGAN APLIKASI FLOWR
+500+ IDE PENGEMBANGAN APLIKASI FLOWR
 =====================================
 
 Daftar ide pengembangan lanjutan untuk aplikasi mobile Flowr (personal
@@ -10,6 +10,14 @@ punya mobile API (Stock Trading, IPO, Net Worth Snapshot — lihat
 docs/money-management-alur-bisnis-database.txt).
 
 Bukan roadmap resmi — ini kumpulan opsi untuk didiskusikan & diprioritaskan.
+
+BAGIAN A-H (1-100) adalah batch pertama, fokus ke modul/kategori besar
+secara garis besar. BAGIAN I dst. (101+) adalah batch kedua yang
+memperdalam tiap modul yang sudah ada satu per satu (transaksi, budget,
+portfolio, crypto, savings goals, dst.) plus kategori baru yang belum
+tersentuh batch pertama (edukasi, AI, performa teknis, offline,
+wearable, komunitas, dst.) — beberapa item sengaja granular/spesifik
+dibanding batch pertama yang lebih makro.
 
 
 BAGIAN A — MODUL KEUANGAN BARU (1-20)
@@ -140,7 +148,7 @@ BAGIAN E — UX/UI & AKSESIBILITAS (63-75)
 65. Multi-bahasa — tambah Bahasa Inggris (saat ini hardcode Indonesia).✅
 66. Dukungan penuh font scaling & screen reader (aksesibilitas).
 67. Onboarding interaktif/tour fitur untuk user baru (di luar slide
-    perkenalan yang sudah ada).
+    perkenalan yang sudah ada).✅
 68. Kustomisasi urutan tab bottom nav (drag reorder).
 69. Kustomisasi ikon & warna kategori oleh user sendiri.
 70. Voice input catat transaksi ("catat pengeluaran makan 25 ribu").
@@ -193,3 +201,1002 @@ BAGIAN H — MONETISASI & MEMBERSHIP (93-100)
 98. White-label/API untuk partner (koperasi, komunitas).
 99. Program cashback/poin dari aktivitas rutin (nabung rutin dapat poin).
 100. Partnership konten dengan bank/e-wallet yang terintegrasi khusus.
+
+
+BAGIAN I — MODUL TRANSAKSI LANJUTAN (101-120)
+---------------------------------------
+101. Split transaksi — satu pembayaran dibagi ke beberapa kategori
+     sekaligus (mis. belanja swalayan campur makanan+rumah tangga).
+102. Transaksi berulang tidak reguler — pola "setiap 2-3 hari sekali"
+     tanpa interval tetap, beda dari Recurring yang jadwalnya fixed.
+103. Template transaksi favorit — simpan kombinasi kategori+akun+
+     nominal yang sering dipakai untuk isi form lebih cepat.
+104. Duplikasi transaksi — copy transaksi yang sudah ada sebagai draft
+     baru, tinggal ubah nominal/tanggal.
+105. Lampiran multi-foto per transaksi — bukan cuma 1 struk, bisa
+     lampirkan foto barang/dokumen pendukung juga.
+106. Transaksi terjadwal masa depan (scheduled, bukan recurring) —
+     catat pengeluaran yang PASTI terjadi tanggal tertentu, otomatis
+     masuk begitu tanggalnya tiba.
+107. Undo/redo transaksi — batalkan edit/hapus transaksi dalam jangka
+     waktu singkat tanpa perlu input ulang manual.
+108. Bulk edit transaksi — ubah kategori/akun banyak transaksi
+     sekaligus (mis. setelah salah kategorisasi massal).
+109. Bulk delete dengan filter — hapus banyak transaksi sekaligus
+     berdasarkan kategori/rentang tanggal/akun.
+110. Riwayat perubahan transaksi (edit log) — lihat versi sebelumnya
+     kalau transaksi pernah diedit.
+111. Catatan suara per transaksi — rekam memo suara singkat, pelengkap
+     deskripsi teks.
+112. Reminder "belum dikategorikan" — notif kalau ada transaksi masuk
+     tanpa kategori lebih dari N hari.
+113. Transaksi pending/draft — simpan dulu tanpa masuk hitungan saldo
+     resmi, konfirmasi belakangan.
+114. Konversi mata uang otomatis per transaksi — untuk transaksi luar
+     negeri, simpan kurs saat itu.
+115. Kalkulasi tip/pajak otomatis di form — tambahan nominal service
+     charge/PPN terpisah dari harga pokok.
+116. Split bill langsung dari form transaksi — pecah 1 transaksi jadi
+     beberapa bagian per orang tanpa keluar dari alur input.
+117. Transaksi terkait (linked) — hubungkan beberapa transaksi yang
+     berkaitan (mis. DP + pelunasan) sebagai satu grup.
+118. Preview kalkulasi saldo real-time saat isi form, sebelum submit.
+119. Validasi anomali saat input — peringatan kalau nominal jauh di
+     luar kebiasaan kategori itu, sebelum user salah ketik nol.
+120. Riwayat lokasi transaksi (opsional, pakai GPS) — tandai transaksi
+     terjadi di mana, berguna untuk analisis pengeluaran per tempat.
+
+
+BAGIAN J — MODUL BUDGET LANJUTAN (121-138)
+---------------------------------------
+121. Budget rollover — sisa budget bulan lalu yang belum terpakai
+     otomatis nambah ke budget bulan ini (opsional per kategori).
+122. Budget mingguan, bukan cuma bulanan — untuk kategori yang lebih
+     natural dihitung per minggu (mis. makan harian).
+123. Budget per akun/portfolio, terpisah dari budget global — supaya
+     kartu kredit dan cash punya limit sendiri-sendiri.
+124. Template budget musiman — preset alokasi khusus bulan Ramadan/
+     liburan/tahun ajaran baru.
+125. Simulasi "what-if" budget — coba-coba ubah alokasi kategori,
+     lihat dampaknya ke proyeksi sisa saldo sebelum disimpan permanen.
+126. Budget bersama shared wallet — satu budget yang dipantau bareng-
+     bareng anggota (terhubung ke BAGIAN G #86).
+127. Auto-adjust budget berdasar income aktual — kalau gajian beda
+     dari biasanya, tawarkan penyesuaian proporsional semua kategori.
+128. Kategori budget "amplop tunai" — lacak sisa uang tunai fisik yang
+     sudah ditarik terpisah dari saldo digital.
+129. Peringatan overlap — deteksi kalau user bikin budget ganda untuk
+     kategori yang sama di periode yang sama.
+130. Grafik burn-rate harian — proyeksi "kalau pola sekarang
+     diteruskan, budget habis tanggal berapa".
+131. Budget freeze — kunci kategori tertentu supaya tidak bisa dipakai
+     sama sekali di periode itu (mis. lagi puasa belanja).
+132. Catatan alasan saat budget dilampaui — paksa user isi alasan
+     singkat biar riwayat overbudget lebih informatif buat evaluasi.
+133. Rekomendasi alokasi budget otomatis dari AI berdasarkan pola 3-6
+     bulan terakhir.
+134. Budget hierarkis — kategori induk & sub-kategori dengan alokasi
+     berjenjang (terhubung ke BAGIAN D #56).
+135. Perbandingan budget vs actual antar-bulan dalam satu grafik
+     overlay, bukan cuma satu bulan berjalan.
+136. Target saving rate sebagai bagian dari budget, bukan cuma alokasi
+     pengeluaran — otomatis sisihkan dulu sebelum kategori lain.
+137. Kategori budget "tak terduga/darurat" bawaan, dengan aturan
+     pemakaian berbeda dari kategori biasa.
+138. Export/share ringkasan budget bulanan sebagai gambar (image card)
+     buat dibagikan ke pasangan/keluarga.
+
+
+BAGIAN K — MODUL PORTFOLIO & INVESTASI LANJUTAN (139-158)
+---------------------------------------
+139. Asset allocation chart — pie/donut breakdown portofolio per kelas
+     aset (kas, saham, crypto, reksadana, dst.).
+140. Rebalancing assistant — rekomendasi transfer antar-portfolio buat
+     kembali ke target alokasi.
+141. Dividend/bunga tracker terpisah dari transaksi biasa — riwayat
+     pembayaran dividen per instrumen.
+142. Performance chart per portfolio — grafik return dari waktu ke
+     waktu, bukan cuma saldo statis.
+143. Benchmark portfolio vs index (mis. IHSG) — bandingkan performa
+     investasi pribadi dengan pasar.
+144. Cost basis & realized/unrealized gain per aset — penting untuk
+     keputusan jual & estimasi pajak.
+145. Watchlist instrumen — pantau harga aset yang belum dibeli, tanpa
+     perlu masuk portfolio resmi.
+146. Alert harga custom per instrumen portfolio (naik/turun X% dari
+     harga beli, bukan cuma dari harga acuan).
+147. Multi-currency portfolio — portofolio saham luar negeri dalam
+     USD, otomatis konversi ke IDR di ringkasan.
+148. Riwayat transfer antar-portfolio dalam satu timeline visual
+     (Sankey diagram sederhana).
+149. Kalkulator average down/up — simulasi harga rata-rata kalau
+     nambah beli di harga sekarang.
+150. Target harga jual (take profit/stop loss) dengan reminder
+     otomatis kalau tercapai.
+151. Catatan tesis investasi per aset — alasan beli, target jangka
+     panjang, review berkala.
+152. Portfolio checkup berkala — pengingat rutin (bulanan/kuartalan)
+     buat review alokasi & performa.
+153. Breakdown biaya transaksi (fee broker/exchange) terpisah dari
+     nominal pokok investasi.
+154. Simulasi pajak capital gain saat rencana jual aset, berdasarkan
+     aturan pajak instrumen terkait.
+155. Riwayat corporate action — stock split, right issue, buyback
+     tercatat otomatis pengaruhnya ke portfolio.
+156. Perbandingan portfolio antar-periode (snapshot tahunan) — growth
+     year-over-year per aset.
+157. Integrasi data harga real-time untuk saham/reksadana (pelengkap
+     crypto price sync yang sudah ada).
+158. Mode "paper trading"/simulasi — coba strategi investasi tanpa
+     uang sungguhan, belajar dulu sebelum live.
+
+
+BAGIAN L — MODUL CRYPTO/BTC TRACKING LANJUTAN (159-176)
+---------------------------------------
+159. Multi-wallet crypto — pisah saldo per wallet/exchange (Indodax,
+     Binance, cold wallet) dalam satu modul.
+160. DCA (dollar-cost averaging) planner — jadwalkan & lacak pembelian
+     rutin nominal tetap.
+161. Tax-lot tracking — FIFO/LIFO untuk hitung capital gain crypto
+     secara akurat per lot pembelian.
+162. Staking & yield tracker — catat reward staking/lending terpisah
+     dari transaksi jual-beli biasa.
+163. Realized vs unrealized P&L breakdown khusus crypto, terpisah dari
+     investasi tradisional.
+164. Riwayat gas fee/network fee per transaksi on-chain.
+165. Dukungan multi-crypto selain BTC — ETH, stablecoin, altcoin
+     populer lainnya.
+166. Kalkulator swing trade — simulasi entry/exit dengan target profit
+     % tertentu.
+167. Grafik korelasi harga BTC dengan aset lain di portfolio
+     (diversifikasi risiko).
+168. Import riwayat transaksi crypto dari file CSV export exchange.
+169. Cold storage checklist/reminder — pengingat backup seed phrase &
+     audit keamanan wallet berkala.
+170. Portfolio crypto vs total net worth ratio — indikator eksposur
+     risiko crypto terhadap total kekayaan.
+171. Alert volatilitas ekstrem — notif kalau harga bergerak > X% dalam
+     periode singkat (mis. 1 jam).
+172. Riwayat airdrop & hasil hardfork tercatat otomatis sebagai entri
+     terpisah.
+173. Kalkulator break-even price memperhitungkan seluruh fee
+     historis, bukan cuma harga beli.
+174. Simulasi dollar value saat harga acuan berubah (skenario
+     bullish/bearish) untuk goal-planning.
+175. Dukungan NFT sebagai kelas aset crypto terpisah (melengkap #19 di
+     BAGIAN A yang masih umum).
+176. Ekspor laporan pajak crypto tahunan format siap lapor.
+
+
+BAGIAN M — MODUL SAVINGS GOALS LANJUTAN (177-194)
+---------------------------------------
+177. Template goal siap pakai — "Dana Darurat", "DP Rumah", "Liburan",
+     dst. dengan target & durasi default.
+178. Round-up savings — pembulatan otomatis tiap transaksi masuk ke
+     goal tabungan (mis. beli 23.500 dibulatkan ke 25.000, selisihnya
+     nabung).
+179. Auto-transfer terjadwal ke goal — nabung otomatis nominal tetap
+     tiap gajian, terhubung ke Payroll.
+180. Goal kolaboratif — beberapa orang nabung ke satu goal bersama
+     dengan kontribusi tercatat per orang (terhubung ke BAGIAN G).
+181. Milestone reward — perayaan/badge kecil tiap goal mencapai
+     25%/50%/75%, bukan cuma 100%.
+182. Prioritas goal — urutkan goal mana yang didahulukan kalau dana
+     terbatas untuk dialokasikan.
+183. Goal jangka pendek vs panjang dengan visual timeline berbeda
+     (progress bar vs kalender).
+184. Penarikan sebagian dari goal tanpa menutup goal-nya (partial
+     withdrawal dengan catatan alasan).
+185. Simulasi "kapan goal tercapai" berdasarkan rata-rata kontribusi
+     historis, bukan cuma target manual.
+186. Goal otomatis dari sisa budget — sisa budget kategori yang tidak
+     terpakai ditawarkan masuk goal tabungan.
+187. Freeze goal sementara — pause tanpa menghapus riwayat kontribusi,
+     untuk goal yang ditunda.
+188. Goal berbasis persentase income, bukan nominal tetap — otomatis
+     menyesuaikan kalau gaji naik/turun.
+189. Rekomendasi goal baru berdasarkan pola pengeluaran (mis. sering
+     makan di luar → tawarkan goal "dana healing").
+190. Riwayat goal yang sudah selesai/dibatalkan sebagai arsip terpisah
+     dari goal aktif.
+191. Transfer saldo antar-goal — pindahkan dana dari goal yang
+     dibatalkan ke goal lain tanpa lewat akun utama dulu.
+192. Visualisasi goal dalam bentuk gambar (mis. progress mengisi
+     ilustrasi rumah/mobil sesuai jenis goal).
+193. Goal darurat otomatis — begitu Kalkulator Dana Darurat (#15)
+     dipakai, tawarkan langsung buat goal-nya.
+194. Integrasi goal dengan notifikasi kontribusi terlewat — reminder
+     kalau jadwal nabung rutin ke goal terlewat.
+
+
+BAGIAN N — MODUL RECURRING & TAGIHAN LANJUTAN (195-210)
+---------------------------------------
+195. Skip sekali tanpa membatalkan seterusnya — lewati satu siklus
+     recurring tanpa menghapus jadwalnya.
+196. Recurring dengan nominal variabel — estimasi/rata-rata, bukan
+     nominal fix (mis. tagihan listrik yang naik-turun).
+197. Recurring dengan approval — generate draft dulu, user konfirmasi
+     sebelum benar-benar masuk transaksi (untuk nominal besar).
+198. Riwayat perubahan nominal recurring — lacak kenaikan tagihan
+     langganan dari waktu ke waktu.
+199. Grouping tagihan per kategori (langganan digital, utilitas,
+     cicilan) dalam satu ringkasan.
+200. Reminder review langganan — evaluasi berkala "masih dipakai nggak
+     nih Netflix/Spotify-nya".
+201. Kalkulasi total pengeluaran recurring tahunan — biar kelihatan
+     dampak sebenarnya dari langganan kecil-kecil.
+202. Deteksi recurring yang harganya naik tanpa sepengetahuan user
+     (price creep detector).
+203. Pause otomatis recurring saat saldo akun terkait tidak cukup,
+     dengan notifikasi.
+204. Recurring dengan tanggal jatuh tempo fleksibel (mis. "hari kerja
+     terakhir bulan itu", bukan tanggal fix).
+205. Simulasi dampak kalau satu recurring dihentikan — proyeksi
+     penghematan bulanan/tahunan.
+206. Kategori tagihan wajib vs opsional — bedakan cicilan/utilitas
+     (wajib) dari langganan hiburan (opsional).
+207. Integrasi due-date recurring ke Bill Reminder (#7) supaya tidak
+     dobel-catat dua modul berbeda.
+208. Auto-kategorikan recurring baru berdasarkan nama merchant yang
+     mirip recurring lain yang sudah ada.
+209. Riwayat recurring yang gagal diproses (mis. karena error) dengan
+     opsi retry manual.
+210. Ringkasan "recurring load" — persentase income yang habis buat
+     kewajiban rutin bulanan.
+
+
+BAGIAN O — MODUL PAYROLL & SIKLUS GAJIAN LANJUTAN (211-224)
+---------------------------------------
+211. Multi-sumber income dengan siklus berbeda-beda (gaji bulanan +
+     freelance mingguan) dalam satu profil payroll.
+212. Simulasi take-home pay — potongan pajak/BPJS otomatis dari gross
+     income buat proyeksi net yang lebih akurat.
+213. Riwayat perubahan siklus payroll (kalau tanggal gajian berubah
+     karena ganti kerjaan) dengan histori lengkap.
+214. Alokasi otomatis income begitu masuk — persentase langsung
+     terbagi ke goal/budget/investasi sesuai aturan pribadi (mis.
+     metode 50/30/20).
+215. Reminder submit slip gaji/bukti income manual kalau sumbernya
+     tidak otomatis.
+216. Proyeksi income tahunan berdasarkan siklus gajian tercatat, untuk
+     perencanaan pajak.
+217. Perbandingan actual income vs proyeksi payroll — deteksi kalau
+     gajian telat/beda nominal dari biasanya.
+218. Payroll bonus/THR terpisah dari siklus reguler, dengan alokasi
+     khusus (misal wajib 50% masuk saving).
+219. Kalender visual siklus gajian — overlay dengan due date tagihan
+     supaya kelihatan gap arus kas.
+220. Simulasi dampak kenaikan gaji — proyeksi berapa cepat goal
+     tercapai kalau gaji naik sekian persen.
+221. Payroll multi-mata uang untuk yang gajian dari perusahaan asing/
+     remote job luar negeri.
+222. Riwayat potongan payroll (pajak, asuransi, iuran) sebagai
+     kategori tersendiri, bukan campur ke pengeluaran biasa.
+223. Reminder evaluasi siklus payroll tiap awal tahun — sesuaikan
+     kalau ada perubahan kontrak kerja.
+224. Payroll splitting ke banyak akun otomatis (mis. langsung kepisah
+     ke akun tabungan, akun harian, akun investasi) begitu gajian
+     masuk.
+
+
+BAGIAN P — DASHBOARD & BERANDA LANJUTAN (225-242)
+---------------------------------------
+225. Dashboard kustom drag-and-drop — user atur sendiri urutan/kartu
+     mana yang ditampilkan di beranda.
+226. Mode ringkas vs detail — toggle tampilan Dashboard antara versi
+     padat (angka saja) dan lengkap (grafik+list).
+227. Kartu "aksi cepat" yang bisa dikustomisasi — pintasan ke fitur
+     yang paling sering dipakai user.
+228. Greeting kontekstual — sapaan Dashboard berubah sesuai waktu
+     (pagi/siang/malam) dan momen (gajian, akhir bulan).✅✅
+229. Widget cuaca finansial — indikator sederhana "sehat/waspada/
+     kritis" berdasarkan rasio pengeluaran vs income bulan berjalan.
+230. Perbandingan cepat "hari ini vs kemarin/rata-rata" langsung di
+     kartu Dashboard, tanpa perlu buka Summary.
+231. Timeline gabungan — semua aktivitas (transaksi, kontribusi goal,
+     budget alert) dalam satu feed kronologis.
+232. Kartu "top 3 insight minggu ini" — ringkasan otomatis hal paling
+     penting yang perlu diperhatikan user.
+233. Dashboard mode anak/pasangan (view-only) — versi terbatas buat
+     dilihat anggota keluarga tanpa akses edit.
+234. Quick toggle "mode privasi total" — sembunyikan semua nominal di
+     seluruh app dengan satu tombol, bukan cuma net worth.
+235. Kartu progress goal aktif ditampilkan bergantian (carousel) kalau
+     goal-nya lebih dari satu.
+236. Preview transaksi mendatang (recurring + terjadwal) di Dashboard,
+     bukan cuma riwayat yang sudah terjadi.
+237. Statistik "streak" — berapa hari berturut-turut user rajin catat
+     transaksi (dorongan konsistensi).
+238. Kartu perbandingan target vs realisasi saving rate bulan
+     berjalan.
+239. Shortcut ke kalkulator (dana darurat, FIRE) langsung dari
+     Dashboard kalau belum pernah dipakai.
+240. Ringkasan utang/piutang (kalau modul #1 dibangun) tampil sebagai
+     kartu terpisah di Dashboard.
+241. Mode "focus" — sembunyikan semua kartu kecuali yang sedang
+     relevan (mis. cuma budget) saat lagi mepet akhir bulan.
+242. Personalisasi urutan kartu otomatis berdasarkan fitur mana yang
+     paling sering dibuka user (bukan cuma manual drag).
+
+
+BAGIAN Q — PENCARIAN & FILTER (243-256)
+---------------------------------------
+243. Global search lintas modul — cari transaksi/goal/budget/portfolio
+     dari satu search bar, bukan per halaman.
+244. Filter simpanan (saved filter) — simpan kombinasi filter yang
+     sering dipakai sebagai preset.
+245. Pencarian by nominal range, bukan cuma keyword deskripsi/
+     kategori.
+246. Riwayat pencarian terakhir untuk akses cepat ulang.
+247. Filter transaksi "belum ada foto struk" — buat nemu transaksi
+     yang lupa dilampiri bukti.
+248. Filter kombinasi AND/OR yang lebih fleksibel (mis. kategori A
+     ATAU B, TAPI bukan akun C).
+249. Smart search dengan bahasa natural — "pengeluaran makan bulan
+     lalu di atas 50 ribu" langsung jadi filter.
+250. Filter berdasarkan tag bebas (terhubung ke BAGIAN D #57).
+251. Quick filter chip di halaman transaksi — satu tap untuk filter
+     umum (hari ini, minggu ini, belum dikategori).
+252. Pencarian merchant/nama toko yang sudah pernah dicatat, dengan
+     autocomplete.
+253. Filter lintas periode custom (bukan cuma bulan kalender, bisa
+     rentang tanggal bebas).
+254. Sortir hasil pencarian by relevansi, bukan cuma tanggal/nominal.
+255. Riwayat filter yang paling sering dipakai ditampilkan sebagai
+     shortcut otomatis.
+256. Pencarian dalam catatan/deskripsi transaksi dengan highlight kata
+     kunci yang cocok.
+
+
+BAGIAN R — MANAJEMEN DATA (IMPORT/EXPORT/BACKUP LANJUTAN) (257-274)
+---------------------------------------
+257. Deteksi & merge transaksi duplikat — terutama berguna setelah
+     import CSV/OCR massal.
+258. Arsipkan data lama — sembunyikan transaksi/goal lampau dari
+     tampilan utama tanpa menghapus permanen.
+259. Migrasi data dari aplikasi keuangan lain (format umum) ke Flowr.
+260. Versioning backup — simpan beberapa titik waktu backup, bukan
+     cuma yang terakhir.
+261. Preview sebelum import — tampilkan mapping kolom CSV ke field
+     Flowr, user bisa koreksi sebelum commit.
+262. Jadwal auto-export laporan bulanan ke email pribadi (pelengkap
+     #83 backup otomatis).
+263. Kompresi/optimasi ukuran backup untuk akun dengan histori
+     transaksi sangat panjang (multi-tahun).
+264. Selective restore — pulihkan sebagian data (mis. cuma kategori
+     tertentu) dari backup, bukan semua-atau-tidak.
+265. Data retention policy yang bisa diatur user — auto-hapus lampiran
+     foto struk setelah N bulan untuk hemat storage.
+266. Export data lengkap format terbuka (JSON) untuk portabilitas
+     penuh, bukan cuma PDF/CSV yang human-readable.
+267. Validasi integritas data setelah import — cek saldo akhir cocok
+     dengan yang diharapkan sebelum commit permanen.
+268. Riwayat log import/export — kapan, oleh siapa (kalau shared
+     wallet), berapa data yang berubah.
+269. Cloud sync antar-device tanpa perlu manual export-import,
+     real-time atau berkala.
+270. Mode "clean slate" — reset seluruh data transaksi tapi
+     pertahankan struktur kategori/akun yang sudah disetup.
+271. Kompres & unduh semua foto lampiran struk sekaligus sebagai satu
+     file ZIP.
+272. Notifikasi kalau backup otomatis gagal berjalan (storage penuh,
+     koneksi gagal, dst).
+273. Dedup kategori — gabungkan kategori yang keliru dibuat ganda
+     (mis. "Makan" dan "Makanan").
+274. Snapshot data read-only berkala buat keperluan audit pribadi
+     tahunan.
+
+
+BAGIAN S — KEUANGAN KELUARGA & RUMAH TANGGA (275-292)
+---------------------------------------
+275. Alokasi budget per anggota keluarga dalam satu shared wallet.
+276. Uang saku anak — modul terbatas untuk anak pantau uang jajan
+     dengan kontrol orang tua.
+277. Laporan keuangan keluarga bulanan otomatis — ringkasan gabungan
+     semua anggota.
+278. Pembagian kewajiban rumah tangga — siapa bayar apa, dengan
+     pengingat giliran.
+279. Goal keluarga bersama dengan kontribusi tercatat per anggota
+     (terhubung BAGIAN M #180).
+280. Kalkulator kebutuhan dana pendidikan anak jangka panjang.
+281. Tracker pengeluaran per anggota keluarga — siapa paling banyak/
+     hemat belanja bulan ini.
+282. Mode "family admin" — satu penanggung jawab bisa approve
+     pengeluaran besar anggota lain.
+283. Warisan/wasiat digital sederhana — daftar aset & akses yang perlu
+     diketahui keluarga saat darurat.
+284. Reminder ulang tahun/anniversary yang terhubung ke budget hadiah
+     otomatis.
+285. Kalkulator biaya pernikahan/acara besar keluarga dengan breakdown
+     pos anggaran.
+286. Dompet bersama untuk asisten rumah tangga/gaji ART tercatat
+     terpisah dari pengeluaran pribadi.
+287. Ringkasan "siapa berutang ke siapa" di dalam keluarga (pelengkap
+     split bill internal, bukan ke teman).
+288. Mode edukasi finansial anak — gamifikasi sederhana ngajarin
+     nabung lewat app (terhubung BAGIAN U).
+289. Kalender kewajiban keluarga gabungan — SPP sekolah, cicilan
+     bersama, tagihan rumah dalam satu tampilan.
+290. Laporan kontribusi tiap anggota ke goal bersama, transparan buat
+     semua yang terlibat.
+291. Notifikasi ke seluruh anggota keluarga saat pengeluaran besar tak
+     terduga terjadi.
+292. Mode private per anggota di dalam shared wallet — beberapa
+     kategori tetap rahasia meski wallet-nya bersama.
+
+
+BAGIAN T — KEUANGAN BISNIS/FREELANCER (293-310)
+---------------------------------------
+293. Pemisahan wallet bisnis vs pribadi dalam satu akun, dengan
+     laporan terpisah.
+294. Invoicing sederhana — buat & kirim invoice ke klien langsung dari
+     app, tercatat sebagai piutang.
+295. Tracker piutang klien — pantau invoice belum dibayar dengan
+     reminder follow-up otomatis.
+296. Kalkulator pajak freelancer/UMKM sederhana dari income tercatat.
+297. Pemisahan pengeluaran deductible (bisa dikurangkan pajak) vs
+     personal murni.
+298. Tracker proyek — kaitkan transaksi income/expense ke proyek
+     tertentu buat lihat profitabilitas per proyek.
+299. Estimasi cash flow bisnis — proyeksi arus kas berdasarkan invoice
+     pending + tagihan rutin.
+300. Multi-klien rate card — simpan tarif per klien/jenis jasa untuk
+     auto-isi invoice.
+301. Kalkulator break-even usaha kecil — berapa transaksi/klien
+     minimal biar tidak rugi.
+302. Laporan laba-rugi sederhana khusus mode bisnis, terpisah dari
+     ringkasan personal.
+303. Reminder pajak UMKM (PPh Final 0.5%) berdasarkan omzet tercatat.
+304. Tracker inventori sederhana untuk usaha kecil — stok masuk/keluar
+     terhubung ke transaksi penjualan.
+305. Ekspor laporan keuangan bisnis format siap serah ke akuntan/
+     konsultan pajak.
+306. Kategori khusus biaya operasional bisnis (sewa, listrik usaha,
+     gaji karyawan) terpisah dari kategori rumah tangga.
+307. Kalkulator harga jual — hitung margin dari modal + biaya
+     operasional buat penetapan harga produk/jasa.
+308. Split otomatis income bisnis ke pribadi vs modal usaha
+     berikutnya, sesuai persentase yang diatur user.
+309. Reminder renewal legalitas usaha (NIB, SIUP, dst.) terhubung ke
+     kalender kewajiban.
+310. Dashboard bisnis terpisah — ringkasan omzet, biaya, profit
+     bulanan khusus mode usaha.
+
+
+BAGIAN U — EDUKASI & LITERASI KEUANGAN (311-328)
+---------------------------------------
+311. Modul kuis literasi keuangan interaktif dengan skor & badge.
+312. Artikel/video edukasi kontekstual — muncul otomatis sesuai
+     kondisi user (mis. baru overbudget → artikel tips hemat).
+313. Glosarium istilah keuangan/investasi terintegrasi, bisa diakses
+     dari mana saja lewat tooltip.
+314. Simulator investasi edukatif — belajar compound interest dengan
+     visualisasi interaktif.
+315. Challenge finansial berkala (30 hari tanpa jajan kopi, dst.)
+     dengan tracking progres otomatis.
+316. Rekomendasi konten personal berdasarkan tujuan keuangan yang
+     diisi user di awal (goal-based content).
+317. Sertifikat/badge digital setelah menyelesaikan modul edukasi
+     tertentu (gamifikasi ringan).
+318. Podcast/audio ringkasan mingguan tips keuangan, bisa didengarkan
+     sambil commute.
+319. Studi kasus interaktif — skenario keuangan fiktif buat latihan
+     pengambilan keputusan.
+320. Rangkuman otomatis "pelajaran dari bulan ini" berdasarkan pola
+     transaksi pribadi user sendiri.
+321. Komunitas tanya-jawab moderated seputar keuangan pribadi
+     (terhubung BAGIAN AF).
+322. Webinar berkala dengan financial planner, khusus member premium.
+323. Perpustakaan template rencana keuangan (retirement, dana
+     pendidikan, dst.) siap pakai.
+324. Tips kontekstual di dalam form input — mis. saran kategori yang
+     tepat saat user ragu.
+325. Newsletter edukasi bulanan personalisasi berdasarkan profil
+     keuangan user.
+326. Evaluasi tingkat literasi keuangan awal (assessment) sebagai
+     onboarding opsional.
+327. Rekomendasi buku/sumber belajar keuangan terkurasi sesuai level
+     pengguna.
+328. Mini-course terstruktur (5-7 hari) tentang topik spesifik:
+     budgeting, investasi dasar, dana darurat.
+
+
+BAGIAN V — AI/MACHINE LEARNING LANJUTAN (329-346)
+---------------------------------------
+329. Asisten chat AI — tanya jawab soal kondisi keuangan pribadi pakai
+     bahasa natural ("berapa pengeluaran makan bulan ini?").
+330. Prediksi pengeluaran bulan depan berbasis pola historis +
+     musiman (lebaran, tahun ajaran baru, dst.).
+331. Rekomendasi personal "kamu bisa hemat sekian kalau..."
+     berdasarkan analisis pola belanja.
+332. Deteksi langganan yang terlupakan/jarang dipakai tapi masih
+     auto-charge (dead subscription detector).
+333. Klasifikasi otomatis foto struk langsung ke kategori yang tepat
+     tanpa user pilih manual (pelengkap OCR #71 yang sudah ada).
+334. Skor risiko keuangan personal dengan rekomendasi actionable,
+     bukan cuma angka.
+335. Chatbot financial coaching — check-in rutin nanya progress goal &
+     kasih motivasi personal.
+336. Deteksi pola pengeluaran impulsif dan saran cooling-off period
+     sebelum transaksi besar.
+337. Rekomendasi waktu terbaik buat transaksi besar berdasarkan
+     proyeksi arus kas (mis. tunggu 3 hari lagi setelah gajian).
+338. Auto-tagging transaksi berdasar merchant, lokasi, dan waktu
+     (bukan cuma kategori).
+339. Prediksi kemungkinan gagal bayar tagihan berdasarkan tren saldo,
+     dengan peringatan dini.
+340. Analisis sentimen catatan/memo transaksi — deteksi pola stress-
+     spending dari deskripsi yang ditulis user.
+341. Rekomendasi produk investasi sesuai profil risiko yang dipelajari
+     dari histori keputusan user.
+342. Voice assistant lanjutan — bukan cuma catat transaksi (#70),
+     tapi juga tanya laporan lewat suara.
+343. Model personalisasi notifikasi — kirim reminder di waktu yang
+     paling mungkin direspons user (bukan jadwal fix).
+344. Deteksi anomali fraud sederhana — transaksi mencurigakan yang
+     tidak sesuai pola normal user sendiri.
+345. Ringkasan otomatis mingguan dalam bahasa natural, gaya "laporan
+     personal assistant".
+346. Rekomendasi rebalancing portfolio otomatis berbasis machine
+     learning, bukan aturan statis (pelengkap #140).
+
+
+BAGIAN W — PERFORMA & INFRASTRUKTUR TEKNIS (347-364)
+---------------------------------------
+347. Lazy-load list transaksi panjang dengan pagination lebih agresif
+     untuk akun histori multi-tahun.
+348. Caching lokal lebih agresif — kurangi request API berulang untuk
+     data yang jarang berubah (kategori, akun).
+349. Optimasi startup time app — kurangi waktu cold-start terutama di
+     device low-end.
+350. Image compression otomatis untuk lampiran struk sebelum upload,
+     hemat bandwidth & storage server.
+351. Mode hemat data — kurangi fetch gambar/chart resolusi tinggi saat
+     koneksi lambat.
+352. Prefetch data Dashboard sebelum user buka app (background sync
+     terjadwal).
+353. Monitoring crash & error rate terintegrasi (Sentry/Crashlytics)
+     buat prioritas bug fix.
+354. A/B testing infrastructure buat uji perubahan UX sebelum rilis
+     penuh.
+355. Feature flag system — nyalain/matiin fitur tanpa perlu rilis app
+     baru.
+356. Automated regression testing lebih luas untuk modul kritis
+     (transaksi, budget, portfolio).
+357. Optimasi query backend untuk endpoint Summary/Dashboard yang
+     sering diakses (index database, caching layer).
+358. Rate limiting & retry logic yang lebih smart di API client,
+     kurangi kegagalan karena koneksi tidak stabil.
+359. Dukungan tablet/layar besar dengan layout adaptif, bukan cuma
+     scaled-up phone layout.
+360. Mode landscape untuk halaman tertentu (grafik/laporan lebih enak
+     dilihat lebar).
+361. Health check dashboard internal (buat tim dev) — status API,
+     response time, error rate real-time.
+362. Migrasi bertahap ke state management yang lebih scalable kalau
+     kompleksitas app terus bertambah.
+363. Automated dependency update & security audit berkala untuk
+     package pihak ketiga.
+364. Optimasi ukuran APK/IPA — audit asset & dependency yang jarang
+     dipakai buat dikurangi.
+
+
+BAGIAN X — TESTING, QA & RELIABILITY (365-378)
+---------------------------------------
+365. Test suite widget/unit yang lebih lengkap untuk modul kritis
+     (saat ini masih minim automated test).
+366. Golden test untuk konsistensi UI di light/dark mode setiap
+     komponen shared widget.
+367. Integration test untuk alur penuh (login → catat transaksi → cek
+     dashboard) biar regresi ketahuan lebih awal.
+368. Beta testing program — grup user terbatas coba fitur baru sebelum
+     rilis publik.
+369. Crash-free session rate sebagai metrik kualitas yang dipantau
+     tiap rilis.
+370. Checklist QA manual terstandarisasi sebelum tiap rilis ke Play
+     Store/App Store.
+371. Load testing backend untuk skenario banyak user aktif bersamaan
+     (simulasi jam sibuk).
+372. Automated screenshot testing — deteksi perubahan visual tidak
+     sengaja antar rilis.
+373. Sandbox/staging environment terpisah dari production buat testing
+     fitur baru dengan data dummy.
+374. Rollback plan terstandarisasi kalau rilis baru ternyata
+     bermasalah di production.
+375. Monitoring uptime API backend dengan alert otomatis kalau down.
+376. User acceptance testing terstruktur melibatkan user asli sebelum
+     fitur besar dirilis.
+377. Dokumentasi test case untuk tiap modul, memudahkan onboarding
+     QA/dev baru.
+378. Performance budget per halaman (waktu render maksimal) yang
+     dipantau tiap rilis.
+
+
+BAGIAN Y — LOKALISASI & EKSPANSI REGIONAL (379-392)
+---------------------------------------
+379. Dukungan mata uang lain sebagai currency utama (bukan cuma
+     tampilan IDR), untuk ekspansi ke negara lain.
+380. Format tanggal/angka mengikuti locale penuh (bukan cuma bahasa,
+     tapi juga konvensi regional).
+381. Dukungan bahasa daerah Indonesia (mis. Jawa, Sunda) sebagai opsi
+     tambahan setelah ID/EN.
+382. Kalender lokal — dukungan kalender Hijriah/Jawa berdampingan
+     dengan Masehi untuk fitur terkait tanggal.
+383. Konten pajak/regulasi keuangan yang disesuaikan per negara kalau
+     ekspansi ke luar Indonesia.
+384. Metode pembayaran/integrasi bank yang disesuaikan per region
+     (beda negara beda ekosistem e-wallet).
+385. Dukungan RTL (right-to-left) layout kalau suatu saat nambah
+     bahasa Arab.
+386. Lokalisasi konten edukasi finansial (BAGIAN U) sesuai konteks
+     ekonomi tiap negara.
+387. Penyesuaian kategori transaksi default per region (kebiasaan
+     belanja beda-beda tiap negara/budaya).
+388. Dukungan format nomor telepon & alamat internasional di form
+     registrasi/profil.
+389. Terjemahan otomatis (AI-assisted) sebagai draft awal buat bahasa
+     baru, dipercepat sebelum review manusia.
+390. Zona waktu multi-region untuk user yang traveling/pindah negara —
+     konsistensi periode budget/payroll.
+391. Riset kompetitor & kebutuhan lokal sebelum ekspansi tiap negara
+     baru (bukan cuma translate, tapi sesuaikan fitur).
+392. Dukungan bahasa Melayu/Filipina untuk ekspansi regional Asia
+     Tenggara.
+
+
+BAGIAN Z — DUKUNGAN PELANGGAN & FEEDBACK (393-406)
+---------------------------------------
+393. In-app live chat customer service, pelengkap form Google Forms
+     yang sekarang dipakai.
+394. FAQ terintegrasi dalam app, searchable, terhubung dari tiap
+     halaman fitur.
+395. Sistem feedback/feature request in-app — user usul fitur & vote
+     fitur yang paling diinginkan.
+396. Survey kepuasan berkala (NPS) muncul kontekstual setelah
+     pemakaian fitur tertentu.
+397. Tiket support tracking — user bisa lihat status keluhan yang
+     pernah diajukan.
+398. Rating & review prompt yang smart — muncul di momen positif (mis.
+     abis capai goal), bukan random.
+399. Knowledge base video tutorial pendek per fitur, terhubung dari
+     Panduan Pengguna PDF yang sudah ada.
+400. Bug report in-app dengan auto-attach screenshot & log teknis
+     (memudahkan tim dev diagnosa).
+401. Status page publik — transparansi kalau ada gangguan layanan
+     backend.
+402. Changelog in-app — user lihat apa saja yang baru tiap update
+     rilis, bukan cuma lewat Play Store.
+403. Program early access — user aktif dapat coba fitur baru duluan
+     sebagai bentuk apresiasi.
+404. Feedback loop tertutup — user yang kasih masukan dapat notifikasi
+     kalau usulannya benar-benar dibangun.
+405. Community-driven translation review — user lokal bantu review
+     kualitas terjemahan bahasa daerah.
+406. Prioritized support untuk member premium (SLA respon lebih
+     cepat).
+
+
+BAGIAN AA — GAMIFIKASI & ENGAGEMENT (407-422)
+---------------------------------------
+407. Sistem level/XP dari aktivitas konsisten (rajin catat transaksi,
+     capai goal, dst.).
+408. Badge koleksi untuk pencapaian spesifik (goal pertama tercapai,
+     100 transaksi tercatat, dst.).
+409. Streak counter lintas fitur — bukan cuma catat transaksi, tapi
+     juga rajin review budget mingguan.
+410. Tantangan mingguan personal yang di-generate otomatis sesuai
+     kondisi keuangan user.
+411. Leaderboard privat opsional antar-teman/keluarga (terhubung
+     BAGIAN G #92, bukan publik demi privasi).
+412. Reward virtual (bukan uang sungguhan) yang bisa ditukar konten
+     premium/tema kustom.
+413. Progress bar "financial fitness" gabungan sebagai representasi
+     visual kesehatan keuangan keseluruhan.
+414. Daily check-in ringan — buka app tiap hari dapat insight kecil,
+     dorong kebiasaan pantau keuangan.
+415. Cerita/narasi personal finance journey — visualisasi perjalanan
+     keuangan user dari waktu ke waktu (seperti Spotify Wrapped).
+416. Mini-game edukatif seputar budgeting buat variasi belajar
+     (terhubung BAGIAN U).
+417. Sistem achievement bertingkat (bronze/silver/gold) per kategori
+     pencapaian.
+418. Kejutan/easter egg kecil di app buat user yang eksplor fitur
+     tersembunyi.
+419. Reminder ramah non-menggurui — nada notifikasi yang suportif,
+     bukan menghakimi saat overbudget.
+420. Ringkasan tahunan gaya "Wrapped" — insight & pencapaian keuangan
+     setahun penuh dalam format shareable.
+421. Kompetisi hemat komunitas musiman (opsional, anonim) dengan
+     hadiah dari sponsor/partner.
+422. Personalisasi avatar/maskot app yang berkembang sesuai progress
+     finansial user (gamifikasi visual).
+
+
+BAGIAN AB — WIDGET & INTEGRASI OS LANJUTAN (423-438)
+---------------------------------------
+423. Widget kustomisasi ukuran (small/medium/large) dengan konten
+     berbeda tiap ukuran.
+424. Widget grafik mini — tren pengeluaran 7 hari terakhir langsung di
+     home-screen.
+425. Live Activity (iOS)/Ongoing notification (Android) untuk tracking
+     real-time saat lagi belanja/traveling.
+426. Integrasi Apple Watch/Wear OS — cek saldo & catat transaksi cepat
+     dari smartwatch (detail di BAGIAN AE).
+427. Dynamic Island (iOS) untuk update status budget real-time.
+428. Widget goal progress — lihat progress goal tabungan favorit
+     langsung dari home-screen.
+429. Kustomisasi shortcut Siri/Google Assistant untuk aksi spesifik
+     (bukan cuma catat transaksi umum).
+430. Integrasi dengan Control Center/Quick Settings untuk toggle mode
+     privasi cepat.
+431. Deep link universal yang lebih luas — buka halaman spesifik app
+     dari luar (email digest, web dashboard).
+432. Dukungan drag-and-drop file (CSV, foto struk) dari file manager
+     langsung ke app di tablet/desktop mode.
+433. Integrasi dengan sistem notifikasi OS yang lebih rich (actionable
+     notification — approve/reject langsung dari notif).
+434. Mode split-screen/multi-window yang dioptimalkan untuk tablet
+     Android/iPad.
+435. Widget lock-screen (iOS 16+) — info ringkas saldo tanpa perlu
+     unlock penuh.
+436. Handoff antar-device Apple — mulai input transaksi di iPhone,
+     lanjut di iPad.
+437. Integrasi dengan Google Wallet/Apple Wallet untuk pass member
+     premium.
+438. Auto-fill kategori dari Shortcuts otomasi pihak ketiga (mis.
+     otomatis catat transaksi dari notifikasi bank).
+
+
+BAGIAN AC — MODE OFFLINE & SINKRONISASI (439-452)
+---------------------------------------
+439. Mode offline penuh — catat transaksi tanpa koneksi, sinkron
+     otomatis begitu online lagi.
+440. Indikator status sinkronisasi yang jelas — user tahu data mana
+     yang belum ke-sync ke server.
+441. Resolusi konflik data — kalau ada perubahan di 2 device offline
+     bersamaan, tawarkan pilihan merge yang jelas.
+442. Antrian aksi offline (offline queue) — semua aksi tersimpan urut
+     & diproses otomatis saat online.
+443. Cache data penting (kategori, akun, budget) untuk tetap bisa
+     dilihat read-only saat offline total.
+444. Notifikasi retry otomatis kalau sync gagal karena koneksi
+     terputus di tengah jalan.
+445. Mode "airplane" khusus — nonaktifkan semua fetch background saat
+     user tahu akan offline lama (traveling).
+446. Kompresi payload sync untuk koneksi sangat lambat (2G/3G di area
+     terpencil).
+447. Sync selektif — user pilih data mana yang prioritas disinkron
+     duluan saat koneksi terbatas.
+448. Riwayat log sinkronisasi buat debugging kalau ada data yang
+     kelihatannya hilang/tidak konsisten.
+449. Sync incremental (bukan full-refetch tiap buka app) buat hemat
+     data & baterai.
+450. Peringatan sebelum keluar app kalau masih ada data offline yang
+     belum ke-sync.
+451. Dukungan multi-device edit bersamaan dengan locking sederhana
+     biar tidak saling menimpa perubahan.
+452. Background sync terjadwal (bukan cuma saat app dibuka) supaya
+     data selalu up-to-date antar-device.
+
+
+BAGIAN AD — KEAMANAN & KEPATUHAN LANJUTAN (453-470)
+---------------------------------------
+453. Audit trail lengkap untuk shared wallet — siapa mengubah apa,
+     kapan, bisa dilihat semua anggota.
+454. Kepatuhan PDP (Pelindungan Data Pribadi) — mekanisme consent &
+     hak akses data sesuai regulasi Indonesia.
+455. Penilaian risiko keamanan berkala (security assessment) oleh
+     pihak ketiga, hasil dipublikasikan ke user.
+456. End-to-end encryption opsional untuk data paling sensitif (di
+     luar yang sudah di secure storage).
+457. Kontrol granular permission per fitur dalam shared wallet (bukan
+     cuma admin/anggota biner).
+458. Notifikasi keamanan proaktif — beri tahu user kalau ada pola
+     akses tidak biasa ke akunnya.
+459. Kebijakan retensi data yang jelas & bisa dikonfigurasi (berapa
+     lama data disimpan setelah akun dihapus).
+460. Verifikasi identitas tambahan (KYC ringan) untuk fitur finansial
+     sensitif (mis. sebelum IPO/Stock Trading).
+461. Mode "read-only" darurat — kunci semua aksi tulis tapi tetap bisa
+     lihat data saat curiga akun diretas.
+462. Dukungan hardware security key (YubiKey/FIDO2) sebagai lapis
+     autentikasi tambahan untuk power user.
+463. Transparency report berkala — statistik permintaan data dari
+     pihak berwenang (kalau relevan secara legal).
+464. Pemisahan data sensitif finansial dari data non-sensitif di level
+     penyimpanan backend.
+465. Automated penetration testing terjadwal sebagai bagian dari
+     siklus rilis rutin.
+466. Kebijakan disclosure kerentanan (bug bounty ringan) untuk
+     peneliti keamanan independen.
+467. Verifikasi email/nomor HP wajib sebelum akses fitur finansial
+     penuh (anti-abuse akun palsu).
+468. Enkripsi backup lokal yang di-generate user (#33) dengan standar
+     yang didokumentasikan jelas ke user awam.
+469. Deteksi device yang di-jailbreak/root dengan opsi pembatasan
+     fitur sensitif otomatis (pelengkap #30).
+470. Audit kepatuhan berkala terhadap regulasi OJK terkait aplikasi
+     pencatatan keuangan (bukan lembaga keuangan resmi, tapi tetap
+     perlu kejelasan batas layanan).
+
+
+BAGIAN AE — WEARABLE & MULTI-PERANGKAT (471-482)
+---------------------------------------
+471. Companion app Wear OS/watchOS — lihat saldo & notifikasi budget
+     langsung dari pergelangan tangan.
+472. Catat transaksi cepat dari smartwatch dengan preset kategori
+     favorit (minim ketik).
+473. Haptic alert di smartwatch saat overbudget/transaksi besar
+     terdeteksi.
+474. Complication watch face — tampilkan saldo/progress goal langsung
+     di watch face.
+475. Sinkronisasi otomatis lintas perangkat (HP, tablet, watch) tanpa
+     perlu login ulang tiap device.
+476. Mode desktop/web companion (read-only atau penuh) untuk yang
+     lebih nyaman analisis di layar besar.
+477. Ekstensi browser untuk quick-capture transaksi saat belanja
+     online.
+478. Integrasi dengan asisten suara built-in mobil (Android Auto/
+     CarPlay) untuk catat transaksi hands-free saat isi bensin.
+479. Dukungan stylus/Apple Pencil untuk anotasi manual di laporan/
+     grafik (device yang mendukung).
+480. Mode TV/layar besar untuk presentasi laporan keuangan keluarga
+     bareng-bareng.
+481. Notifikasi cross-device yang smart — jangan dobel notif di HP &
+     watch bersamaan untuk hal yang sama.
+482. Backup konfigurasi antar-device — pindah HP baru, semua preferensi
+     (tema, layout Dashboard) ikut pindah otomatis.
+
+
+BAGIAN AF — FITUR SOSIAL & KOMUNITAS (483-496)
+---------------------------------------
+483. Forum komunitas in-app seputar personal finance, moderated,
+     terpisah dari kolaborasi #90 (bukan chat 1-on-1 advisor).
+484. Berbagi pencapaian goal ke media sosial (opsional, dengan kontrol
+     privasi nominal disembunyikan).
+485. Grup diskusi berdasarkan minat finansial (investor pemula, dana
+     pendidikan, freelancer, dst.).
+486. Mentor-mentee matching untuk user yang mau belajar dari yang
+     lebih berpengalaman (opsional, moderated).
+487. Q&A publik terkurasi dari pertanyaan user yang sering muncul,
+     dijawab tim/komunitas.
+488. Event komunitas online (webinar, AMA session) terjadwal dalam
+     app.
+489. Testimonial/success story user (dengan consent) sebagai konten
+     inspirasi di dalam app.
+490. Grup lokal berdasarkan kota untuk meetup komunitas pengguna
+     Flowr (opsional, sangat niche).
+491. Sistem reputasi komunitas — kontributor aktif forum dapat badge/
+     status khusus.
+492. Polling komunitas untuk prioritas fitur berikutnya, hasilnya
+     transparan ke semua user.
+493. Integrasi referral (#91) dengan tracking sosial — lihat siapa
+     saja teman yang sudah pakai Flowr (opsional, consent-based).
+494. Direct message terbatas antar-user komunitas dengan kontrol
+     privasi ketat.
+495. Highlight cerita transformasi keuangan user pilihan tiap bulan
+     (dengan izin & anonimisasi opsional).
+496. Kanal komunitas khusus per topik modul (crypto, investasi,
+     budgeting) biar diskusi lebih terarah.
+
+
+BAGIAN AG — INTEGRASI MERCHANT & LOYALTY (497-510)
+---------------------------------------
+497. Katalog promo/cashback dari partner merchant yang terintegrasi
+     berdasarkan histori belanja user.
+498. Program poin loyalty Flowr sendiri (pelengkap #99) yang bisa
+     ditukar ke partner merchant.
+499. Notifikasi promo kontekstual — diskon di kategori yang sering
+     dibelanjakan user (opt-in, bukan spam).
+500. Integrasi kupon digital — simpan & pakai kupon langsung terhubung
+     ke transaksi terkait.
+501. Marketplace penawaran finansial partner (kartu kredit, asuransi,
+     reksadana) berbasis profil user, dengan transparansi komisi.
+502. Cashback tracking otomatis — deteksi transaksi yang eligible
+     cashback dari partner & lacak klaimnya.
+503. Program loyalitas tier — semakin aktif pakai Flowr, semakin
+     banyak benefit merchant partner yang terbuka.
+504. Perbandingan harga otomatis lintas e-wallet/metode pembayaran
+     untuk transaksi yang sama (kalau datanya tersedia).
+505. Redeem poin loyalty langsung jadi kontribusi ke goal tabungan
+     (menghubungkan #498 ke BAGIAN M).
+506. Direktori merchant lokal UMKM yang didukung fitur pembayaran
+     khusus (dukung ekosistem lokal).
+507. Notifikasi masa berlaku poin/kupon yang mau kadaluarsa.
+508. Integrasi member card digital merchant favorit user (pengganti
+     kartu fisik).
+509. Program afiliasi transparan — user tahu persis kalau rekomendasi
+     produk finansial dapat komisi buat Flowr.
+510. Leaderboard hemat versus cashback earned — gamifikasi ringan
+     seputar manfaat loyalty (terhubung BAGIAN AA).
+
+
+BAGIAN AH — KEUANGAN PERJALANAN (TRAVEL) (511-522)
+---------------------------------------
+511. Mode "trip budget" terpisah — anggaran khusus perjalanan dengan
+     kategori sendiri (akomodasi, transport, makan).
+512. Multi-currency otomatis selama mode trip aktif — konversi real-
+     time tanpa perlu input manual tiap transaksi.
+513. Ringkasan pengeluaran trip per hari, bandingkan dengan budget
+     harian yang direncanakan.
+514. Split biaya trip dengan teman perjalanan (terhubung split bill
+     #87, tapi scoped ke satu trip).
+515. Riwayat trip sebagai arsip — lihat lagi berapa habis buat liburan
+     tahun lalu vs tahun ini.
+516. Checklist budget pre-trip — estimasi total biaya sebelum
+     berangkat, bandingkan dengan realisasi setelah pulang.
+517. Reminder tukar mata uang sebelum berangkat berdasarkan kurs yang
+     dipantau.
+518. Kategori "oleh-oleh" & "dokumentasi" khusus trip, terpisah dari
+     kategori harian biasa.
+519. Notifikasi transaksi luar negeri (potensi fee kartu) supaya user
+     sadar biaya tambahan sebelum kaget di laporan.
+520. Peta visual pengeluaran per lokasi selama trip (pelengkap #120
+     riwayat lokasi transaksi).
+521. Mode auto-deteksi trip dari pola transaksi (lokasi luar kota
+     beruntun) dengan konfirmasi user sebelum aktifkan.
+522. Laporan akhir trip otomatis — ringkasan total biaya, breakdown
+     kategori, siap dibagikan ke teman perjalanan.
+
+
+BAGIAN AI — ASURANSI & PROTEKSI LANJUTAN (523-534)
+---------------------------------------
+523. Perbandingan produk asuransi pihak ketiga terintegrasi (pelengkap
+     tracker premi #8 yang sudah diusulkan).
+524. Reminder klaim asuransi dengan checklist dokumen yang dibutuhkan
+     per jenis polis.
+525. Kalkulator kebutuhan proteksi (uang pertanggungan ideal)
+     berdasarkan tanggungan & kondisi keuangan user.
+526. Ringkasan seluruh polis aktif dalam satu dashboard — jenis,
+     premi, tanggal jatuh tempo, ahli waris.
+527. Notifikasi masa tenggang pembayaran premi sebelum polis lapse.
+528. Simulasi dampak klaim ke arus kas — berapa lama proses
+     reimbursement biasanya, buat perencanaan sementara.
+529. Riwayat klaim yang pernah diajukan dengan status & hasil, sebagai
+     referensi ke depan.
+530. Rekomendasi jenis asuransi yang belum dimiliki berdasarkan profil
+     risiko user (kesehatan, jiwa, kendaraan).
+531. Kalkulator perbandingan premi tahunan vs bulanan — mana yang
+     lebih hemat jangka panjang.
+532. Integrasi dokumen polis digital — simpan PDF polis langsung
+     terhubung ke entri asuransi terkait.
+533. Reminder review ulang kecukupan proteksi tiap tahun (situasi
+     keuangan/tanggungan berubah).
+534. Edukasi kontekstual seputar istilah asuransi yang sering
+     membingungkan (terhubung BAGIAN U).
+
+
+BAGIAN AJ — MONETISASI & MEMBERSHIP LANJUTAN (535-550)
+---------------------------------------
+535. Paket add-on modular — beli fitur premium tertentu saja (mis.
+     cuma AI insight) tanpa upgrade paket penuh.
+536. Membership keluarga dengan harga per-kepala lebih murah
+     dibanding beli individual.
+537. Diskon loyalitas otomatis untuk member yang perpanjang berturut-
+     turut tanpa putus.
+538. Trial fitur premium terbatas waktu per fitur (bukan cuma trial
+     paket penuh sekali di awal).
+539. Model bundling dengan partner (mis. gratis 1 bulan premium buat
+     nasabah bank tertentu).
+540. Opsi downgrade yang jelas & tidak menyulitkan — kurangi churn
+     karena proses downgrade ribet.
+541. Laporan value yang didapat member premium — "kamu sudah hemat
+     sekian berkat insight AI bulan ini" buat justifikasi retensi.
+542. Sistem kredit/saldo dalam app untuk beli fitur add-on satuan
+     (micro-transaction model).
+543. Program afiliasi/reseller untuk komunitas/influencer keuangan
+     yang mau promosikan Flowr.
+544. Gift membership — beli & hadiahkan langganan premium ke teman/
+     keluarga.
+545. Segmentasi harga regional — harga membership disesuaikan daya
+     beli tiap negara/wilayah kalau ekspansi.
+546. Analisis churn otomatis — deteksi member yang berisiko tidak
+     perpanjang, kirim penawaran retensi tepat waktu.
+547. Membership tahunan dengan diskon signifikan dibanding bulanan,
+     buat dorong komitmen jangka panjang.
+548. Fitur eksklusif preview untuk member premium sebelum dirilis ke
+     user gratis (early access, terhubung #403).
+549. Transparansi roadmap — member tahu fitur premium apa yang
+     direncanakan, tingkatkan kepercayaan & retensi.
+550. Program loyalitas member lama — benefit tambahan murni karena
+     sudah berlangganan lama, bukan cuma karena tier tinggi.

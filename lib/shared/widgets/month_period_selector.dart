@@ -89,7 +89,7 @@ class _MonthYearPickerSheetState extends State<_MonthYearPickerSheet> {
                     child: Text(
                       monthNameShort(month, Localizations.localeOf(context)),
                       style: TextStyle(
-                        color: selected ? Colors.white : AppColors.textPrimary,
+                        color: selected ? AppColors.onPrimary : AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),

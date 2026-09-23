@@ -1092,8 +1092,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletDashboardRecentTransactionsTitle => 'Recent Transactions';
 
   @override
-  String walletDashboardGreeting(String name) {
-    return 'Hi, $name';
+  String walletDashboardGreetingMorning(String name) {
+    return 'Good Morning, $name';
+  }
+
+  @override
+  String walletDashboardGreetingMidday(String name) {
+    return 'Good Afternoon, $name';
+  }
+
+  @override
+  String walletDashboardGreetingAfternoon(String name) {
+    return 'Good Evening, $name';
+  }
+
+  @override
+  String walletDashboardGreetingNight(String name) {
+    return 'Good Evening, $name';
+  }
+
+  @override
+  String walletDashboardGreetingPayday(String name) {
+    return 'Happy Payday, $name';
+  }
+
+  @override
+  String walletDashboardGreetingEndingSoon(String name) {
+    return 'Payday\'s Coming Up, $name';
   }
 
   @override
@@ -1218,6 +1243,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get txnListNoResultsSubtitle => 'No transactions match this search.';
+
+  @override
+  String get txnListLoadMore => 'Load older transactions';
 
   @override
   String get txnSearchHint => 'Search category, note, or account';
@@ -1904,4 +1932,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get summaryFireCardSubtitle => 'Project when you can retire';
+
+  @override
+  String get profileFeatureTourTileTitle => 'Feature Tour';
+
+  @override
+  String get profileFeatureTourTileSubtitle =>
+      'Replay the quick guide to the app\'s main features';
+
+  @override
+  String get tourNetWorthTitle => 'Balance & Net Worth';
+
+  @override
+  String get tourNetWorthDescription =>
+      'See your total balance and net worth here, updated automatically from all accounts & transactions.';
+
+  @override
+  String get tourStatsTitle => 'Financial Summary';
+
+  @override
+  String get tourStatsDescription =>
+      'Cash balance, investments, income, and expenses for the current period — all in one view.';
+
+  @override
+  String get tourSavingsGoalsTitle => 'Savings Goals';
+
+  @override
+  String get tourSavingsGoalsDescription =>
+      'Track your savings goal progress, tap to see details or create a new goal.';
+
+  @override
+  String get tourNavDashboardTitle => 'Home';
+
+  @override
+  String get tourNavDashboardDescription =>
+      'Your complete financial summary lives here.';
+
+  @override
+  String get tourNavTransactionsTitle => 'Transactions';
+
+  @override
+  String get tourNavTransactionsDescription =>
+      'Record & view all your daily transactions here.';
+
+  @override
+  String get tourNavSummaryTitle => 'Summary';
+
+  @override
+  String get tourNavSummaryDescription =>
+      'Analyze your income & expenses in chart form.';
+
+  @override
+  String get tourNavBudgetsTitle => 'Budget';
+
+  @override
+  String get tourNavBudgetsDescription =>
+      'Set & track your monthly budget per category.';
+
+  @override
+  String get tourNavProfileTitle => 'Profile';
+
+  @override
+  String get tourNavProfileDescription =>
+      'Manage your account, theme, language, and other settings.';
+
+  @override
+  String get tourPayrollTitle => 'Set Up Your Payroll Cycle First';
+
+  @override
+  String get tourPayrollDescription =>
+      'Set your payday date here first, so period data across the app — including portfolio — is more accurate.';
+
+  @override
+  String get tourPortfolioTitle => 'Lastly, Your Investment Portfolio';
+
+  @override
+  String get tourPortfolioDescription =>
+      'Set up your investment portfolio here so its data shows up on your Dashboard too.';
+
+  @override
+  String get profileUserGuideTileTitle => 'User Guide';
+
+  @override
+  String get profileUserGuideTileSubtitle =>
+      'Full guide on how to use the app (PDF)';
+
+  @override
+  String get profileUserGuideOpenFailed =>
+      'Couldn\'t open the guide. Make sure you have a PDF reader app installed.';
 }

@@ -61,13 +61,13 @@ class _Pill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (spec.icon != null) ...[
-              Icon(spec.icon, size: 13, color: selected ? Colors.white : AppColors.textSecondary),
+              Icon(spec.icon, size: 13, color: selected ? AppColors.onPrimary : AppColors.textSecondary),
               const SizedBox(width: 4),
             ],
             Text(
               spec.label,
               style: TextStyle(
-                color: selected ? Colors.white : AppColors.textPrimary,
+                color: selected ? AppColors.onPrimary : AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
                 fontSize: 12.5,
               ),

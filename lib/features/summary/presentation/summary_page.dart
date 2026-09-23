@@ -569,8 +569,8 @@ class _BreakdownChart extends StatelessWidget {
         AppColors.accent,
         AppColors.success,
         AppColors.error,
-        const Color(0xFFE2B4BD),
-        const Color(0xFF0EA5A4),
+        AppColors.primaryGradient[0],
+        AppColors.chartTeal,
       ];
 
   @override
@@ -762,7 +762,12 @@ class _AdvisorTile extends StatelessWidget {
           Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 18),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(tip, style: const TextStyle(color: AppColors.primaryDark, fontSize: 13)),
+            // AppColors.textPrimary (theme-aware), not primaryDark — that
+            // token is fixed-color text meant only for the primaryGradient
+            // hero card, not this theme-aware primaryLight background; using
+            // it here left near-black text on a dark-purple card in dark
+            // mode (docs/ide-improvement-fitur-existing.txt BAGIAN A #2).
+            child: Text(tip, style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
           ),
         ],
       ),

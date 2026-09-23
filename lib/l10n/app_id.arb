@@ -453,8 +453,38 @@
   "walletDashboardIncomeSourcesTitle": "Sumber Pemasukan",
   "walletDashboardTopCategoriesTitle": "Kategori Terbesar",
   "walletDashboardRecentTransactionsTitle": "Transaksi Terbaru",
-  "walletDashboardGreeting": "Halo, {name}",
-  "@walletDashboardGreeting": {
+  "walletDashboardGreetingMorning": "Selamat Pagi, {name}",
+  "@walletDashboardGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingMidday": "Selamat Siang, {name}",
+  "@walletDashboardGreetingMidday": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingAfternoon": "Selamat Sore, {name}",
+  "@walletDashboardGreetingAfternoon": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingNight": "Selamat Malam, {name}",
+  "@walletDashboardGreetingNight": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingPayday": "Selamat Gajian, {name}",
+  "@walletDashboardGreetingPayday": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "walletDashboardGreetingEndingSoon": "Gajian Sebentar Lagi, {name}",
+  "@walletDashboardGreetingEndingSoon": {
     "placeholders": {
       "name": {"type": "String"}
     }
@@ -526,6 +556,7 @@
   "txnListEmptySubtitle": "Tekan tombol + untuk mencatat pemasukan atau pengeluaran.",
   "txnListNoResultsTitle": "Tidak ada hasil",
   "txnListNoResultsSubtitle": "Tidak ada transaksi yang cocok dengan pencarian ini.",
+  "txnListLoadMore": "Muat transaksi lebih lama",
   "txnSearchHint": "Cari kategori, catatan, atau akun",
   "txnNetBalanceLabel": "Saldo Bersih",
   "txnDeleteDialogTitle": "Hapus transaksi?",
@@ -868,5 +899,33 @@
       "target": {"type": "String"}
     }
   },
-  "summaryFireCardSubtitle": "Proyeksi kapan bisa pensiun"
+  "summaryFireCardSubtitle": "Proyeksi kapan bisa pensiun",
+
+  "profileFeatureTourTileTitle": "Lihat Tour Fitur",
+  "profileFeatureTourTileSubtitle": "Ulangi panduan singkat fitur-fitur utama app",
+
+  "tourNetWorthTitle": "Saldo & Kekayaan Bersih",
+  "tourNetWorthDescription": "Lihat total saldo dan net worth kamu di sini, update otomatis dari semua akun & transaksi.",
+  "tourStatsTitle": "Ringkasan Keuangan",
+  "tourStatsDescription": "Cash balance, investasi, pemasukan, dan pengeluaran periode berjalan — semua dalam satu tampilan.",
+  "tourSavingsGoalsTitle": "Target Tabungan",
+  "tourSavingsGoalsDescription": "Pantau progres target tabunganmu, tap untuk lihat detail atau buat target baru.",
+  "tourNavDashboardTitle": "Beranda",
+  "tourNavDashboardDescription": "Ringkasan keuangan lengkap kamu ada di sini.",
+  "tourNavTransactionsTitle": "Transaksi",
+  "tourNavTransactionsDescription": "Catat & lihat semua transaksi harianmu di sini.",
+  "tourNavSummaryTitle": "Ringkasan",
+  "tourNavSummaryDescription": "Analisis pengeluaran & pemasukan dalam bentuk grafik.",
+  "tourNavBudgetsTitle": "Anggaran",
+  "tourNavBudgetsDescription": "Atur & pantau anggaran bulananmu per kategori.",
+  "tourNavProfileTitle": "Profil",
+  "tourNavProfileDescription": "Kelola akun, tema, bahasa, dan pengaturan lainnya.",
+  "tourPayrollTitle": "Atur Siklus Gajian Dulu",
+  "tourPayrollDescription": "Setting tanggal gajian kamu di sini dulu, supaya data periode di seluruh app — termasuk portfolio — lebih akurat.",
+  "tourPortfolioTitle": "Terakhir, Portfolio Investasi",
+  "tourPortfolioDescription": "Atur portfolio investasimu di sini supaya datanya ikut muncul di Dashboard.",
+
+  "profileUserGuideTileTitle": "Panduan Pengguna",
+  "profileUserGuideTileSubtitle": "Buku panduan lengkap cara pakai aplikasi (PDF)",
+  "profileUserGuideOpenFailed": "Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu."
 }

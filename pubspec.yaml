@@ -51,7 +51,9 @@ dependencies:
   local_auth: ^3.0.2
   google_mlkit_text_recognition: ^0.17.1
   image_picker: ^1.2.3
-
+  showcaseview: ^5.1.0
+  path_provider: ^2.1.6
+  share_plus: ^13.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,6 +83,7 @@ flutter:
 
   assets:
     - assets/branding/logo_mark.png
+    - assets/docs/Flowr-User-Work-Instruction.pdf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

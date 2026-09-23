@@ -107,7 +107,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
       _error = null;
     });
 
-    final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final amount = parseRupiahInput(_amountController.text)!;
     final description = _descriptionController.text.trim();
     final controller = ref.read(transferListControllerProvider.notifier);
 
@@ -244,7 +244,7 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
-                    final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
+                    final parsed = parseRupiahInput(value);
                     if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
                     return null;
                   },

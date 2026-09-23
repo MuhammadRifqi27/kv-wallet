@@ -26,8 +26,16 @@ class DashboardController extends AsyncNotifier<DashboardModel> {
     // docs/flutter-mobile-app-development-guide.txt: "panggil endpoint ini
     // ... saat pull-to-refresh Dashboard, supaya transaksi berulang yang
     // jatuh tempo langsung muncul." Runs before the dashboard fetch so a
-    // just-processed transaction shows up in this same refresh.
-    await ref.read(recurringRepositoryProvider).processDue();
+    // just-processed transaction shows up in this same refresh. Wrapped in
+    // its own try/catch — a failure here is genuinely best-effort and must
+    // never block the actual dashboard refetch below (see
+    // docs/ide-improvement-fitur-existing.txt BAGIAN A #6).
+    try {
+      await ref.read(recurringRepositoryProvider).processDue();
+    } catch (_) {
+      // Ignored — the dashboard refresh below is what the user is actually
+      // waiting on; recurring processing will simply retry next time.
+    }
     state = const AsyncLoading();
     state = await AsyncValue.guard(
       () => ref.read(dashboardRepositoryProvider).getDashboard(month: period?.month, year: period?.year),

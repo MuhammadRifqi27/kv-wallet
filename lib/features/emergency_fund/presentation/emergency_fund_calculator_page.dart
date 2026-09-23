@@ -44,7 +44,7 @@ class _EmergencyFundCalculatorPageState extends ConsumerState<EmergencyFundCalcu
   }
 
   void _onManualAverageChanged() {
-    final parsed = double.tryParse(_manualAverageController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final parsed = parseRupiahInput(_manualAverageController.text);
     final value = (parsed != null && parsed > 0) ? parsed : null;
     if (value != _manualAverage) setState(() => _manualAverage = value);
   }
@@ -247,7 +247,7 @@ class _MultiplierChip extends StatelessWidget {
         child: Text(
           '${months}x',
           style: TextStyle(
-            color: selected ? Colors.white : AppColors.textPrimary,
+            color: selected ? AppColors.onPrimary : AppColors.textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 13,
           ),

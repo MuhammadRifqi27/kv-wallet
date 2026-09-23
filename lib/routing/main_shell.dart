@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../core/providers/core_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../data/models/user_model.dart';
 import '../features/auth/application/auth_controller.dart';
+import '../features/tour/application/tour_controller.dart';
 import '../l10n/app_localizations.dart';
 
 class _NavItem {
-  const _NavItem({required this.permission, required this.icon, required this.selectedIcon});
+  const _NavItem({
+    required this.permission,
+    required this.icon,
+    required this.selectedIcon,
+    required this.tourKey,
+  });
 
   final String permission;
   final IconData icon;
   final IconData selectedIcon;
+  final GlobalKey tourKey;
 }
 
 /// Nav item labels are locale-dependent, so they can't live on the const
@@ -36,6 +44,26 @@ String _navLabelFor(AppLocalizations l10n, String permission) {
   }
 }
 
+/// Tour tooltip title/description per nav item — same permission-keyed
+/// lookup pattern as [_navLabelFor], for the gelombang-1 nav-icon steps
+/// (see docs/plan-dev/onboarding-tour-plan.txt).
+(String, String) _navTourCopyFor(AppLocalizations l10n, String permission) {
+  switch (permission) {
+    case 'dashboard':
+      return (l10n.tourNavDashboardTitle, l10n.tourNavDashboardDescription);
+    case 'transactions':
+      return (l10n.tourNavTransactionsTitle, l10n.tourNavTransactionsDescription);
+    case 'summary':
+      return (l10n.tourNavSummaryTitle, l10n.tourNavSummaryDescription);
+    case 'budgets':
+      return (l10n.tourNavBudgetsTitle, l10n.tourNavBudgetsDescription);
+    case 'settings':
+      return (l10n.tourNavProfileTitle, l10n.tourNavProfileDescription);
+    default:
+      return (permission, '');
+  }
+}
+
 /// Index order must match the branch order in app_router.dart's
 /// StatefulShellRoute (NavigationBar matches by index) — reorder both
 /// together. Permission keys per
@@ -47,31 +75,38 @@ String _navLabelFor(AppLocalizations l10n, String permission) {
 /// Profile menu tile (same treatment as Portfolio) to bring the bar down
 /// from 6 tabs to the UX-recommended 4-5 — it's the most niche/premium-only
 /// destination of the six.
-const _navItems = [
+/// [_NavItem.tourKey]s below feed TourController's gelombang 1 — see
+/// docs/plan-dev/onboarding-tour-plan.txt.
+final _navItems = [
   _NavItem(
     permission: 'dashboard',
     icon: Icons.dashboard_outlined,
     selectedIcon: Icons.dashboard_rounded,
+    tourKey: tourNavDashboardKey,
   ),
   _NavItem(
     permission: 'transactions',
     icon: Icons.receipt_long_outlined,
     selectedIcon: Icons.receipt_long_rounded,
+    tourKey: tourNavTransactionsKey,
   ),
   _NavItem(
     permission: 'summary',
     icon: Icons.pie_chart_outline_rounded,
     selectedIcon: Icons.pie_chart_rounded,
+    tourKey: tourNavSummaryKey,
   ),
   _NavItem(
     permission: 'budgets',
     icon: Icons.calculate_outlined,
     selectedIcon: Icons.calculate_rounded,
+    tourKey: tourNavBudgetsKey,
   ),
   _NavItem(
     permission: 'settings',
     icon: Icons.person_outline_rounded,
     selectedIcon: Icons.person_rounded,
+    tourKey: tourNavProfileKey,
   ),
 ];
 
@@ -118,11 +153,21 @@ class MainShell extends ConsumerWidget {
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) => _onDestinationSelected(context, ref, index),
         destinations: [
-          for (final item in _navItems)
-            NavigationDestination(
-              icon: _NavIcon(icon: item.icon, locked: !_isAllowed(user, item)),
-              selectedIcon: _NavIcon(icon: item.selectedIcon, locked: !_isAllowed(user, item)),
-              label: _navLabelFor(l10n, item.permission),
+          for (var i = 0; i < _navItems.length; i++)
+            _buildDestination(
+              context: context,
+              l10n: l10n,
+              user: user,
+              item: _navItems[i],
+              // NavigationBar only ever mounts ONE of `icon`/`selectedIcon`
+              // for a given destination — whichever matches its current
+              // selection state — so the Showcase has to move to whichever
+              // slot is actually being built, otherwise the tour gets stuck
+              // the moment it reaches the currently-active tab's own icon
+              // (its `icon:` slot never renders while selected, so the
+              // library can never find that target). See
+              // docs/plan-dev/onboarding-tour-plan.txt.
+              isSelected: i == navigationShell.currentIndex,
             ),
         ],
       ),
@@ -130,6 +175,35 @@ class MainShell extends ConsumerWidget {
   }
 
   bool _isAllowed(UserModel? user, _NavItem item) => user?.hasPermission(item.permission) ?? false;
+
+  NavigationDestination _buildDestination({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required UserModel? user,
+    required _NavItem item,
+    required bool isSelected,
+  }) {
+    final locked = !_isAllowed(user, item);
+    final tourCopy = _navTourCopyFor(l10n, item.permission);
+    final unselected = _NavIcon(icon: item.icon, locked: locked);
+    final selected = _NavIcon(icon: item.selectedIcon, locked: locked);
+
+    Widget showcased(Widget child) => Showcase(
+          key: item.tourKey,
+          title: tourCopy.$1,
+          description: tourCopy.$2,
+          tooltipBackgroundColor: AppColors.surface,
+          textColor: AppColors.textPrimary,
+          targetShapeBorder: const CircleBorder(),
+          child: child,
+        );
+
+    return NavigationDestination(
+      icon: isSelected ? unselected : showcased(unselected),
+      selectedIcon: isSelected ? showcased(selected) : selected,
+      label: _navLabelFor(l10n, item.permission),
+    );
+  }
 }
 
 class _NavIcon extends StatelessWidget {

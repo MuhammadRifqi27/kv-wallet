@@ -18,6 +18,25 @@ final _cryptoQuantityFormat = NumberFormat('#,##0.########', 'en_US');
 /// unlike Rupiah, fractional coin amounts are the norm, not an edge case.
 String formatCryptoQuantity(double quantity) => _cryptoQuantityFormat.format(quantity);
 
+/// Parses a Rupiah amount field back into a number, tolerating the
+/// `.`-grouped thousands separators [formatRupiah] itself displays (e.g. a
+/// form pre-filled from an existing "1.000.000" value, or a user typing
+/// their own dots to match). Strips every non-digit character — including
+/// the dots entirely — before parsing, rather than the naive
+/// `replaceAll(RegExp(r'[^0-9.]'), '')` pattern several forms used to
+/// duplicate: that naive version fed "1.000.000" straight to `double.parse`
+/// as a decimal literal, which either fails outright (more than one `.`) or
+/// silently parses "1.000" as `1.0` — a nominal 1000x too small, with no
+/// error. Since this app never shows fractional Rupiah (see [formatRupiah]:
+/// `decimalDigits: 0`), treating every `.`/`,` as pure grouping noise is
+/// always correct here. See docs/ide-improvement-fitur-existing.txt BAGIAN
+/// A #4.
+double? parseRupiahInput(String raw) {
+  final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
+  if (digitsOnly.isEmpty) return null;
+  return double.tryParse(digitsOnly);
+}
+
 /// Masked stand-in for [formatRupiah] when the user has hidden nominal
 /// values (e.g. dashboard privacy toggle) — fixed-width regardless of the
 /// underlying amount so it doesn't leak the digit count.

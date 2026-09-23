@@ -1090,8 +1090,33 @@ class AppLocalizationsId extends AppLocalizations {
   String get walletDashboardRecentTransactionsTitle => 'Transaksi Terbaru';
 
   @override
-  String walletDashboardGreeting(String name) {
-    return 'Halo, $name';
+  String walletDashboardGreetingMorning(String name) {
+    return 'Selamat Pagi, $name';
+  }
+
+  @override
+  String walletDashboardGreetingMidday(String name) {
+    return 'Selamat Siang, $name';
+  }
+
+  @override
+  String walletDashboardGreetingAfternoon(String name) {
+    return 'Selamat Sore, $name';
+  }
+
+  @override
+  String walletDashboardGreetingNight(String name) {
+    return 'Selamat Malam, $name';
+  }
+
+  @override
+  String walletDashboardGreetingPayday(String name) {
+    return 'Selamat Gajian, $name';
+  }
+
+  @override
+  String walletDashboardGreetingEndingSoon(String name) {
+    return 'Gajian Sebentar Lagi, $name';
   }
 
   @override
@@ -1216,6 +1241,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get txnListNoResultsSubtitle =>
       'Tidak ada transaksi yang cocok dengan pencarian ini.';
+
+  @override
+  String get txnListLoadMore => 'Muat transaksi lebih lama';
 
   @override
   String get txnSearchHint => 'Cari kategori, catatan, atau akun';
@@ -1902,4 +1930,92 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get summaryFireCardSubtitle => 'Proyeksi kapan bisa pensiun';
+
+  @override
+  String get profileFeatureTourTileTitle => 'Lihat Tour Fitur';
+
+  @override
+  String get profileFeatureTourTileSubtitle =>
+      'Ulangi panduan singkat fitur-fitur utama app';
+
+  @override
+  String get tourNetWorthTitle => 'Saldo & Kekayaan Bersih';
+
+  @override
+  String get tourNetWorthDescription =>
+      'Lihat total saldo dan net worth kamu di sini, update otomatis dari semua akun & transaksi.';
+
+  @override
+  String get tourStatsTitle => 'Ringkasan Keuangan';
+
+  @override
+  String get tourStatsDescription =>
+      'Cash balance, investasi, pemasukan, dan pengeluaran periode berjalan — semua dalam satu tampilan.';
+
+  @override
+  String get tourSavingsGoalsTitle => 'Target Tabungan';
+
+  @override
+  String get tourSavingsGoalsDescription =>
+      'Pantau progres target tabunganmu, tap untuk lihat detail atau buat target baru.';
+
+  @override
+  String get tourNavDashboardTitle => 'Beranda';
+
+  @override
+  String get tourNavDashboardDescription =>
+      'Ringkasan keuangan lengkap kamu ada di sini.';
+
+  @override
+  String get tourNavTransactionsTitle => 'Transaksi';
+
+  @override
+  String get tourNavTransactionsDescription =>
+      'Catat & lihat semua transaksi harianmu di sini.';
+
+  @override
+  String get tourNavSummaryTitle => 'Ringkasan';
+
+  @override
+  String get tourNavSummaryDescription =>
+      'Analisis pengeluaran & pemasukan dalam bentuk grafik.';
+
+  @override
+  String get tourNavBudgetsTitle => 'Anggaran';
+
+  @override
+  String get tourNavBudgetsDescription =>
+      'Atur & pantau anggaran bulananmu per kategori.';
+
+  @override
+  String get tourNavProfileTitle => 'Profil';
+
+  @override
+  String get tourNavProfileDescription =>
+      'Kelola akun, tema, bahasa, dan pengaturan lainnya.';
+
+  @override
+  String get tourPayrollTitle => 'Atur Siklus Gajian Dulu';
+
+  @override
+  String get tourPayrollDescription =>
+      'Setting tanggal gajian kamu di sini dulu, supaya data periode di seluruh app — termasuk portfolio — lebih akurat.';
+
+  @override
+  String get tourPortfolioTitle => 'Terakhir, Portfolio Investasi';
+
+  @override
+  String get tourPortfolioDescription =>
+      'Atur portfolio investasimu di sini supaya datanya ikut muncul di Dashboard.';
+
+  @override
+  String get profileUserGuideTileTitle => 'Panduan Pengguna';
+
+  @override
+  String get profileUserGuideTileSubtitle =>
+      'Buku panduan lengkap cara pakai aplikasi (PDF)';
+
+  @override
+  String get profileUserGuideOpenFailed =>
+      'Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu.';
 }

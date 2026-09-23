@@ -92,7 +92,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
     });
 
     final asset = _assetController.text.trim().toUpperCase();
-    final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final amount = parseRupiahInput(_amountController.text)!;
     final description = _descriptionController.text.trim();
     final controller = ref.read(btcActivityControllerProvider.notifier);
 
@@ -208,7 +208,7 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.investAmountRequiredError;
-                    final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
+                    final parsed = parseRupiahInput(value);
                     if (parsed == null || parsed < 0) return l10n.investAmountInvalidError;
                     return null;
                   },

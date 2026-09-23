@@ -1,0 +1,241 @@
+BLUEPRINT — PREDIKSI PENGELUARAN BULAN DEPAN
+=============================================================
+
+Status: DRAFT PLAN - belum diimplementasikan.
+
+Ide #330 dari docs/ide-pengembangan-100.txt ("Prediksi pengeluaran bulan
+depan berbasis pola historis + musiman (lebaran, tahun ajaran baru,
+dst.)"), BAGIAN V — AI/MACHINE LEARNING LANJUTAN. Dokumen ini merinci
+scope, sumber data, algoritma, dan rencana implementasi sebelum mulai
+coding — mengikuti pola precedent docs/plan-dev/kalkulator-dana-
+darurat-plan.txt & docs/plan-dev/kalkulator-pensiun-fire-plan.txt
+(dua-duanya "baca data Summary yang sudah ada, hitung derived insight,
+tampilkan di halaman baru").
+
+
+BAGIAN 0 — SCOPE & BATASAN (PENTING)
+-----------------------------------------
+- v1 HANYA prediksi TOTAL pengeluaran bulan depan, BUKAN per kategori.
+  Alasan (lihat BAGIAN 1.2): endpoint Summary yang ada cuma punya
+  `categorySummary` untuk BULAN YANG DIMINTA saja (snapshot satu
+  bulan), tidak ada breakdown kategori historis lintas bulan di API
+  manapun saat ini. Prediksi per kategori butuh kerja backend baru —
+  di luar scope dokumen ini, dicatat sebagai future work (BAGIAN 5.2).
+- Prediksi murni statistik pola historis + penyesuaian musiman FIXED
+  (heuristik, bukan hasil machine learning sungguhan meski masuk
+  kategori "AI/ML" di ide-pengembangan-100.txt — realistisnya ini
+  weighted average + multiplier tabel, konsisten dengan level
+  kompleksitas Kalkulator Dana Darurat/FIRE yang sudah ada).
+- TIDAK fetch transaksi mentah satu-per-satu untuk hitung sendiri.
+  Reuse `SummaryModel.monthlyTrend` dari 1x panggilan
+  `SummaryRepository.getSummary(month, year)` — persis pola yang
+  dipakai `emergencyFundDataProvider` (lib/features/emergency_fund/
+  application/emergency_fund_controller.dart:29-36), BUKAN loop
+  panggil API per bulan mundur.
+- Penyesuaian musiman TIDAK dipersonalisasi per user (semua user dapat
+  multiplier yang sama untuk bulan Lebaran/tahun ajaran baru/dst.) —
+  personalisasi butuh data multi-tahun per user yang kebanyakan belum
+  punya (app ini masih baru), jadi v1 pakai heuristik tetap yang
+  jelas di-label sebagai ESTIMASI, bukan angka presisi.
+- Tanggal Lebaran/Idul Fitri TIDAK BOLEH ditebak/dikarang saat
+  implementasi — harus diambil dari sumber resmi (kalender Kemenag/
+  SKB 3 Menteri) untuk beberapa tahun ke depan sebelum di-hardcode
+  (lihat BAGIAN 4.2).
+
+
+BAGIAN 1 — SUMBER DATA & KETERBATASANNYA
+-----------------------------------------
+1.1. `SummaryRepository.getSummary({required int month, required int
+     year})` (lib/data/repositories/summary_repository.dart:13-23) — 1x
+     GET ke `ApiEndpoints.summary`, tidak ada parameter `months_back`/
+     range. Window berapa bulan yang dikembalikan `chart_data` DITENTUKAN
+     BACKEND, klien tidak bisa minta window tertentu.
+
+1.2. `SummaryModel.monthlyTrend` (lib/data/models/summary_model.dart:
+     11-72, dari JSON key `chart_data`) — `List<MonthlyTrendPoint>`,
+     tiap titik cuma `{label, income, expense}` (TOTAL per bulan, bukan
+     per kategori). `categorySummary` di model yang sama HANYA untuk
+     bulan yang diminta, tidak ada versi historisnya. Ini yang
+     membatasi v1 ke prediksi total saja (BAGIAN 0).
+
+1.3. CONFIRMED lewat baca kode implementasi Kalkulator Dana Darurat
+     yang sudah jadi (bukan cuma asumsi dari dokumen precedent-nya):
+     `emergencyFundDataProvider` panggil `getSummary(month: now.month,
+     year: now.year)` SEKALI, lalu langsung pakai
+     `summary.monthlyTrend` apa adanya (filter `expense > 0`, rata-
+     ratakan). TIDAK ada logic loop mundur bulan-per-bulan. Prediksi
+     pengeluaran ini akan pakai pola identik — 1x fetch bulan
+     berjalan, ambil `monthlyTrend` yang otomatis berisi beberapa
+     bulan ke belakang.
+
+1.4. BELUM DIVERIFIKASI: persis berapa bulan yang dikembalikan
+     `chart_data` (lihat BAGIAN 4.1) — baik dokumen precedent maupun
+     kode Emergency Fund/FIRE yang sudah jadi sama-sama tidak
+     menegaskan angka pastinya, cuma "pakai berapa pun yang balik".
+
+
+BAGIAN 2 — ALGORITMA PREDIKSI
+-----------------------------------------
+2.1. Data dasar: ambil `monthlyTrend`, filter titik dengan
+     `expense > 0` (pola sama seperti Emergency Fund — bulan tanpa
+     transaksi di-exclude supaya tidak menurunkan rata-rata secara
+     tidak representatif).
+     - Kalau titik valid < 3 bulan: data dianggap belum cukup ->
+       tampilkan state "belum cukup data" (BAGIAN 2.3), TIDAK
+       menampilkan angka prediksi yang menyesatkan dari data minim.
+
+2.2. Prediksi dasar = rata-rata sederhana (bukan weighted) dari semua
+     titik valid yang tersedia — SENGAJA konsisten dengan pendekatan
+     Emergency Fund Calculator (rata-rata polos), bukan rata-rata
+     berbobot yang lebih "canggih" tapi lebih sulit dijelaskan ke user
+     awam dan belum tentu lebih akurat tanpa data yang cukup panjang
+     untuk divalidasi. Lihat BAGIAN 5.1 kalau mau didiskusikan ulang.
+
+2.3. Penyesuaian musiman — kalau BULAN YANG DIPREDIKSI (bulan
+     kalender berikutnya dari hari ini) masuk salah satu "musim" di
+     tabel tetap berikut, prediksi dasar dikali multiplier:
+     - Bulan Lebaran/Idul Fitri (+ H-1 bulan sebelumnya, karena
+       belanja THR/baju baru/mudik biasanya mulai sebelum tanggal
+       Lebaran persis) — multiplier estimasi +20-30% (ANGKA INI
+       HEURISTIK AWAL, bukan hasil riset, perlu direview produk —
+       lihat BAGIAN 5.3). Tanggal per tahun: LIHAT BAGIAN 4.2, JANGAN
+       dikarang.
+     - Bulan tahun ajaran baru (Juni-Juli, seragam/SPP/perlengkapan
+       sekolah) — multiplier estimasi +10-15%.
+     - Desember (belanja akhir tahun/liburan Natal & Tahun Baru) —
+       multiplier estimasi +10-15%.
+     - Bulan lain: multiplier 1.0 (tidak ada penyesuaian).
+     - "dst." di ide asli dibuka untuk musim lain (mis. Ramadan itu
+       sendiri sebelum Lebaran, musim liburan sekolah pertengahan
+       tahun) — v1 cukup 3 musim di atas, tabel didesain gampang
+       ditambah entrinya nanti (BAGIAN 3, `SeasonalEvent` list).
+
+2.4. Tampilkan ke user: prediksi dasar, badge musiman kalau
+     multiplier != 1.0 ("Termasuk estimasi kenaikan Lebaran", dst.),
+     dan basis datanya ("berdasarkan rata-rata N bulan terakhir") —
+     transparansi bahwa ini estimasi, bukan angka pasti, konsisten
+     dengan nada "rekomendasi" (bukan "kepastian") yang dipakai
+     Kalkulator Dana Darurat/FIRE.
+
+
+BAGIAN 3 — ALUR PENGGUNA (UX) & PERUBAHAN FILE (RENCANA)
+-----------------------------------------
+Alur:
+1. Entry point: card baru di SummaryPage, diletakkan SETELAH
+   `_FireCalculatorCard` (lib/features/summary/presentation/
+   summary_page.dart:133-137 — urutan saat ini: BudgetHealth ->
+   EmergencyFundCalculator -> FireCalculator, tambah
+   ExpenseForecast di urutan ke-4). Pola CTA statis (bukan fetch-
+   dan-silent-hide seperti BudgetHealth) — sama seperti
+   `_EmergencyFundCalculatorCard`/`_FireCalculatorCard`
+   (summary_page.dart:453-558): `Material` + `InkWell` +
+   `context.push('/expense-forecast')`, copy tetap, TIDAK fetch data
+   sendiri di level card (halaman tujuan yang fetch begitu dibuka).
+2. Halaman prediksi (baru, full page, di luar bottom-nav shell — pola
+   sama seperti Emergency Fund/FIRE):
+   a. State loading/error mengikuti pola Emergency Fund (silent-
+      friendly error, bukan crash Summary page karena ini bukan fitur
+      inti).
+   b. State "belum cukup data" (< 3 bulan valid) — pesan ramah, ajak
+      user rajin catat transaksi dulu (BAGIAN 2.1).
+   c. State hasil: angka prediksi besar, basis data ("dari N bulan
+      terakhir"), badge musiman kalau ada, perbandingan singkat vs
+      pengeluaran bulan berjalan (opsional, biar ada konteks).
+
+File baru:
+  lib/features/expense_forecast/application/expense_forecast_controller.dart
+    - `FutureProvider.autoDispose` (pola sama
+      `emergencyFundDataProvider`), fetch `getSummary(now.month,
+      now.year)` SEKALI, hitung prediksi dasar (BAGIAN 2.1-2.2) +
+      cek musiman (BAGIAN 2.3) untuk bulan kalender berikutnya dari
+      `DateTime.now()`.
+    - Termasuk daftar `SeasonalEvent` tetap (nama musim, rentang
+      bulan berlaku, multiplier) — mulai dengan 3 entri BAGIAN 2.3,
+      didesain gampang ditambah.
+  lib/features/expense_forecast/presentation/expense_forecast_page.dart
+    - UI sesuai BAGIAN 3 alur poin 2 (loading/error/belum-cukup-
+      data/hasil).
+
+File yang diubah:
+  lib/features/summary/presentation/summary_page.dart
+    - Tambah `_ExpenseForecastCard` (StatelessWidget, pola sama
+      `_FireCalculatorCard`) setelah `_FireCalculatorCard` di
+      `_SummaryBody.build` (baris ~133-137).
+  lib/routing/app_router.dart
+    - Tambah `'/expense-forecast': 'summary'` ke `_routePermissions`
+      (baris ~65-78, sejajar entry `/emergency-fund-calculator` &
+      `/fire-calculator` — sama-sama permission `summary`).
+    - Tambah `GoRoute(path: '/expense-forecast', builder: (context,
+      state) => const ExpenseForecastPage())` setelah blok route
+      `/fire-calculator` (baris ~233-236), komentar mereferensikan
+      dokumen ini, pola sama persis 2 route sebelumnya (off bottom-
+      nav shell).
+  lib/l10n/app_id.arb + lib/l10n/app_en.arb
+    - Key baru prefix `expenseForecast*` untuk halaman (title, basis
+      data, badge musiman, state belum-cukup-data, dst. — mengikuti
+      bentuk key `emergencyFund*`/`fire*` yang sudah ada), plus
+      `summaryExpenseForecastCardSubtitle` untuk card di Summary
+      (mengikuti pola `summaryEmergencyFundCardSubtitle`/
+      `summaryFireCardSubtitle`).
+
+
+BAGIAN 4 — HAL YANG PERLU DIVERIFIKASI SEBELUM CODING
+-----------------------------------------
+1. Persis berapa bulan yang dikembalikan `chart_data`/`monthlyTrend`
+   dari 1x `getSummary()` — baik dokumen precedent Kalkulator Dana
+   Darurat maupun kode Emergency Fund/FIRE yang sudah jadi SAMA-SAMA
+   tidak menegaskan angka ini secara eksplisit (cuma "pakai apa pun
+   yang balik"). Cek response asli API (`GET /money-management/
+   summary`) atau tanya tim backend, SEBELUM asumsikan window-nya
+   cukup panjang untuk deteksi pola musiman tahun lalu (kalau window
+   cuma 3-4 bulan, prediksi musiman efektifnya HANYA dari tabel tetap
+   BAGIAN 2.3, bukan dari histori Lebaran tahun sebelumnya milik user
+   sendiri — konsisten dengan BAGIAN 0 yang memang sudah menetapkan
+   musiman ini FIXED/tidak dipersonalisasi, jadi ini bukan blocker,
+   cuma perlu dikonfirmasi supaya ekspektasi "N bulan terakhir" yang
+   ditampilkan ke user akurat).
+2. Tanggal Lebaran/Idul Fitri untuk beberapa tahun ke depan — AMBIL
+   DARI SUMBER RESMI (kalender Kemenag RI/SKB 3 Menteri hari libur
+   nasional) saat implementasi, JANGAN dikarang/ditebak di sini atau
+   di kode. Simpan sebagai tabel `Map<int, DateTimeRange>` (tahun ->
+   rentang tanggal) yang PERLU DIPERBARUI TIAP TAHUN (tambahkan
+   reminder maintenance tahunan, mis. catatan komentar kode +
+   reminder kalender tim, karena tanggal Hijriah bergeser ~11 hari
+   lebih awal tiap tahun Masehi dan tidak bisa dihitung dengan rumus
+   sederhana).
+3. Apakah fitur ini gratis untuk semua member atau premium-only —
+   sama seperti Kalkulator Dana Darurat (BAGIAN 5.2 dokumennya),
+   fitur ini murni baca data Summary yang sudah bisa diakses semua
+   member, jadi condong GRATIS kecuali diputuskan lain (lihat BAGIAN
+   5.3 di sini).
+
+
+BAGIAN 5 — HAL YANG PERLU DIPUTUSKAN/DIDISKUSIKAN
+-----------------------------------------
+1. Rata-rata polos (BAGIAN 2.2) vs rata-rata berbobot (bulan lebih
+   baru dihitung lebih besar). Condong rata-rata polos untuk v1 —
+   konsisten dengan Kalkulator Dana Darurat yang sudah ada & lebih
+   gampang dijelaskan ke user ("rata-rata N bulan terakhir"),
+   ketimbang skema bobot yang sulit divalidasi tanpa data panjang.
+   Bisa direvisit kalau setelah rilis ternyata prediksinya kurang
+   responsif terhadap perubahan pola belanja terbaru.
+2. Prediksi per kategori (BAGIAN 0) — butuh backend expose breakdown
+   kategori historis lintas bulan (endpoint baru atau perluasan
+   `chart_data`). Dicatat sebagai v2/future work, di luar scope
+   dokumen & implementasi awal ini.
+3. Angka multiplier musiman (BAGIAN 2.3: +20-30% Lebaran, +10-15%
+   tahun ajaran baru/Desember) MURNI HEURISTIK AWAL saya, bukan hasil
+   analisis data riil — perlu direview/disetujui tim produk sebelum
+   dirilis, idealnya nanti digantikan angka yang dikalibrasi dari
+   agregat data user (anonim) begitu app punya cukup histori multi-
+   tahun.
+4. Gratis vs premium-only (BAGIAN 4.3) — perlu keputusan eksplisit
+   sebelum implementasi, karena kalau premium perlu tambah entry ke
+   `_routePermissions` dengan permission key baru + koordinasi
+   backend App Roles (pola sama seperti didiskusikan di BAGIAN 5.2
+   docs/plan-dev/kalkulator-dana-darurat-plan.txt).
+
+Kalau blueprint ini sudah oke: verifikasi BAGIAN 4 dulu (terutama
+poin 2 — tanggal Lebaran resmi — karena ini blocker literal, tidak
+bisa hardcode tanggal yang salah), diskusikan BAGIAN 5, baru lanjut
+implementasi BAGIAN 3 sesuai urutan file di atas.

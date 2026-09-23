@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:showcaseview/showcaseview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/auth/biometric_enroll.dart';
@@ -12,9 +18,54 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/settings_tile.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../pin/presentation/confirm_pin_sheet.dart';
+import '../../tour/application/tour_controller.dart';
 
 const _customerServiceFormUrl = 'https://forms.gle/DsB5KK67qddKvUuM9';
 const _instagramUrl = 'https://www.instagram.com/kodevisual';
+const _userGuideAssetPath = 'assets/docs/Flowr-User-Work-Instruction.pdf';
+
+/// Copies the bundled user-guide PDF asset out to a real file (assets live
+/// packed inside the app binary, not addressable by path) and hands it to
+/// the OS share/open sheet via `share_plus` — most PDF reader apps register
+/// as a share target for PDF files, so in practice this behaves like "open
+/// with a PDF viewer" while reusing the same "leave the app, don't build an
+/// in-app viewer" choice as everything else on this page (Customer Service
+/// form, Instagram). `share_plus` was picked over `open_filex`/`open_file`
+/// specifically because both of those still ship an Android `build.gradle`
+/// with their own hardcoded (and older/mismatched) Android Gradle Plugin
+/// classpath, which fails to resolve against this project's AGP 9 setup —
+/// `share_plus` has the same kind of block but is actively maintained
+/// enough to guard the Kotlin-plugin half of it for AGP 9
+/// (`if (agpMajor < 9) ...`), and building with it did succeed here.
+/// Re-copies on every open rather than caching a "already extracted" flag —
+/// the file is ~200KB, cheap enough that keeping this stateless is worth
+/// more than saving one file write.
+Future<void> _openUserGuide(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  try {
+    final bytes = await rootBundle.load(_userGuideAssetPath);
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/Flowr-User-Work-Instruction.pdf');
+    await file.writeAsBytes(bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes), flush: true);
+
+    final result = await SharePlus.instance.share(
+      ShareParams(files: [XFile(file.path, mimeType: 'application/pdf')]),
+    );
+    // `dismissed`/`unavailable` just mean the user closed the sheet without
+    // picking an app — not a real failure, nothing to show for those.
+    if (result.status == ShareResultStatus.unavailable && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.profileUserGuideOpenFailed)),
+      );
+    }
+  } catch (_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.profileUserGuideOpenFailed)),
+      );
+    }
+  }
+}
 
 /// Turning biometric login on/off — see BiometricService's doc comment for
 /// why this is `biometricOnly` (no device-credential fallback) and
@@ -135,11 +186,19 @@ class ProfilePage extends ConsumerWidget {
           if (user != null) _ProfileHeader(user: user),
           const SizedBox(height: 24),
           _SectionLabel(l10n.profileSectionPortfolio),
-          SettingsTile(
-            icon: Icons.account_balance_wallet_outlined,
-            title: l10n.profilePortfolioTileTitle,
-            subtitle: l10n.profilePortfolioTileSubtitle,
-            onTap: () => context.push('/portfolio'),
+          Showcase(
+            key: tourPortfolioTileKey,
+            title: l10n.tourPortfolioTitle,
+            description: l10n.tourPortfolioDescription,
+            tooltipBackgroundColor: AppColors.surface,
+            textColor: AppColors.textPrimary,
+            targetBorderRadius: BorderRadius.circular(14),
+            child: SettingsTile(
+              icon: Icons.account_balance_wallet_outlined,
+              title: l10n.profilePortfolioTileTitle,
+              subtitle: l10n.profilePortfolioTileSubtitle,
+              onTap: () => context.push('/portfolio'),
+            ),
           ),
           const SizedBox(height: 8),
           SettingsTile(
@@ -183,11 +242,26 @@ class ProfilePage extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           _SectionLabel(l10n.profileSectionOther),
+          Showcase(
+            key: tourPayrollTileKey,
+            title: l10n.tourPayrollTitle,
+            description: l10n.tourPayrollDescription,
+            tooltipBackgroundColor: AppColors.surface,
+            textColor: AppColors.textPrimary,
+            targetBorderRadius: BorderRadius.circular(14),
+            child: SettingsTile(
+              icon: Icons.tune_rounded,
+              title: l10n.profilePayrollTileTitle,
+              subtitle: l10n.profilePayrollTileSubtitle,
+              onTap: () => context.push('/profile/payroll'),
+            ),
+          ),
+          const SizedBox(height: 8),
           SettingsTile(
-            icon: Icons.tune_rounded,
-            title: l10n.profilePayrollTileTitle,
-            subtitle: l10n.profilePayrollTileSubtitle,
-            onTap: () => context.push('/profile/payroll'),
+            icon: Icons.menu_book_outlined,
+            title: l10n.profileUserGuideTileTitle,
+            subtitle: l10n.profileUserGuideTileSubtitle,
+            onTap: () => _openUserGuide(context),
           ),
           const SizedBox(height: 8),
           SettingsTile(
@@ -195,6 +269,13 @@ class ProfilePage extends ConsumerWidget {
             title: l10n.profileCustomerServiceTileTitle,
             subtitle: l10n.profileCustomerServiceTileSubtitle,
             onTap: () => _contactCustomerService(context),
+          ),
+          const SizedBox(height: 8),
+          SettingsTile(
+            icon: Icons.explore_outlined,
+            title: l10n.profileFeatureTourTileTitle,
+            subtitle: l10n.profileFeatureTourTileSubtitle,
+            onTap: () => ref.read(tourControllerProvider).startManually(),
           ),
           const SizedBox(height: 24),
           _SectionLabel(l10n.profileSectionSecurity),
@@ -415,20 +496,27 @@ class _BiometricToggleTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
-      child: SwitchListTile(
-        value: enabled,
-        onChanged: onChanged,
-        activeThumbColor: AppColors.primary,
-        secondary: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-          child: Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 20),
-        ),
-        title: Text(l10n.profileBiometricTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-        subtitle: Text(
-          enabled ? l10n.profileBiometricSubtitleEnabled : l10n.profileBiometricSubtitleDisabled,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+      // See settings_tile.dart's same fix — SwitchListTile needs a Material
+      // ancestor for its ink/thumb splashes to paint correctly.
+      child: Material(
+        type: MaterialType.transparency,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: SwitchListTile(
+          value: enabled,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.primary,
+          secondary: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.fingerprint_rounded, color: AppColors.primary, size: 20),
+          ),
+          title: Text(l10n.profileBiometricTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          subtitle: Text(
+            enabled ? l10n.profileBiometricSubtitleEnabled : l10n.profileBiometricSubtitleDisabled,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+          ),
         ),
       ),
     );

@@ -16,6 +16,7 @@ class TransactionRepository {
     TransactionType? type,
     DateTime? startDate,
     DateTime? endDate,
+    int page = 1,
   }) async {
     try {
       final response = await _apiClient.dio.get(
@@ -24,6 +25,7 @@ class TransactionRepository {
           if (type != null) 'type': type.name,
           if (startDate != null) 'start_date': DateFormat('yyyy-MM-dd').format(startDate),
           if (endDate != null) 'end_date': DateFormat('yyyy-MM-dd').format(endDate),
+          'page': page,
         },
       );
       return TransactionListResult.fromResponse(response.data);

@@ -32,6 +32,7 @@ import '../storage/locale_preference_service.dart';
 import '../storage/onboarding_service.dart';
 import '../storage/secure_storage_service.dart';
 import '../storage/theme_preference_service.dart';
+import '../storage/tour_service.dart';
 
 final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService();
@@ -110,6 +111,15 @@ final onboardingServiceProvider = Provider<OnboardingService>((ref) {
 /// OnboardingService) so the router redirect can read it synchronously;
 /// flipped to true once the user finishes/skips the slides.
 final hasSeenOnboardingProvider = StateProvider<bool>((ref) => false);
+
+/// Unlike [onboardingServiceProvider]'s provider, [hasSeenTour] is NOT
+/// mirrored into a synchronous `StateProvider<bool>` overridden at boot —
+/// the tour runs after the user has already landed on /home, entirely
+/// independent of router redirects, so TourController checks it async
+/// itself (see docs/plan-dev/onboarding-tour-plan.txt BAGIAN 1).
+final tourServiceProvider = Provider<TourService>((ref) {
+  return TourService();
+});
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(

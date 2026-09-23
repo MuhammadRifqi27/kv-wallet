@@ -81,6 +81,13 @@ Future<DateRange?> resolveTransactionDateRange(Ref ref, TransactionDateShortcut 
 final transactionListControllerProvider =
     AsyncNotifierProvider<TransactionListController, TransactionListResult>(TransactionListController.new);
 
+/// Whether [TransactionListController.loadMore] currently has a request in
+/// flight — kept separate from the main [AsyncNotifier] state so "load more"
+/// can show its own small footer spinner without flashing the whole list
+/// back to the big top-level loading state that `state = AsyncLoading()`
+/// (in [TransactionListController.refresh]) would cause.
+final transactionLoadingMoreProvider = StateProvider<bool>((ref) => false);
+
 /// Full CRUD — a transaction is the user's own data.
 class TransactionListController extends AsyncNotifier<TransactionListResult> {
   @override
@@ -113,6 +120,41 @@ class TransactionListController extends AsyncNotifier<TransactionListResult> {
             endDate: range?.end,
           );
     });
+  }
+
+  /// Fetches the next page for the CURRENT filters and appends it onto the
+  /// already-loaded list (see [TransactionListResult.appendPage]) — this is
+  /// what lets the list actually reach transactions beyond page 1 at all,
+  /// see docs/ide-improvement-fitur-existing.txt BAGIAN A #5. No-op if
+  /// there's no result yet, no further page, or a load is already in
+  /// flight. Failures are swallowed: the already-loaded list stays intact
+  /// and the user can just tap "load more" again to retry.
+  Future<void> loadMore() async {
+    final current = state.valueOrNull;
+    if (current == null || !current.hasMorePages) return;
+    if (ref.read(transactionLoadingMoreProvider)) return;
+
+    ref.read(transactionLoadingMoreProvider.notifier).state = true;
+    try {
+      final type = ref.read(transactionTypeFilterProvider);
+      final range = await resolveTransactionDateRange(
+        ref,
+        ref.read(transactionDateShortcutProvider),
+        ref.read(transactionCustomRangeProvider),
+      );
+      final nextPage = await ref.read(transactionRepositoryProvider).getTransactions(
+            type: type,
+            startDate: range?.start,
+            endDate: range?.end,
+            page: current.currentPage + 1,
+          );
+      final latest = state.valueOrNull;
+      if (latest != null) state = AsyncData(latest.appendPage(nextPage));
+    } catch (_) {
+      // Ignored — see doc comment above.
+    } finally {
+      ref.read(transactionLoadingMoreProvider.notifier).state = false;
+    }
   }
 
   /// Left un-guarded (unlike [refresh]) so the calling form can catch

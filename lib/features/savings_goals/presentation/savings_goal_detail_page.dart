@@ -400,7 +400,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
       _error = null;
     });
 
-    final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final amount = parseRupiahInput(_amountController.text)!;
     final note = _noteController.text.trim();
 
     try {
@@ -506,7 +506,7 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   errorText: _error?.errorFor('amount'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.walletSavingsGoalDetailAmountRequired;
-                    final parsed = double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), ''));
+                    final parsed = parseRupiahInput(value);
                     if (parsed == null || parsed <= 0) return l10n.walletSavingsGoalDetailAmountInvalid;
                     return null;
                   },

@@ -51,13 +51,13 @@ class _FireCalculatorPageState extends ConsumerState<FireCalculatorPage> {
   }
 
   void _onManualIncomeChanged() {
-    final parsed = double.tryParse(_manualIncomeController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final parsed = parseRupiahInput(_manualIncomeController.text);
     final value = (parsed != null && parsed > 0) ? parsed : null;
     if (value != _manualIncome) setState(() => _manualIncome = value);
   }
 
   void _onManualExpenseChanged() {
-    final parsed = double.tryParse(_manualExpenseController.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    final parsed = parseRupiahInput(_manualExpenseController.text);
     final value = (parsed != null && parsed > 0) ? parsed : null;
     if (value != _manualExpense) setState(() => _manualExpense = value);
   }
@@ -340,7 +340,7 @@ class _ReturnRateChip extends StatelessWidget {
         child: Text(
           '$label (${(rate * 100).toStringAsFixed(0)}%)',
           style: TextStyle(
-            color: selected ? Colors.white : AppColors.textPrimary,
+            color: selected ? AppColors.onPrimary : AppColors.textPrimary,
             fontWeight: FontWeight.w700,
             fontSize: 12.5,
           ),

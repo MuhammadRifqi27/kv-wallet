@@ -25,6 +25,14 @@ class AppColors {
   static void updateBrightness(bool isDark) => _isDark = isDark;
 
   static Color get primary => _isDark ? _dark.primary : _light.primary;
+
+  /// Text/icon color for content painted ON a [primary]-filled surface
+  /// (buttons, selected chips/pills) — theme-aware because [primary] itself
+  /// flips from dark rose (light mode, wants white content) to light pink
+  /// (dark mode, wants dark content); a fixed `Colors.white` used to be
+  /// hardcoded at every call site and silently lost contrast in dark mode.
+  /// See docs/ide-improvement-fitur-existing.txt BAGIAN A #3.
+  static Color get onPrimary => _isDark ? _dark.onPrimary : _light.onPrimary;
   static Color get primaryLight => _isDark ? _dark.primaryLight : _light.primaryLight;
   static Color get background => _isDark ? _dark.background : _light.background;
   static Color get surface => _isDark ? _dark.surface : _light.surface;
@@ -49,11 +57,23 @@ class AppColors {
   /// Palest tint from the same dusty-rose family — not wired into any
   /// token above, available for subtle section backgrounds.
   static const Color blushTint = Color(0xFFFFF5F5);
+
+  /// Extra fixed hues for charts/avatars that need more distinct colors
+  /// than the 4 core semantic ones (primary/accent/success/error) give —
+  /// e.g. a pie-chart with more than 4 segments, or a per-asset avatar
+  /// background. Not theme-aware, same as accent/success/error above:
+  /// these are just extra visually-distinct colors, not semantic ones.
+  /// Previously duplicated as raw `Color(0xFF...)` literals independently
+  /// in investment_dashboard_page.dart and summary_page.dart — see
+  /// docs/ide-improvement-fitur-existing.txt BAGIAN C #14.
+  static const Color chartTeal = Color(0xFF0EA5A4);
+  static const Color chartIndigo = Color(0xFF6366F1);
 }
 
 class _ColorSet {
   const _ColorSet({
     required this.primary,
+    required this.onPrimary,
     required this.primaryLight,
     required this.background,
     required this.surface,
@@ -64,6 +84,7 @@ class _ColorSet {
   });
 
   final Color primary;
+  final Color onPrimary;
   final Color primaryLight;
   final Color background;
   final Color surface;
@@ -75,6 +96,7 @@ class _ColorSet {
 
 const _light = _ColorSet(
   primary: Color(0xFF9E3A50),
+  onPrimary: Color(0xFFFFFFFF),
   primaryLight: Color(0xFFF7D6D0),
   background: Color(0xFFF7F8FC),
   surface: Color(0xFFFFFFFF),
@@ -92,6 +114,7 @@ const _light = _ColorSet(
 /// plain text/icon color, not just as a button fill.
 const _dark = _ColorSet(
   primary: Color(0xFFE58FA0),
+  onPrimary: Color(0xFF14131A),
   primaryLight: Color(0xFF3A2530),
   background: Color(0xFF14131A),
   surface: Color(0xFF1E1C24),

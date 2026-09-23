@@ -160,17 +160,24 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppColors.border),
                   ),
-                  child: SwitchListTile(
-                    value: _isInvestmentAccount,
-                    onChanged: (value) => setState(() => _isInvestmentAccount = value),
-                    activeThumbColor: AppColors.primary,
-                    title: Text(
-                      l10n.walletPortfolioFormInvestmentAccountTitle,
-                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                    ),
-                    subtitle: Text(
-                      l10n.walletPortfolioFormInvestmentAccountSubtitle,
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  // See lib/shared/widgets/settings_tile.dart's same fix —
+                  // SwitchListTile needs a Material ancestor for its splashes.
+                  child: Material(
+                    type: MaterialType.transparency,
+                    borderRadius: BorderRadius.circular(14),
+                    clipBehavior: Clip.antiAlias,
+                    child: SwitchListTile(
+                      value: _isInvestmentAccount,
+                      onChanged: (value) => setState(() => _isInvestmentAccount = value),
+                      activeThumbColor: AppColors.primary,
+                      title: Text(
+                        l10n.walletPortfolioFormInvestmentAccountTitle,
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                      ),
+                      subtitle: Text(
+                        l10n.walletPortfolioFormInvestmentAccountSubtitle,
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                      ),
                     ),
                   ),
                 ),
