@@ -9,7 +9,10 @@ import '../../../data/models/savings_goal_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/list_states.dart';
+import '../../auth/application/auth_controller.dart';
+import '../../friends/presentation/friend_avatar.dart';
 import '../application/savings_goal_controller.dart';
+import 'savings_goal_errors.dart';
 import 'savings_goal_style.dart';
 
 class SavingsGoalListPage extends ConsumerWidget {
@@ -19,6 +22,7 @@ class SavingsGoalListPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(savingsGoalControllerProvider);
     final controller = ref.read(savingsGoalControllerProvider.notifier);
+    final invitationCount = ref.watch(savingsGoalInvitationsProvider).valueOrNull?.length ?? 0;
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -31,7 +35,11 @@ class SavingsGoalListPage extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
-        onRefresh: controller.refresh,
+        onRefresh: () async {
+          // No push in v1 - invitations are re-read together with the list.
+          ref.invalidate(savingsGoalInvitationsProvider);
+          await controller.refresh();
+        },
         child: summaryAsync.when(
           loading: () => scrollableCenter(const AppLoadingIndicator()),
           error: (error, _) => scrollableCenter(
@@ -43,10 +51,20 @@ class SavingsGoalListPage extends ConsumerWidget {
           data: (summary) {
             if (summary.goals.isEmpty) {
               return scrollableCenter(
-                ListEmptyState(
-                  icon: Icons.savings_outlined,
-                  title: l10n.walletSavingsGoalListEmptyTitle,
-                  subtitle: l10n.walletSavingsGoalListEmptySubtitle,
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (invitationCount > 0)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: _InvitationsBanner(count: invitationCount),
+                      ),
+                    ListEmptyState(
+                      icon: Icons.savings_outlined,
+                      title: l10n.walletSavingsGoalListEmptyTitle,
+                      subtitle: l10n.walletSavingsGoalListEmptySubtitle,
+                    ),
+                  ],
                 ),
               );
             }
@@ -61,7 +79,15 @@ class SavingsGoalListPage extends ConsumerWidget {
                 if (index == 0) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: _SummaryRow(activeCount: summary.activeCount, achievedCount: summary.achievedCount),
+                    child: Column(
+                      children: [
+                        if (invitationCount > 0) ...[
+                          _InvitationsBanner(count: invitationCount),
+                          const SizedBox(height: 12),
+                        ],
+                        _SummaryRow(activeCount: summary.activeCount, achievedCount: summary.achievedCount),
+                      ],
+                    ),
                   );
                 }
                 return Padding(
@@ -71,6 +97,42 @@ class SavingsGoalListPage extends ConsumerWidget {
               },
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// Tappable banner that opens the invitation inbox.
+class _InvitationsBanner extends StatelessWidget {
+  const _InvitationsBanner({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: AppColors.primaryLight,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => context.push('/savings-goals/invitations'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(Icons.mail_outline_rounded, color: AppColors.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.sgsInvitationsBanner(count),
+                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13.5),
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+            ],
+          ),
         ),
       ),
     );
@@ -163,7 +225,36 @@ class _GoalCard extends ConsumerWidget {
       await ref.read(savingsGoalControllerProvider.notifier).removeGoal(goal.id);
     } on ApiException catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(sharedGoalErrorMessage(l10n, e))));
+    }
+  }
+
+  Future<void> _confirmLeave(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final userId = ref.read(authControllerProvider).user?.id;
+    if (userId == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.sgsLeaveTitle),
+        content: Text(l10n.sgsLeaveMessage(goal.name)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletSavingsGoalListCancel)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.sgsLeaveConfirm, style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await ref.read(savingsGoalControllerProvider.notifier).removeMember(goalId: goal.id, userId: userId);
+    } on ApiException catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(sharedGoalErrorMessage(l10n, e))));
     }
   }
 
@@ -267,17 +358,27 @@ class _GoalCard extends ConsumerWidget {
                         _confirmArchive(context, ref);
                       } else if (value == 'delete') {
                         _confirmDelete(context, ref);
+                      } else if (value == 'leave') {
+                        _confirmLeave(context, ref);
                       }
                     },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(value: 'edit', child: Text(l10n.walletSavingsGoalListEditAction)),
-                      if (!isArchived)
-                        PopupMenuItem(value: 'archive', child: Text(l10n.walletSavingsGoalListArchiveConfirm)),
-                      PopupMenuItem(value: 'delete', child: Text(l10n.walletSavingsGoalListDeleteConfirm)),
-                    ],
+                    // Members of another person's goal can only leave it -
+                    // edit/archive/delete are owner-only (docs rule 2).
+                    itemBuilder: (context) => goal.isOwner
+                        ? [
+                            PopupMenuItem(value: 'edit', child: Text(l10n.walletSavingsGoalListEditAction)),
+                            if (!isArchived)
+                              PopupMenuItem(value: 'archive', child: Text(l10n.walletSavingsGoalListArchiveConfirm)),
+                            PopupMenuItem(value: 'delete', child: Text(l10n.walletSavingsGoalListDeleteConfirm)),
+                          ]
+                        : [PopupMenuItem(value: 'leave', child: Text(l10n.sgsLeaveConfirm))],
                   ),
                 ],
               ),
+              if (goal.isShared) ...[
+                const SizedBox(height: 10),
+                _SharedMembersRow(goal: goal),
+              ],
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
@@ -321,6 +422,71 @@ class _GoalCard extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// "Bersama" badge + overlapping initials of the people on a shared goal.
+class _SharedMembersRow extends StatelessWidget {
+  const _SharedMembersRow({required this.goal});
+
+  final SavingsGoalModel goal;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final people = goal.activeMembers;
+    const shown = 4;
+    const radius = 11.0;
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.group_rounded, size: 12, color: AppColors.primary),
+              const SizedBox(width: 4),
+              Text(
+                l10n.sgsSharedBadge,
+                style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        if (people.isNotEmpty)
+          SizedBox(
+            width: radius * 2 + (people.length.clamp(1, shown) - 1) * (radius * 1.4),
+            height: radius * 2,
+            child: Stack(
+              children: [
+                for (var i = 0; i < people.length && i < shown; i++)
+                  Positioned(
+                    left: i * radius * 1.4,
+                    child: Container(
+                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 1.5)),
+                      child: FriendAvatar(name: people[i].name, url: people[i].avatarUrl, radius: radius - 1.5),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            goal.isOwner ? l10n.sgsPeopleCount(people.length) : l10n.sgsOwnedBy(goal.ownerName ?? '-'),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
+        ),
+      ],
     );
   }
 }

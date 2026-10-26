@@ -76,6 +76,7 @@ class ApiEndpoints {
   static const String btcTrackingActivity = '/money-management/btc-tracking/activity';
 
   static const String savingsGoals = '/money-management/savings-goals';
+  static const String savingsGoalInvitations = '/money-management/savings-goals/invitations';
 
   /// See TransferModel's schema-verification note — request body confirmed
   /// against docs/flutter-mobile-app-development-guide.txt, response shape
@@ -91,4 +92,10 @@ class ApiEndpoints {
   static const String walletTransfers = '/money-management/wallet/transfers';
   static const String walletTopup = '/money-management/wallet/topup';
   static const String walletWithdraw = '/money-management/wallet/withdraw';
+
+  /// Teman (mutual friend request) — docs/mobile-api-reference.md "Teman".
+  static const String friends = '/money-management/friends';
+  static const String friendsMe = '/money-management/friends/me';
+  static const String friendsLookup = '/money-management/friends/lookup';
+  static const String friendRequests = '/money-management/friends/requests';
 }

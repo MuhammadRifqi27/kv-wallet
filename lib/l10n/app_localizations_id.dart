@@ -2760,4 +2760,315 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get brcAppliedNone =>
       'Tidak ada budget yang disimpan. Kategori yang dipilih tidak punya saran.';
+
+  @override
+  String get frdPageTitle => 'Teman';
+
+  @override
+  String get frdTileTitle => 'Teman';
+
+  @override
+  String get frdTileSubtitle => 'Tambah teman untuk menabung bareng';
+
+  @override
+  String get frdTabFriends => 'Teman';
+
+  @override
+  String get frdTabRequests => 'Permintaan';
+
+  @override
+  String get frdMyUsername => 'Username saya';
+
+  @override
+  String get frdMyUsernameError => 'Gagal memuat';
+
+  @override
+  String get frdCopyUsername => 'Salin username';
+
+  @override
+  String get frdUsernameCopied => 'Username disalin';
+
+  @override
+  String get frdShareUsername => 'Bagikan username';
+
+  @override
+  String frdShareText(String username) {
+    return 'Tambahkan saya di Flowr! Username saya: @$username';
+  }
+
+  @override
+  String get frdEmptyTitle => 'Belum ada teman';
+
+  @override
+  String get frdEmptySubtitle =>
+      'Tambah teman lewat username untuk mulai menabung bareng.';
+
+  @override
+  String get frdRequestsEmptyTitle => 'Tidak ada permintaan';
+
+  @override
+  String get frdRequestsEmptySubtitle =>
+      'Permintaan pertemanan yang masuk atau yang kamu kirim akan muncul di sini.';
+
+  @override
+  String get frdIncomingSection => 'Permintaan masuk';
+
+  @override
+  String get frdOutgoingSection => 'Permintaan terkirim';
+
+  @override
+  String get frdAccept => 'Terima';
+
+  @override
+  String get frdDecline => 'Tolak';
+
+  @override
+  String get frdCancelRequest => 'Batalkan';
+
+  @override
+  String get frdCancel => 'Batal';
+
+  @override
+  String get frdRemoveTitle => 'Hapus teman';
+
+  @override
+  String frdRemoveMessage(String name) {
+    return 'Hapus $name dari daftar teman? Tabungan bersama yang sudah berjalan tidak terpengaruh.';
+  }
+
+  @override
+  String get frdRemoveConfirm => 'Hapus';
+
+  @override
+  String get frdAddTitle => 'Tambah teman';
+
+  @override
+  String get frdAddUsernameField => 'Username teman';
+
+  @override
+  String get frdAddUsernameHelper =>
+      'Huruf besar/kecil tidak berpengaruh, awalan @ boleh dipakai';
+
+  @override
+  String get frdAddUsernameRequired => 'Masukkan username';
+
+  @override
+  String get frdAddSearch => 'Cari';
+
+  @override
+  String get frdAddSend => 'Kirim permintaan';
+
+  @override
+  String frdRequestSent(String name) {
+    return 'Permintaan dikirim ke $name';
+  }
+
+  @override
+  String frdNowFriends(String name) {
+    return 'Sekarang kamu berteman dengan $name';
+  }
+
+  @override
+  String get frdRelFriends => 'Kalian sudah berteman';
+
+  @override
+  String get frdRelPendingOutgoing =>
+      'Permintaan sudah dikirim, menunggu dijawab';
+
+  @override
+  String get frdRelPendingIncoming =>
+      'Dia sudah mengirim permintaan ke kamu — terima di tab Permintaan';
+
+  @override
+  String get frdErrUserNotFound => 'Username tidak ditemukan';
+
+  @override
+  String get frdErrSelf => 'Itu username kamu sendiri';
+
+  @override
+  String get frdErrAlreadyFriends => 'Kalian sudah berteman';
+
+  @override
+  String get frdErrRequestExists => 'Permintaan ke orang ini sudah dikirim';
+
+  @override
+  String get frdErrRateLimit =>
+      'Terlalu banyak percobaan. Coba lagi sebentar lagi.';
+
+  @override
+  String get sgsPickerTitle => 'Pilih teman';
+
+  @override
+  String sgsPickerSubtitle(int max) {
+    return 'Pilih sampai $max teman. Mereka harus menerima undangan dulu.';
+  }
+
+  @override
+  String sgsPickerLimit(int max) {
+    return 'Maksimal $max teman';
+  }
+
+  @override
+  String get sgsPickerNoFriends =>
+      'Belum ada teman yang bisa diundang. Tambah teman dulu.';
+
+  @override
+  String sgsPickerDone(int count) {
+    return 'Pilih ($count)';
+  }
+
+  @override
+  String get sgsErrNotFriends => 'Hanya teman yang bisa diundang';
+
+  @override
+  String get sgsErrMemberLimit => 'Satu tabungan maksimal 5 orang';
+
+  @override
+  String get sgsErrAlreadyMember => 'Dia sudah menjadi anggota';
+
+  @override
+  String get sgsErrAlreadyInvited => 'Undangan masih menunggu jawaban';
+
+  @override
+  String get sgsErrGoalArchived =>
+      'Target yang diarsipkan tidak bisa menerima anggota baru';
+
+  @override
+  String get sgsErrOwnerCannotLeave =>
+      'Pemilik tidak bisa keluar. Arsipkan atau hapus target ini.';
+
+  @override
+  String get sgsErrNotOwner => 'Hanya pemilik yang bisa melakukan ini';
+
+  @override
+  String get sgsErrHasBalance =>
+      'Target bersama yang masih ada saldonya tidak bisa dihapus. Arsipkan saja.';
+
+  @override
+  String get sgsErrInvitationExpired =>
+      'Undangan sudah kedaluwarsa. Minta pemilik mengundang lagi.';
+
+  @override
+  String get sgsInvitationsTitle => 'Undangan tabungan';
+
+  @override
+  String get sgsInvitationsEmptyTitle => 'Tidak ada undangan';
+
+  @override
+  String get sgsInvitationsEmptySubtitle =>
+      'Undangan menabung bareng dari temanmu akan muncul di sini. Tarik ke bawah untuk memuat ulang.';
+
+  @override
+  String sgsInvitationsBanner(int count) {
+    return '$count undangan tabungan bersama menunggu';
+  }
+
+  @override
+  String sgsInvitationFrom(String name) {
+    return 'Diundang oleh $name';
+  }
+
+  @override
+  String sgsInvitationTarget(String amount) {
+    return 'Target: $amount';
+  }
+
+  @override
+  String sgsInvitationExpires(String date) {
+    return 'Berlaku sampai $date';
+  }
+
+  @override
+  String sgsInvitationAccepted(String goal) {
+    return 'Kamu bergabung ke $goal';
+  }
+
+  @override
+  String get sgsInvitationDeclined => 'Undangan ditolak';
+
+  @override
+  String get sgsFormSectionTitle => 'Tabungan bersama';
+
+  @override
+  String get sgsFormSectionHint =>
+      'Undang teman agar bisa ikut menabung ke target ini. Akun dan saldo kamu tidak terlihat oleh mereka.';
+
+  @override
+  String get sgsFormInviteNone => 'Undang teman (opsional)';
+
+  @override
+  String sgsFormInviteCount(int count) {
+    return '$count teman dipilih';
+  }
+
+  @override
+  String get sgsSharedBadge => 'Bersama';
+
+  @override
+  String sgsPeopleCount(int count) {
+    return '$count orang';
+  }
+
+  @override
+  String sgsOwnedBy(String name) {
+    return 'Milik $name';
+  }
+
+  @override
+  String get sgsLeaveTitle => 'Keluar dari tabungan?';
+
+  @override
+  String sgsLeaveMessage(String goal) {
+    return 'Kamu tidak akan melihat $goal lagi. Uang yang sudah kamu setor tetap tercatat di target ini.';
+  }
+
+  @override
+  String get sgsLeaveConfirm => 'Keluar';
+
+  @override
+  String get sgsInviteAction => 'Undang teman';
+
+  @override
+  String sgsInviteSent(int count) {
+    return '$count undangan terkirim';
+  }
+
+  @override
+  String get sgsMembersTitle => 'Anggota';
+
+  @override
+  String sgsMyContribution(String amount) {
+    return 'Setoran kamu: $amount';
+  }
+
+  @override
+  String get sgsRoleOwner => 'Pemilik';
+
+  @override
+  String get sgsMemberPending => 'Menunggu';
+
+  @override
+  String get sgsMemberLeft => 'Sudah keluar';
+
+  @override
+  String get sgsRemoveMemberTitle => 'Keluarkan anggota';
+
+  @override
+  String sgsRemoveMemberMessage(String name) {
+    return 'Keluarkan $name dari tabungan ini? Uang yang sudah dia setor tetap tercatat.';
+  }
+
+  @override
+  String get sgsRemoveMemberConfirm => 'Keluarkan';
+
+  @override
+  String get sgsOnlyMine => 'Hanya saya';
+
+  @override
+  String get sgsYou => 'Kamu';
+
+  @override
+  String sgsWithdrawHint(String amount) {
+    return 'Kamu hanya bisa menarik sebatas setoranmu sendiri: $amount';
+  }
 }

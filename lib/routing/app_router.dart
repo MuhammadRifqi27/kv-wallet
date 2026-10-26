@@ -45,8 +45,11 @@ import '../features/portfolio/presentation/portfolio_list_page.dart';
 import '../features/recurring/presentation/recurring_form_page.dart';
 import '../features/recurring/presentation/recurring_list_page.dart';
 import '../features/reports/presentation/reports_page.dart';
+import '../features/friends/presentation/add_friend_page.dart';
+import '../features/friends/presentation/friend_list_page.dart';
 import '../features/savings_goals/presentation/savings_goal_detail_page.dart';
 import '../features/savings_goals/presentation/savings_goal_form_page.dart';
+import '../features/savings_goals/presentation/savings_goal_invitations_page.dart';
 import '../features/savings_goals/presentation/savings_goal_list_page.dart';
 import '../features/splash/presentation/splash_page.dart';
 import '../features/summary/presentation/summary_page.dart';
@@ -79,6 +82,7 @@ const _routePermissions = {
   '/reports': 'summary',
   '/summary': 'summary',
   '/wallet': 'wallet',
+  '/friends': 'friends',
   '/portfolio/transfers': 'internal-transfers',
   '/portfolio': 'portfolio',
   '/savings-goals': 'savings-goals',
@@ -224,11 +228,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               );
             },
           ),
+          // Must stay above ':id' or "invitations" would be read as a goal id.
+          GoRoute(path: 'invitations', builder: (context, state) => const SavingsGoalInvitationsPage()),
           GoRoute(
             path: ':id',
             builder: (context, state) => SavingsGoalDetailPage(goal: state.extra as SavingsGoalModel),
           ),
         ],
+      ),
+      // Teman (mutual friend requests) — reached from the Profile menu and from
+      // the collaborator picker of a shared savings goal.
+      GoRoute(
+        path: '/friends',
+        builder: (context, state) => const FriendListPage(),
+        routes: [GoRoute(path: 'add', builder: (context, state) => const AddFriendPage())],
       ),
       // Wallet balance + P2P transfer — reached from the wallet card / menu
       // tile on the Profile page, off the bottom-nav shell like Portfolio.

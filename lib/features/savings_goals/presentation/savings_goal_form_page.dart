@@ -11,9 +11,16 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../../friends/application/friend_controller.dart';
+import '../../friends/presentation/friend_avatar.dart';
+import '../../friends/presentation/friend_picker_sheet.dart';
 import '../../portfolio/application/portfolio_list_controller.dart';
 import '../application/savings_goal_controller.dart';
+import 'savings_goal_errors.dart';
 import 'savings_goal_style.dart';
+
+/// Server cap: 5 people per goal = owner + 4 invited (docs rule 3).
+const _maxInvitedMembers = 4;
 
 class SavingsGoalFormPage extends ConsumerStatefulWidget {
   const SavingsGoalFormPage({super.key, this.goal, this.draft});
@@ -43,6 +50,9 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
   late DateTime? _targetDate = widget.goal?.targetDate;
   late String _icon = widget.goal?.icon ?? widget.draft?.icon ?? savingsGoalIconOptions.first;
   late String _color = widget.goal?.color ?? widget.draft?.color ?? savingsGoalColorOptions.first;
+
+  /// Friends (`user_id`) to invite on create — empty keeps the goal personal.
+  List<int> _memberIds = [];
 
   bool _isSubmitting = false;
   ApiException? _error;
@@ -93,6 +103,15 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
     setState(() => _selectedPortfolioId = selected == 0 ? null : selected);
   }
 
+  Future<void> _pickMembers() async {
+    final picked = await showFriendPickerSheet(
+      context,
+      initiallySelected: _memberIds,
+      maxSelect: _maxInvitedMembers,
+    );
+    if (picked != null) setState(() => _memberIds = picked);
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -128,6 +147,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
           targetDate: _targetDate,
           icon: _icon,
           color: _color,
+          memberIds: _memberIds,
         );
       }
       if (mounted) context.pop();
@@ -136,6 +156,60 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  Widget _buildMembersSection(AppLocalizations l10n) {
+    final friends = ref.watch(friendListControllerProvider).valueOrNull?.friends ?? const [];
+    final chosen = friends.where((f) => _memberIds.contains(f.userId)).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.sgsFormSectionTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        const SizedBox(height: 4),
+        Text(l10n.sgsFormSectionHint, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+        const SizedBox(height: 8),
+        InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: _pickMembers,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.group_add_outlined, color: AppColors.textSecondary, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: chosen.isEmpty
+                      ? Text(
+                          _memberIds.isEmpty ? l10n.sgsFormInviteNone : l10n.sgsFormInviteCount(_memberIds.length),
+                          style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                        )
+                      : Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final friend in chosen)
+                              Chip(
+                                visualDensity: VisualDensity.compact,
+                                avatar: FriendAvatar(name: friend.name, url: friend.avatarUrl, radius: 10),
+                                label: Text(friend.name, style: const TextStyle(fontSize: 12.5)),
+                                onDeleted: () => setState(() => _memberIds = [..._memberIds]..remove(friend.userId)),
+                              ),
+                          ],
+                        ),
+                ),
+                Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -160,7 +234,7 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (generalError) ...[
-                  ErrorBanner(message: _error!.message),
+                  ErrorBanner(message: sharedGoalErrorMessage(l10n, _error!)),
                   const SizedBox(height: 16),
                 ],
                 AppTextField(
@@ -301,6 +375,10 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
                       ),
                   ],
                 ),
+                if (!_isEditing) ...[
+                  const SizedBox(height: 24),
+                  _buildMembersSection(l10n),
+                ],
                 const SizedBox(height: 28),
                 PrimaryButton(
                   label: _isEditing ? l10n.walletSavingsGoalFormSaveChanges : l10n.walletSavingsGoalFormCreateAction,

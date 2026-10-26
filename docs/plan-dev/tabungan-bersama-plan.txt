@@ -1,0 +1,279 @@
+BLUEPRINT — TABUNGAN BERSAMA (TEMAN + TARGET TABUNGAN KOLABORATIF)
+=============================================================
+
+Status: IMPLEMENTASI FLUTTER SELESAI (Tahap 1-3 sisi mobile, 2026-10-26) -
+belum diverifikasi manual di device dengan 2 akun (BAGIAN 9).
+Kontrak final ada di docs/mobile-api-reference.md ("Teman" dan "Tabungan
+Bersama"), itu yang berlaku bila beda dengan usulan di bawah. Keputusan
+akhir: teman dicari lewat USERNAME, pertemanan harus diterima, member yang
+keluar tetap meninggalkan kontribusinya, maks 5 orang, tanpa push (v1).
+Belum dikerjakan: Tahap 4 sebagian (idempotency key kontribusi tidak
+dipakai karena kontrak tidak menyediakannya) dan badge pending di Profile.
+
+Permintaan: user bisa berteman dengan user lain (add friend, saling
+menerima), lalu membuat Target Tabungan bersama dengan menambahkan teman
+sebagai collaborator. Fitur Target Tabungan yang sudah ada (lib/features/
+savings_goals/) di-improve, bukan dibuat menu terpisah dari nol.
+
+Mengikuti pola precedent docs/plan-dev/skeleton-loading-plan.txt &
+docs/plan-dev/onboarding-tour-plan.txt.
+
+
+BAGIAN 0 — SCOPE & KEPUTUSAN
+-----------------------------------------
+Dipecah jadi 2 fitur yang berurutan (Fase 1 harus jadi dulu):
+  Fase 1 — Pertemanan (Friends): cari, kirim permintaan, terima/tolak,
+           daftar teman, hapus teman.
+  Fase 2 — Target Tabungan Bersama: goal dengan >1 member, kontribusi
+           dari tiap member, progress gabungan.
+
+Keputusan yang diusulkan (mohon dikonfirmasi saat acc):
+- Pertemanan = MUTUAL (kirim permintaan -> harus DITERIMA), bukan follow
+  satu arah. Alasan: berbagi data uang butuh persetujuan dua pihak; follow
+  satu arah memungkinkan orang asing "mengikuti" tanpa izin. Dari sisi UX
+  tetap terasa seperti "add friend / saling follow".
+- Cara menemukan teman: (a) nomor rekening Dompet 12 digit yang SUDAH ADA
+  (endpoint wallet/lookup sudah menampilkan nama penerima), atau (b) kode
+  teman/username/email. Usulan: pakai (b) kode teman khusus + boleh (a)
+  sebagai jalan pintas, supaya tidak mengekspos nomor rekening sebagai
+  identitas sosial. LIHAT pertanyaan terbuka #1.
+- Menambah collaborator HANYA bisa untuk user yang sudah berstatus teman.
+- Collaborator diundang -> HARUS menerima undangan (sesuai permintaan
+  "di-acc oleh pihak temannya"). Undangan belum diterima = belum bisa
+  melihat/menabung dan belum dihitung sebagai member.
+- Role sederhana, 2 level saja:
+    owner  = pembuat goal: edit goal, undang/keluarkan member, arsip/hapus.
+    member = menabung/tarik bagian sendiri, lihat progress, keluar goal.
+  Tidak ada role "admin" di v1 (bisa jadi enhancement).
+- Privasi: member hanya melihat NAMA + total kontribusi tiap member untuk
+  goal itu. Akun/portfolio, saldo, dan data transaksi lain milik teman
+  TIDAK PERNAH terlihat. Akun sumber dana tiap kontribusi adalah akun
+  milik pencatat sendiri (finance_portfolio_id milik dia).
+- saved_amount tetap SELALU DIHITUNG SERVER dari ledger (prinsip yang
+  sama dengan goal pribadi) = jumlah kontribusi semua member.
+- Goal pribadi yang sudah ada TIDAK berubah perilakunya. Goal pribadi bisa
+  "dijadikan bersama" nanti (BAGIAN 7), tapi bukan kebutuhan awal.
+
+
+BAGIAN 1 — KONDISI SAAT INI
+-----------------------------------------
+- Savings goals: model savings_goal_model.dart, controller di
+  features/savings_goals/application/savings_goal_controller.dart, 4 page
+  (list, detail, form, style). Endpoint /money-management/savings-goals
+  (+ /contributions), gate permission money-management.savings-goals.
+- Semua goal sekarang MILIK SATU user (user_id); kontribusi memakai
+  finance_portfolio_id milik user itu.
+- Belum ada konsep teman/relasi antar user di app maupun API. Satu-satunya
+  interaksi antar user: Transfer Dompet (wallet/lookup + wallet/transfer),
+  itu pun tanpa relasi permanen.
+- Notifikasi baru LOKAL (flutter_local_notifications) — belum ada push
+  (lihat docs/flutter-notifications-plan.txt). Undangan teman/goal idealnya
+  memicu notifikasi ke user LAIN -> butuh push (BAGIAN 6).
+
+
+BAGIAN 2 — FASE 1: PERTEMANAN
+-----------------------------------------
+Alur:
+  1. User buka menu Teman -> "Tambah Teman" -> cari via kode teman
+     (atau nomor rekening) -> tampil nama (nomor/email disamarkan).
+  2. Kirim permintaan -> status pending (pengirim bisa batalkan).
+  3. Penerima melihat tab "Permintaan masuk" -> Terima / Tolak.
+  4. Setelah diterima, keduanya saling muncul di daftar Teman.
+  5. Hapus teman bisa kapan saja; efeknya ke goal bersama, lihat BAGIAN 5.
+
+Usulan endpoint (base /money-management/friends, gate permission
+money-management.friends, diberikan ke semua role money-management):
+  GET    /friends                    daftar teman + ringkasan jumlah pending
+  GET    /friends/requests           ?direction=incoming|outgoing
+  POST   /friends/lookup             { "friend_code": "..." } -> { name, masked_code }
+  POST   /friends/requests           { "friend_code": "..." } -> kirim permintaan
+  POST   /friends/requests/{id}/accept
+  POST   /friends/requests/{id}/decline
+  DELETE /friends/requests/{id}      batalkan permintaan keluar
+  DELETE /friends/{userId}           hapus teman
+  GET    /friends/me                 kode teman milik sendiri (untuk dibagikan)
+Aturan server: rate limit pada lookup/request (anti-enumerasi, mirip
+wallet lookup 20/menit); tidak bisa add diri sendiri; tidak bisa duplikat
+request; kalau B sudah mengirim ke A, request A->B otomatis jadi accept;
+opsi user "blokir" ditunda ke v2.
+
+Flutter (mengikuti pola fitur wallet: model + repository + controller +
+page, Riverpod, l10n id+en, skeleton loader & list_states):
+  lib/data/models/friend_model.dart
+  lib/data/repositories/friend_repository.dart
+  lib/features/friends/application/friend_controller.dart
+  lib/features/friends/presentation/friend_list_page.dart     (tab Teman | Permintaan)
+  lib/features/friends/presentation/add_friend_page.dart      (input/scan kode)
+  lib/features/friends/presentation/my_friend_code_page.dart  (kode + salin/bagikan)
+  route: /friends, /friends/add, /friends/code (tambah di app_router.dart
+  + map permission 'friends' seperti '/wallet': 'wallet').
+Titik akses: kartu/menu "Teman" di Profile (dekat kartu Dompet) dan tombol
+"Undang teman" di form/detail goal bersama.
+
+
+BAGIAN 3 — FASE 2: TARGET TABUNGAN BERSAMA
+-----------------------------------------
+Konsep: goal punya daftar member. Tiap member menabung/menarik dari akun
+miliknya sendiri; progress goal = total semua kontribusi.
+
+Perubahan di goal:
+  - field baru: is_shared (bool), role user yang melihat (owner|member),
+    members[] {user_id, name, role, status(pending|active), contributed
+    _amount, contribution_percent}, my_contribution.
+  - target_amount, target_date, purpose, icon, color: sama seperti
+    sekarang, hanya owner yang boleh mengubah.
+  - Goal pribadi: is_shared=false, members kosong -> UI lama tidak berubah.
+
+Alur membuat:
+  1. Form goal (savings_goal_form_page.dart): tambah toggle "Tabungan
+     bersama". Aktif -> muncul bagian "Collaborator" dengan pemilih dari
+     daftar teman (multi-select). Tidak ada teman -> CTA ke Tambah Teman.
+  2. Simpan -> goal terbuat, undangan terkirim ke tiap collaborator
+     (status pending).
+  3. Collaborator menerima notifikasi/melihat di inbox "Undangan Tabungan"
+     -> Terima / Tolak. Setelah terima, goal muncul di list-nya.
+
+Alur menabung:
+  - Kontribusi/penarikan memakai endpoint kontribusi yang sudah ada,
+    ditambah: tiap baris mencatat contributor (user pencatat).
+  - Member hanya boleh MENARIK sebatas total kontribusinya sendiri
+    (bukan seluruh saldo goal) — mencegah satu orang menguras tabungan
+    bersama. Owner pun sama. Aturan server -> error 400 jika melebihi.
+  - Hapus baris kontribusi: hanya oleh pencatat aslinya.
+  - Riwayat kontribusi tampil dengan nama pencatat + filter "Saya saja".
+
+Alur selesai/keluar:
+  - Goal achieved otomatis seperti sekarang (saved_amount >= target).
+  - Member keluar: kontribusi yang sudah masuk TETAP tercatat di ledger
+    (riwayat tidak dihapus) — atau wajib tarik dulu? LIHAT pertanyaan #3.
+  - Owner arsip/hapus: hapus goal bersama butuh tidak ada saldo tersisa
+    ATAU konfirmasi bahwa riwayat semua member ikut terhapus (cascade
+    seperti goal pribadi). Rekomendasi: owner hanya boleh ARSIP; hapus
+    permanen hanya bila saved_amount = 0.
+
+Usulan endpoint (tambahan di /money-management/savings-goals):
+  POST   /{id}/members              { "user_ids": [..] } owner mengundang teman
+  DELETE /{id}/members/{userId}     owner mengeluarkan / member keluar (userId=me)
+  GET    /invitations               undangan goal yang menunggu aku
+  POST   /invitations/{id}/accept
+  POST   /invitations/{id}/decline
+  GET/POST/DELETE /{id}/contributions  EXISTING, response ditambah
+                                       contributor {id, name}
+Response GET /savings-goals ditambah field is_shared, role, members
+ringkas (maks N avatar/nama untuk kartu list) — field lama TIDAK diubah
+supaya app versi lama tidak rusak (additive only).
+
+Flutter:
+  - savings_goal_model.dart: tambah SavingsGoalMember, field is_shared/
+    role/members/myContribution (nullable-safe, default aman).
+  - savings_goal_controller.dart: aksi invite/leave/accept/decline.
+  - savings_goal_list_page.dart: badge "Bersama" + tumpukan inisial member.
+  - savings_goal_detail_page.dart: bagian Member (progress per orang,
+    bar kontribusi), tombol Undang/Keluar, riwayat dengan nama pencatat.
+  - savings_goal_form_page.dart: toggle + pemilih collaborator (owner).
+  - halaman baru: savings_goal_invitations_page.dart (inbox undangan).
+  - Sembunyikan aksi yang bukan hak role (edit target hanya owner).
+  - Pakai skeleton loader & list_states yang sudah ada.
+
+
+BAGIAN 4 — PERMISSION & GATING
+-----------------------------------------
+- Permission baru: money-management.friends. Goal bersama tetap di bawah
+  money-management.savings-goals; usulan: membuat goal bersama = fitur
+  Member (cek rule membership di navbar-permission-gating-plan.txt),
+  tetapi MENERIMA undangan boleh untuk semua user yang punya permission
+  savings-goals agar tidak terasa "dipaksa upgrade" oleh teman.
+- Daftarkan route baru di map permission app_router.dart.
+
+
+BAGIAN 5 — EDGE CASE
+-----------------------------------------
+- Teman dihapus saat masih satu goal: goal & kontribusi TETAP (data
+  keuangan tidak hilang), tapi tidak bisa mengundang lagi; keduanya tetap
+  member sampai ada yang keluar. (Alternatif: blokir kontribusi baru.)
+- Akun salah satu user dihapus: kontribusinya tetap sebagai "Pengguna
+  dihapus"; progress tidak berubah.
+- Undangan kedaluwarsa: auto-expire setelah N hari (usulan 14).
+- Dua orang menarik bersamaan: server transaksi/lock per goal agar batas
+  tarik (kontribusi sendiri) konsisten.
+- Offline: fitur ONLINE-ONLY (seperti Dompet) — tidak ada antrean offline.
+- Idempotency key pada kontribusi goal bersama (pola sama dengan transfer
+  Dompet) agar retry koneksi tidak menggandakan kontribusi.
+- Over-allocated per akun tetap per-user, tidak lintas member.
+- Mata uang: satu mata uang (Rupiah) seperti app sekarang.
+- Pembagian target per member (mis. masing-masing Rp 5jt) = BUKAN v1;
+  v1 hanya total bersama. Dicatat di BAGIAN 7.
+
+
+BAGIAN 6 — NOTIFIKASI
+-----------------------------------------
+Event yang butuh memberi tahu USER LAIN: permintaan teman masuk, diterima,
+undangan goal, teman menabung, goal tercapai, member keluar.
+Notifikasi app sekarang LOKAL saja, tidak bisa menjangkau device lain.
+Dua opsi:
+  A. v1 tanpa push: badge/inbox di dalam app + polling saat app dibuka
+     (pull-to-refresh). Sederhana, tapi undangan baru terlihat saat
+     membuka app.
+  B. Push FCM: butuh backend kirim push + penyimpanan token device +
+     setup Firebase (docs/flutter-notifications-plan.txt sudah membahas
+     ini sebagai pekerjaan terpisah yang lebih besar).
+Rekomendasi: v1 pakai opsi A (badge + inbox), push menyusul. Riwayat
+Notifikasi yang sudah ada (notification_history_page) bisa dipakai
+menampung event ini setelah push tersedia.
+
+
+BAGIAN 7 — DI LUAR SCOPE v1 (ENHANCEMENT)
+-----------------------------------------
+- Ubah goal pribadi menjadi bersama setelah dibuat.
+- Target kontribusi per member (porsi masing-masing).
+- Role admin / izin edit untuk member.
+- Blokir user, privasi "siapa boleh mengirim permintaan".
+- Reminder "sudah lama tidak menabung" untuk member.
+- Chat/komentar di goal; reaksi saat teman menabung.
+- QR code kode teman.
+
+
+BAGIAN 8 — URUTAN IMPLEMENTASI
+-----------------------------------------
+Tahap 0  Acc blueprint + jawab pertanyaan terbuka + backend menyiapkan
+         endpoint (friends dulu, lalu goal bersama) & update mobile-api-
+         reference.md.
+Tahap 1  Fase 1 Pertemanan: model, repository, controller, 3 page, route,
+         l10n (id+en), permission, kartu di Profile. flutter analyze bersih.
+Tahap 2  Model goal + list/detail menampilkan goal bersama (read-only
+         dulu): badge, member, kontribusi dengan nama pencatat.
+Tahap 3  Form: toggle bersama + pilih collaborator; inbox undangan
+         (terima/tolak); keluar/keluarkan member.
+Tahap 4  Aturan tarik per-member, idempotency key, error handling
+         (kode error bisnis + 429), edge case BAGIAN 5.
+Tahap 5  Verifikasi manual (BAGIAN 9), CHANGELOG, update docs API.
+Tiap tahap = giliran terpisah, jangan digabung (risiko besar & sulit
+direview).
+
+
+BAGIAN 9 — VERIFIKASI
+-----------------------------------------
+Butuh 2 akun/device (atau emulator + device):
+- A kirim permintaan ke B -> B terima/tolak -> daftar teman keduanya benar.
+- A buat goal bersama, undang B -> B belum bisa lihat sebelum terima.
+- B terima -> goal muncul; A & B menabung -> progress gabungan sama di
+  kedua device setelah refresh.
+- B coba tarik melebihi kontribusinya sendiri -> ditolak.
+- Member biasa tidak melihat tombol edit target/keluarkan member.
+- B keluar / A hapus teman / goal dicapai / goal diarsip: perilaku sesuai
+  keputusan BAGIAN 5.
+- Dark mode, bahasa id & en, skeleton loading, state kosong & error.
+- Pastikan data akun/saldo teman tidak pernah muncul di response/UI.
+
+
+PERTANYAAN TERBUKA (perlu keputusan sebelum Tahap 0 selesai)
+-----------------------------------------
+1. Identitas pencarian teman: kode teman khusus, username, email, atau
+   nomor rekening Dompet yang sudah ada?
+2. Pertemanan harus diterima (rekomendasi) atau cukup follow satu arah?
+3. Saat member keluar: kontribusinya tetap di goal, dikembalikan
+   (wajib tarik dulu), atau owner yang memutuskan?
+4. Apakah membuat goal bersama fitur khusus Member, atau semua user?
+5. v1 tanpa push notification (badge + inbox saja) — setuju?
+6. Batas jumlah member per goal (usulan maks 5) dan jumlah goal bersama
+   per user?

@@ -12,6 +12,7 @@ import '../../features/savings_goals/application/savings_goal_controller.dart';
 import '../../features/summary/application/summary_controller.dart';
 import '../../features/transactions/application/transaction_list_controller.dart';
 import '../../features/transfers/application/transfer_list_controller.dart';
+import '../../features/friends/application/friend_controller.dart';
 import '../../features/wallet/application/wallet_controller.dart';
 
 /// Every non-`autoDispose` `AsyncNotifierProvider` that caches data fetched
@@ -41,6 +42,7 @@ void invalidateUserDataProviders(Ref ref) {
   ref.invalidate(budgetControllerProvider);
   ref.invalidate(summaryControllerProvider);
   ref.invalidate(savingsGoalControllerProvider);
+  ref.invalidate(savingsGoalInvitationsProvider);
   ref.invalidate(recurringListControllerProvider);
   ref.invalidate(portfolioListControllerProvider);
   ref.invalidate(transferListControllerProvider);
@@ -51,4 +53,7 @@ void invalidateUserDataProviders(Ref ref) {
   ref.invalidate(payrollSettingsControllerProvider);
   ref.invalidate(walletControllerProvider);
   ref.invalidate(walletTransactionsControllerProvider);
+  ref.invalidate(friendListControllerProvider);
+  ref.invalidate(friendRequestsControllerProvider);
+  ref.invalidate(myUsernameProvider);
 }

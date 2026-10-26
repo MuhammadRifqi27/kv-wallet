@@ -30,6 +30,49 @@ class SavingsGoalsSummaryModel {
   final List<SavingsGoalModel> goals;
 }
 
+enum SavingsGoalMemberStatus { active, pending, left }
+
+SavingsGoalMemberStatus _parseMemberStatus(Object? value) => switch (value) {
+      'pending' => SavingsGoalMemberStatus.pending,
+      'left' => SavingsGoalMemberStatus.left,
+      _ => SavingsGoalMemberStatus.active,
+    };
+
+/// One entry of a shared goal's `members[]` — see
+/// docs/mobile-api-reference.md "Tabungan Bersama". `members[0]` is always
+/// the owner. Never carries account/portfolio data of that person.
+class SavingsGoalMember {
+  const SavingsGoalMember({
+    required this.userId,
+    required this.name,
+    this.avatarUrl,
+    required this.isOwner,
+    required this.status,
+    required this.contributedAmount,
+    required this.contributionPercent,
+  });
+
+  factory SavingsGoalMember.fromJson(Map<String, dynamic> json) {
+    return SavingsGoalMember(
+      userId: json['user_id'] as int? ?? 0,
+      name: json['name'] as String? ?? '-',
+      avatarUrl: json['avatar_url'] as String?,
+      isOwner: json['role'] == 'owner',
+      status: _parseMemberStatus(json['status']),
+      contributedAmount: parseDouble(json['contributed_amount']),
+      contributionPercent: parseDouble(json['contribution_percent']),
+    );
+  }
+
+  final int userId;
+  final String name;
+  final String? avatarUrl;
+  final bool isOwner;
+  final SavingsGoalMemberStatus status;
+  final double contributedAmount;
+  final double contributionPercent;
+}
+
 /// One row inside [SavingsGoalsSummaryModel.goals]. `savedAmount`,
 /// `progressPercent` and `status` are always server-computed from the
 /// contribution ledger — never sent back up in create/update requests, see
@@ -50,10 +93,16 @@ class SavingsGoalModel {
     required this.status,
     this.icon,
     this.color,
+    this.isShared = false,
+    this.isOwner = true,
+    this.ownerName,
+    this.myContribution = 0,
+    this.members = const [],
   });
 
   factory SavingsGoalModel.fromJson(Map<String, dynamic> json) {
     final portfolio = json['portfolio'];
+    final owner = json['owner'];
     return SavingsGoalModel(
       id: json['id'] as int,
       name: json['name'] as String? ?? '-',
@@ -69,6 +118,13 @@ class SavingsGoalModel {
       status: _parseStatus(json['status']),
       icon: json['icon'] as String?,
       color: json['color'] as String?,
+      isShared: json['is_shared'] as bool? ?? false,
+      // Personal goals (and responses from an older server) have no `role`
+      // — the user is the sole owner.
+      isOwner: json['role'] != 'member',
+      ownerName: owner is Map ? owner['name'] as String? : null,
+      myContribution: parseDouble(json['my_contribution']),
+      members: parseList(json['members']).map((e) => SavingsGoalMember.fromJson(e as Map<String, dynamic>)).toList(),
     );
   }
 
@@ -86,6 +142,20 @@ class SavingsGoalModel {
   final SavingsGoalStatus status;
   final String? icon;
   final String? color;
+
+  /// Shared-goal fields (docs "Tabungan Bersama"). [isOwner] is the role of
+  /// the logged-in user, not of any member.
+  final bool isShared;
+  final bool isOwner;
+  final String? ownerName;
+  final double myContribution;
+  final List<SavingsGoalMember> members;
+
+  /// Members who count as people on the goal (hides declined/expired
+  /// invitations that the server already dropped, and `left` rows only
+  /// shown for their contribution).
+  List<SavingsGoalMember> get activeMembers =>
+      members.where((m) => m.status == SavingsGoalMemberStatus.active).toList();
 
   double get progress => (progressPercent / 100).clamp(0, 1);
 }
@@ -123,6 +193,8 @@ class SavingsGoalContributionModel {
     this.note,
     this.portfolioId,
     this.portfolioName,
+    this.contributorName,
+    this.isMine = true,
   });
 
   factory SavingsGoalContributionModel.fromJson(Map<String, dynamic> json) {
@@ -135,6 +207,8 @@ class SavingsGoalContributionModel {
       note: json['note'] as String?,
       portfolioId: portfolio is Map ? portfolio['id'] as int? : null,
       portfolioName: portfolio is Map ? portfolio['name'] as String? : null,
+      contributorName: json['contributor'] is Map ? (json['contributor'] as Map)['name'] as String? : null,
+      isMine: json['is_mine'] as bool? ?? true,
     );
   }
 
@@ -145,4 +219,55 @@ class SavingsGoalContributionModel {
   final String? note;
   final int? portfolioId;
   final String? portfolioName;
+
+  /// Shared goals only: who logged this row, and whether that is the
+  /// logged-in user (only own rows may be deleted).
+  final String? contributorName;
+  final bool isMine;
+}
+
+/// One pending invitation — `GET /money-management/savings-goals/invitations`.
+/// [id] is the INVITATION id, not the goal id.
+class SavingsGoalInvitationModel {
+  const SavingsGoalInvitationModel({
+    required this.id,
+    required this.goalId,
+    required this.goalName,
+    this.purpose,
+    required this.targetAmount,
+    this.icon,
+    this.color,
+    required this.ownerName,
+    required this.invitedByName,
+    this.expiresAt,
+  });
+
+  factory SavingsGoalInvitationModel.fromJson(Map<String, dynamic> json) {
+    final goal = json['goal'] is Map<String, dynamic> ? json['goal'] as Map<String, dynamic> : const <String, dynamic>{};
+    final owner = json['owner'] is Map ? json['owner'] as Map : const {};
+    final invitedBy = json['invited_by'] is Map ? json['invited_by'] as Map : const {};
+    return SavingsGoalInvitationModel(
+      id: json['id'] as int,
+      goalId: goal['id'] as int? ?? 0,
+      goalName: goal['name'] as String? ?? '-',
+      purpose: goal['purpose'] as String?,
+      targetAmount: parseDouble(goal['target_amount']),
+      icon: goal['icon'] as String?,
+      color: goal['color'] as String?,
+      ownerName: owner['name'] as String? ?? '-',
+      invitedByName: invitedBy['name'] as String? ?? '-',
+      expiresAt: parseDate(json['expires_at']),
+    );
+  }
+
+  final int id;
+  final int goalId;
+  final String goalName;
+  final String? purpose;
+  final double targetAmount;
+  final String? icon;
+  final String? color;
+  final String ownerName;
+  final String invitedByName;
+  final DateTime? expiresAt;
 }

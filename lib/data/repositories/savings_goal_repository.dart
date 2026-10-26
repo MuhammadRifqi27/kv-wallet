@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/api_endpoints.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/utils/json_parsing.dart';
 import '../models/savings_goal_model.dart';
 
 class SavingsGoalRepository {
@@ -28,6 +29,7 @@ class SavingsGoalRepository {
     DateTime? targetDate,
     String? icon,
     String? color,
+    List<int> memberIds = const [],
   }) async {
     try {
       final response = await _apiClient.dio.post(ApiEndpoints.savingsGoals, data: {
@@ -38,6 +40,9 @@ class SavingsGoalRepository {
         'target_date': targetDate != null ? DateFormat('yyyy-MM-dd').format(targetDate) : null,
         'icon': icon,
         'color': color,
+        // Friends' `user_id`s (max 4) — the goal becomes shared and the
+        // invitations go out in the same request.
+        if (memberIds.isNotEmpty) 'member_ids': memberIds,
       });
       return SavingsGoalModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -135,6 +140,58 @@ class SavingsGoalRepository {
   Future<void> deleteContribution({required int goalId, required int contributionId}) async {
     try {
       await _apiClient.dio.delete('${ApiEndpoints.savingsGoals}/$goalId/contributions/$contributionId');
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Owner invites friends to an existing goal (a personal goal becomes
+  /// shared). Returns the updated goal.
+  Future<SavingsGoalModel> inviteMembers({required int goalId, required List<int> userIds}) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '${ApiEndpoints.savingsGoals}/$goalId/members',
+        data: {'user_ids': userIds},
+      );
+      return SavingsGoalModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Owner removes a member / cancels an unanswered invite, or a member
+  /// leaves by passing their own [userId].
+  Future<void> removeMember({required int goalId, required int userId}) async {
+    try {
+      await _apiClient.dio.delete('${ApiEndpoints.savingsGoals}/$goalId/members/$userId');
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<List<SavingsGoalInvitationModel>> getInvitations() async {
+    try {
+      final response = await _apiClient.dio.get(ApiEndpoints.savingsGoalInvitations);
+      final data = response.data;
+      final list = data is Map ? parseList(data['data']) : parseList(data);
+      return list.map((json) => SavingsGoalInvitationModel.fromJson(json as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<SavingsGoalModel> acceptInvitation(int invitationId) async {
+    try {
+      final response = await _apiClient.dio.post('${ApiEndpoints.savingsGoalInvitations}/$invitationId/accept');
+      return SavingsGoalModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<void> declineInvitation(int invitationId) async {
+    try {
+      await _apiClient.dio.post('${ApiEndpoints.savingsGoalInvitations}/$invitationId/decline');
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

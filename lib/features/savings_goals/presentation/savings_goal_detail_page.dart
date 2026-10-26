@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
@@ -12,9 +13,16 @@ import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../../../shared/widgets/list_states.dart';
+import '../../auth/application/auth_controller.dart';
+import '../../friends/presentation/friend_avatar.dart';
+import '../../friends/presentation/friend_picker_sheet.dart';
 import '../../portfolio/application/portfolio_list_controller.dart';
 import '../application/savings_goal_controller.dart';
+import 'savings_goal_errors.dart';
 import 'savings_goal_style.dart';
+
+/// Server cap per goal, owner included (docs rule 3).
+const _maxPeoplePerGoal = 5;
 
 /// Opened by tapping a goal card on [SavingsGoalListPage]. `goal` is the
 /// snapshot at tap time; the header re-reads the live value from
@@ -31,17 +39,32 @@ class SavingsGoalDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final latest = ref.watch(savingsGoalControllerProvider).valueOrNull?.goals.where((g) => g.id == goal.id).firstOrNull ??
         goal;
-    final contributionsAsync = ref.watch(savingsGoalContributionsProvider(goal.id));
     final color = savingsGoalColorFor(latest.color);
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(latest.name)),
+      appBar: AppBar(
+        title: Text(latest.name),
+        actions: [
+          if (latest.isShared && latest.isOwner && latest.status != SavingsGoalStatus.archived)
+            IconButton(
+              tooltip: l10n.sgsInviteAction,
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              onPressed: () => _inviteFriends(context, ref, latest),
+            ),
+          if (latest.isShared && !latest.isOwner)
+            IconButton(
+              tooltip: l10n.sgsLeaveConfirm,
+              icon: const Icon(Icons.logout_rounded),
+              onPressed: () => _leave(context, ref, latest),
+            ),
+        ],
+      ),
       floatingActionButton: latest.status == SavingsGoalStatus.archived
           ? null
           : FloatingActionButton(
-              onPressed: () => _openContributionForm(context, ref),
+              onPressed: () => _openContributionForm(context, ref, latest),
               backgroundColor: AppColors.primary,
               tooltip: l10n.walletSavingsGoalDetailAddEntryTooltip,
               child: const Icon(Icons.add_rounded, color: Colors.white),
@@ -57,61 +80,305 @@ class SavingsGoalDetailPage extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           children: [
             _GoalSummaryCard(goal: latest, color: color),
+            if (latest.isShared) ...[
+              const SizedBox(height: 16),
+              _MembersCard(goal: latest),
+            ],
             const SizedBox(height: 24),
-            Text(
-              l10n.walletSavingsGoalDetailHistoryTitle,
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 10),
-            contributionsAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: AppLoadingIndicator()),
-              ),
-              error: (error, _) => ListErrorState(
-                message: error is ApiException ? error.message : l10n.walletSavingsGoalDetailLoadHistoryError,
-                onRetry: () async => ref.invalidate(savingsGoalContributionsProvider(goal.id)),
-              ),
-              data: (contributions) {
-                if (contributions.isEmpty) {
-                  return ListEmptyState(
-                    icon: Icons.receipt_long_outlined,
-                    title: l10n.walletSavingsGoalDetailEmptyTitle,
-                    subtitle: l10n.walletSavingsGoalDetailEmptySubtitle,
-                  );
-                }
-                // ListView.builder (shrinkWrap, non-scrolling — it's nested
-                // inside the outer ListView above), not a plain Column +
-                // `for` loop — contribution/withdrawal history is a user-
-                // grown collection that can get long over time, unlike the
-                // OUTER ListView's top-level children just above (summary
-                // card + section title + this), which are always exactly 3
-                // fixed items regardless of data and don't need `.builder`.
-                // See docs/ide-improvement-fitur-existing.txt BAGIAN F #38.
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: contributions.length,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _ContributionTile(goalId: goal.id, contribution: contributions[index]),
-                  ),
-                );
-              },
-            ),
+            _HistorySection(goal: latest),
           ],
         ),
       ),
     );
   }
 
-  void _openContributionForm(BuildContext context, WidgetRef ref) {
+  void _openContributionForm(BuildContext context, WidgetRef ref, SavingsGoalModel latest) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) => _ContributionFormSheet(goal: goal),
+      builder: (context) => _ContributionFormSheet(goal: latest),
+    );
+  }
+
+  /// Owner only. Seats already taken (active + still-pending invites) count
+  /// toward the 5-person cap, so the picker only offers what still fits.
+  Future<void> _inviteFriends(BuildContext context, WidgetRef ref, SavingsGoalModel latest) async {
+    final l10n = AppLocalizations.of(context);
+    final occupied = latest.members.where((m) => m.status != SavingsGoalMemberStatus.left).toList();
+    final seatsLeft = _maxPeoplePerGoal - occupied.length;
+    if (seatsLeft <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.sgsErrMemberLimit)));
+      return;
+    }
+    final picked = await showFriendPickerSheet(
+      context,
+      maxSelect: seatsLeft,
+      excludeUserIds: occupied.map((m) => m.userId).toList(),
+    );
+    if (picked == null || picked.isEmpty || !context.mounted) return;
+    try {
+      await ref.read(savingsGoalControllerProvider.notifier).inviteMembers(goalId: latest.id, userIds: picked);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.sgsInviteSent(picked.length))));
+      }
+    } on ApiException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(sharedGoalErrorMessage(l10n, e))));
+      }
+    }
+  }
+
+  Future<void> _leave(BuildContext context, WidgetRef ref, SavingsGoalModel latest) async {
+    final l10n = AppLocalizations.of(context);
+    final userId = ref.read(authControllerProvider).user?.id;
+    if (userId == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.sgsLeaveTitle),
+        content: Text(l10n.sgsLeaveMessage(latest.name)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletSavingsGoalDetailCancel)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.sgsLeaveConfirm, style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await ref.read(savingsGoalControllerProvider.notifier).removeMember(goalId: latest.id, userId: userId);
+      if (context.mounted) context.pop();
+    } on ApiException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(sharedGoalErrorMessage(l10n, e))));
+      }
+    }
+  }
+}
+
+/// People on a shared goal with each one's total contribution. The owner
+/// can remove anyone else (or cancel an unanswered invite).
+class _MembersCard extends ConsumerWidget {
+  const _MembersCard({required this.goal});
+
+  final SavingsGoalModel goal;
+
+  Future<void> _remove(BuildContext context, WidgetRef ref, SavingsGoalMember member) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.sgsRemoveMemberTitle),
+        content: Text(l10n.sgsRemoveMemberMessage(member.name)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.walletSavingsGoalDetailCancel)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.sgsRemoveMemberConfirm, style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await ref.read(savingsGoalControllerProvider.notifier).removeMember(goalId: goal.id, userId: member.userId);
+    } on ApiException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(sharedGoalErrorMessage(l10n, e))));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final color = savingsGoalColorFor(goal.color);
+    final isArchived = goal.status == SavingsGoalStatus.archived;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.sgsMembersTitle,
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.sgsMyContribution(formatRupiah(goal.myContribution)),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+          ),
+          const SizedBox(height: 12),
+          for (final member in goal.members) ...[
+            Row(
+              children: [
+                FriendAvatar(name: member.name, url: member.avatarUrl, radius: 18),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              member.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 14),
+                            ),
+                          ),
+                          if (member.isOwner || member.status != SavingsGoalMemberStatus.active) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              member.isOwner
+                                  ? l10n.sgsRoleOwner
+                                  : (member.status == SavingsGoalMemberStatus.pending
+                                      ? l10n.sgsMemberPending
+                                      : l10n.sgsMemberLeft),
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: (member.contributionPercent / 100).clamp(0, 1),
+                          minHeight: 5,
+                          backgroundColor: AppColors.background,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatRupiah(member.contributedAmount),
+                      style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontSize: 13),
+                    ),
+                    Text(
+                      '${member.contributionPercent.toStringAsFixed(0)}%',
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                    ),
+                  ],
+                ),
+                if (goal.isOwner && !member.isOwner && !isArchived && member.status != SavingsGoalMemberStatus.left)
+                  IconButton(
+                    tooltip: l10n.sgsRemoveMemberTitle,
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
+                    onPressed: () => _remove(context, ref, member),
+                  )
+                else
+                  const SizedBox(width: 8),
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Contribution/withdrawal ledger. On a shared goal it lists everyone's
+/// rows (with who logged each) and offers a "only mine" filter, applied
+/// client-side from `is_mine`.
+class _HistorySection extends ConsumerStatefulWidget {
+  const _HistorySection({required this.goal});
+
+  final SavingsGoalModel goal;
+
+  @override
+  ConsumerState<_HistorySection> createState() => _HistorySectionState();
+}
+
+class _HistorySectionState extends ConsumerState<_HistorySection> {
+  bool _mineOnly = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final goal = widget.goal;
+    final contributionsAsync = ref.watch(savingsGoalContributionsProvider(goal.id));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.walletSavingsGoalDetailHistoryTitle,
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+              ),
+            ),
+            if (goal.isShared)
+              FilterChip(
+                label: Text(l10n.sgsOnlyMine),
+                selected: _mineOnly,
+                showCheckmark: false,
+                onSelected: (value) => setState(() => _mineOnly = value),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        contributionsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: AppLoadingIndicator()),
+          ),
+          error: (error, _) => ListErrorState(
+            message: error is ApiException ? error.message : l10n.walletSavingsGoalDetailLoadHistoryError,
+            onRetry: () async => ref.invalidate(savingsGoalContributionsProvider(goal.id)),
+          ),
+          data: (all) {
+            final contributions = _mineOnly ? all.where((c) => c.isMine).toList() : all;
+            if (contributions.isEmpty) {
+              return ListEmptyState(
+                icon: Icons.receipt_long_outlined,
+                title: l10n.walletSavingsGoalDetailEmptyTitle,
+                subtitle: l10n.walletSavingsGoalDetailEmptySubtitle,
+              );
+            }
+            // ListView.builder (shrinkWrap, non-scrolling - it's nested
+            // inside the page's outer ListView): contribution/withdrawal
+            // history is a user-grown collection that can get long over
+            // time. See docs/ide-improvement-fitur-existing.txt BAGIAN F #38.
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: contributions.length,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ContributionTile(
+                  goalId: goal.id,
+                  contribution: contributions[index],
+                  showContributor: goal.isShared,
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
@@ -245,10 +512,13 @@ class _GoalSummaryCard extends StatelessWidget {
 }
 
 class _ContributionTile extends ConsumerWidget {
-  const _ContributionTile({required this.goalId, required this.contribution});
+  const _ContributionTile({required this.goalId, required this.contribution, this.showContributor = false});
 
   final int goalId;
   final SavingsGoalContributionModel contribution;
+
+  /// Shared goals: prefix the subtitle with who logged the row.
+  final bool showContributor;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
@@ -316,6 +586,7 @@ class _ContributionTile extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
+                    if (showContributor) contribution.isMine ? l10n.sgsYou : (contribution.contributorName ?? '-'),
                     formatLocalizedDateShort(contribution.date, Localizations.localeOf(context)),
                     if (contribution.portfolioName != null) contribution.portfolioName!,
                   ].join(' · '),
@@ -340,10 +611,14 @@ class _ContributionTile extends ConsumerWidget {
             '${isWithdrawal ? '-' : '+'} ${formatRupiah(contribution.amount)}',
             style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
           ),
-          IconButton(
-            icon: Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 18),
-            onPressed: () => _confirmDelete(context, ref),
-          ),
+          // Only the person who logged a row may delete it (docs).
+          if (contribution.isMine)
+            IconButton(
+              icon: Icon(Icons.delete_outline_rounded, color: AppColors.textSecondary, size: 18),
+              onPressed: () => _confirmDelete(context, ref),
+            )
+          else
+            const SizedBox(width: 8),
         ],
       ),
     );
@@ -484,6 +759,13 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
                   selected: {_type},
                   onSelectionChanged: (selection) => setState(() => _type = selection.first),
                 ),
+                if (widget.goal.isShared && _type == SavingsGoalEntryType.withdrawal) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.sgsWithdrawHint(formatRupiah(widget.goal.myContribution)),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Text(l10n.walletSavingsGoalDetailDateLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),

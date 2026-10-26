@@ -1,4 +1,4 @@
-# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking, Savings Goals, Wallet)
+# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking, Savings Goals, Tabungan Bersama, Teman, Wallet)
 
 Referensi lengkap untuk tim Flutter — semua endpoint yang dibangun untuk
 mobile app di sesi ini. Untuk endpoint Money Management lainnya (dashboard,
@@ -740,8 +740,16 @@ Dua hal penting yang beda dari modul lain:
    melebihi saldo asli akun itu — ini cuma penanda/warning, bukan yang
    memblokir request.
 
+Goal juga bisa **dibagi dengan teman** — lihat
+[Tabungan Bersama](#tabungan-bersama-shared-savings-goals). Di goal bersama
+`saved_amount` / `progress_percent` / `status` dihitung dari kontribusi
+**semua** member.
+
 ### `GET /money-management/savings-goals` 🔒
-List semua goal milik user, sudah termasuk perhitungan progress-nya.
+List semua goal milik user **plus goal bersama yang sudah user terima**,
+sudah termasuk perhitungan progress-nya. Tiap item punya field tambahan
+`is_shared`, `role`, `owner`, `my_contribution`, `members` (lihat
+[Tabungan Bersama](#field-tambahan-di-response-goal-additive)).
 
 **Response `200`:**
 ```json
@@ -868,6 +876,12 @@ Riwayat nabung/tarik satu goal, terbaru dulu.
 `withdrawal` (mengurangi). `portfolio` bisa `null` kalau baris ini tidak
 dicatat terhadap akun manapun.
 
+Untuk goal bersama, riwayat berisi kontribusi **semua** member. Field
+tambahan (additive): `contributor` (`{id, name}` pencatat), `is_mine`
+(`true` kalau dicatat oleh user yang login). `portfolio` hanya terisi untuk
+baris milik sendiri — akun member lain tidak pernah terlihat. Query
+opsional `?mine=1` untuk hanya menampilkan baris sendiri.
+
 ---
 
 ### `POST /money-management/savings-goals/{id}/contributions` 🔒
@@ -900,15 +914,18 @@ field `type`.
 | `amount` | numeric | ya | min `0.01` |
 | `finance_portfolio_id` | integer | tidak | akun untuk baris ini, harus milik user. Kalau **tidak dikirim sama sekali** (key absen dari body), otomatis pakai `finance_portfolio_id` default milik goal-nya; kalau dikirim `null`/kosong, artinya sengaja tidak dicatat ke akun manapun untuk baris ini |
 | `note` | string | tidak | — |
+| `idempotency_key` | string | tidak | max 64, UUID baru per percobaan user. Kalau request yang sama di-retry (timeout) dengan key yang sama, tidak dicatat dua kali (tetap `200`). **Disarankan selalu dikirim** untuk goal bersama |
 
 **Response `200`:**
 ```json
 { "success": true }
 ```
 
-**Error `400`** kalau `type: "withdrawal"` dengan `amount` melebihi
-`saved_amount` yang sedang terkumpul (bukan `422` — ini business rule, bukan
-validasi format):
+**Error `400`** kalau `type: "withdrawal"` dengan `amount` melebihi dana
+yang **dikontribusikan user itu sendiri** ke goal ini (bukan total goal —
+di goal bersama tiap orang hanya bisa menarik bagiannya sendiri; di goal
+pribadi sama dengan `saved_amount`). Bukan `422` — ini business rule, bukan
+validasi format:
 ```json
 { "error": "Penarikan melebihi dana yang sudah terkumpul. Tersedia Rp 100.000" }
 ```
@@ -929,6 +946,222 @@ dituju di URL:
 ```json
 { "error": "Kontribusi ini tidak ditemukan pada goal ini" }
 ```
+Hanya **pencatat asli** yang bisa menghapus barisnya (`404` untuk baris milik
+member lain). Di goal bersama, `400` juga muncul kalau menghapus kontribusi
+itu akan membuat bagian user lebih kecil dari penarikan yang sudah dia
+lakukan.
+
+---
+
+## Tabungan Bersama (Shared Savings Goals)
+
+Goal yang sama dengan Savings Goals di atas, tapi punya **member** (teman).
+Tiap member menabung dari akunnya sendiri; progress goal = jumlah kontribusi
+semua orang. Gate permission tetap `money-management.savings-goals`. Rencana
+lengkap: [plan-dev/tabungan-bersama-plan.txt](../plan-dev/tabungan-bersama-plan.txt).
+
+Aturan:
+
+1. **Hanya teman** ([Teman](#teman-friends)) yang bisa diundang. Undangan
+   harus **diterima** dulu; sebelum itu orang tersebut tidak bisa melihat
+   atau menabung ke goal. Undangan kedaluwarsa 14 hari.
+2. **Dua role**: `owner` (pembuat: edit target, undang/keluarkan, arsip,
+   hapus) dan `member` (menabung/menarik bagiannya sendiri, melihat progress,
+   keluar). Endpoint edit/hapus/arsip/undang untuk non-owner menjawab `404`.
+3. **Maksimal 5 orang per goal** (owner + 4 member; undangan yang belum
+   kedaluwarsa ikut dihitung).
+4. **Privasi**: member hanya melihat nama, avatar, dan total kontribusi tiap
+   orang di goal itu. Akun/portofolio dan saldo orang lain tidak pernah
+   muncul; `portfolio` pada goal milik orang lain selalu `null`, dan
+   `finance_portfolio_id` default goal **tidak** diwariskan ke member.
+5. **Penarikan dibatasi bagian sendiri** (lihat `POST .../contributions`).
+6. **Member keluar / dikeluarkan**: kontribusinya **tetap** di goal (riwayat
+   tidak dihapus), hanya kursinya dilepas. Baris `left` tetap muncul di
+   `members` selama kontribusi bersihnya tidak nol.
+7. **Hapus goal bersama** hanya boleh kalau `saved_amount` = 0; kalau masih
+   ada saldo, jawabannya `409 SHARED_GOAL_HAS_BALANCE` — arsipkan saja
+   (`POST .../archive`).
+8. **Online-only**, tidak dimasukkan ke antrean offline/sync.
+
+### Field tambahan di response goal (additive)
+
+`GET /savings-goals`, `POST`, `PUT`, `archive`, dan `accept invitation`
+mengembalikan item goal dengan field tambahan — field lama **tidak berubah**,
+jadi app versi lama tidak rusak. Goal pribadi: `is_shared: false`,
+`role: "owner"`, `members: []`.
+
+```json
+{
+  "id": 7,
+  "name": "Liburan Bareng",
+  "saved_amount": 500000,
+  "progress_percent": 50,
+  "is_shared": true,
+  "role": "member",
+  "owner": { "user_id": 10, "name": "Budi Santoso" },
+  "my_contribution": 200000,
+  "members": [
+    { "user_id": 10, "name": "Budi Santoso", "avatar_url": null, "role": "owner",  "status": "active",  "contributed_amount": 300000, "contribution_percent": 60.0 },
+    { "user_id": 12, "name": "Sari Dewi",    "avatar_url": null, "role": "member", "status": "active",  "contributed_amount": 200000, "contribution_percent": 40.0 },
+    { "user_id": 15, "name": "Andi",         "avatar_url": null, "role": "member", "status": "pending", "contributed_amount": 0,      "contribution_percent": 0.0 }
+  ]
+}
+```
+`role` = peran **user yang login** (`owner`/`member`). `members[].status`:
+`active`, `pending` (undangan belum dijawab — hanya terlihat oleh owner dan
+yang diundang), `left` (sudah keluar tapi masih ada kontribusi).
+`members[0]` selalu owner.
+
+### `POST /money-management/savings-goals` — buat goal sekaligus undang teman 🔒
+Sama seperti buat goal biasa, ditambah field opsional:
+
+| Field | Tipe | Keterangan |
+|---|---|---|
+| `member_ids` | integer[] | id teman (`user_id` dari `GET /friends`), maks 4. Goal langsung `is_shared: true` dan undangan terkirim. Kalau salah satu bukan teman, **seluruh request ditolak** (goal tidak dibuat) |
+
+### `POST /money-management/savings-goals/{id}/members` 🔒
+Owner mengundang teman ke goal yang sudah ada (goal pribadi otomatis menjadi
+bersama). **Response `201`:** item goal. Error: lihat tabel kode di bawah.
+```json
+{ "user_ids": [12, 15] }
+```
+
+### `DELETE /money-management/savings-goals/{id}/members/{userId}` 🔒
+Dua kegunaan: **owner mengeluarkan** member (atau membatalkan undangan yang
+belum dijawab), atau **member keluar sendiri** (`userId` = id user yang
+login). **Response `200`:** `{ "success": true }`.
+
+### `GET /money-management/savings-goals/invitations` 🔒
+Undangan goal yang menunggu user (yang belum kedaluwarsa), terbaru dulu.
+Tidak ada push notification di v1 — tampilkan sebagai badge/inbox dan
+refresh saat app dibuka / pull-to-refresh.
+```json
+[
+  {
+    "id": 3,
+    "goal": { "id": 7, "name": "Liburan Bareng", "purpose": null, "target_amount": 1000000, "target_date": null, "icon": null, "color": "primary" },
+    "owner": { "user_id": 10, "name": "Budi Santoso" },
+    "invited_by": { "user_id": 10, "name": "Budi Santoso" },
+    "expires_at": "2026-11-09T03:00:00+00:00",
+    "created_at": "2026-10-26T03:00:00+00:00"
+  }
+]
+```
+`id` di sini adalah id **undangan** (bukan id goal).
+
+### `POST /money-management/savings-goals/invitations/{id}/accept` 🔒
+Terima undangan. **Response `200`:** item goal (user sekarang `role: "member"`).
+
+### `POST /money-management/savings-goals/invitations/{id}/decline` 🔒
+Tolak undangan. **Response `200`:** `{ "success": true }`.
+
+### Kode error tabungan bersama
+Selain `404`/`422` validasi biasa, error bisnis baru memakai format yang
+sama dengan Wallet — `{ "message": "...", "code": "..." }`; pakai `code`,
+bukan teks `message`:
+
+| HTTP | `code` | Arti |
+|---|---|---|
+| 422 | `NOT_FRIENDS` | Salah satu user yang diundang bukan teman owner |
+| 422 | `MEMBER_LIMIT_REACHED` | Melebihi 5 orang per goal |
+| 409 | `ALREADY_MEMBER` | Sudah menjadi member aktif |
+| 409 | `ALREADY_INVITED` | Undangan masih menunggu jawaban |
+| 409 | `GOAL_ARCHIVED` | Goal yang diarsipkan tidak bisa menerima member baru |
+| 409 | `OWNER_CANNOT_LEAVE` | Owner tidak bisa keluar dari goalnya (arsipkan/hapus saja) |
+| 403 | `NOT_GOAL_OWNER` | Member biasa mencoba mengeluarkan orang lain |
+| 409 | `SHARED_GOAL_HAS_BALANCE` | Hapus goal bersama yang masih ada saldo |
+| 410 | `INVITATION_EXPIRED` | Undangan sudah kedaluwarsa (minta owner mengundang ulang) |
+
+Penarikan melebihi bagian sendiri dan hapus-kontribusi yang ditolak tetap
+memakai bentuk lama `400 { "error": "..." }`.
+
+---
+
+## Teman (Friends)
+
+Base path: `/money-management/friends` (gate permission
+`money-management.friends`, diberikan ke semua role money-management).
+Pertemanan **mutual**: kirim permintaan → harus **diterima**. Dipakai untuk
+memilih collaborator [Tabungan Bersama](#tabungan-bersama-shared-savings-goals).
+
+- Teman ditemukan lewat **username** (username akun yang sama dengan
+  untuk login). Tampilkan username sendiri dari `GET /friends/me` supaya bisa
+  dibagikan/disalin. Input **tidak sensitif huruf besar/kecil** dan awalan
+  `@` diabaikan.
+- Yang terlihat dari seorang teman hanya `user_id`, `name`, `username`,
+  `avatar_url` — tidak pernah e-mail, nomor rekening dompet, atau saldo.
+  Username yang tidak ditemukan dan username sendiri dijawab dengan kode
+  berbeda (`USER_NOT_FOUND` / `SELF_FRIEND`); pencarian dibatasi 20/menit.
+- Kalau B sudah mengirim permintaan ke A lalu A mengirim ke B, keduanya
+  otomatis menjadi teman (`status: "accepted"` di response).
+- Menolak permintaan menghapusnya, jadi pengirim boleh mencoba lagi nanti.
+- Rate limit: `lookup` dan kirim permintaan 20/menit (`429`).
+- Menghapus teman **tidak** mengubah tabungan bersama yang sudah berjalan
+  (data uang tidak hilang); hanya saja tidak bisa diundang lagi.
+
+Error bisnis: `{ "message": "...", "code": "..." }`
+
+| HTTP | `code` | Arti |
+|---|---|---|
+| 422 | `USER_NOT_FOUND` | Username tidak ditemukan |
+| 422 | `SELF_FRIEND` | Username milik sendiri |
+| 409 | `ALREADY_FRIENDS` | Sudah berteman |
+| 409 | `REQUEST_EXISTS` | Permintaan ke orang ini sudah dikirim |
+
+### `GET /money-management/friends/me` 🔒
+```json
+{ "data": { "username": "budisantoso" } }
+```
+
+### `GET /money-management/friends` 🔒
+Daftar teman + ringkasan jumlah permintaan menunggu (untuk badge).
+```json
+{
+  "data": [
+    { "user_id": 12, "name": "Sari Dewi", "username": "saridewi", "avatar_url": null, "since": "2026-10-26T03:00:00+00:00" }
+  ],
+  "meta": { "friends_count": 1, "incoming_pending": 2, "outgoing_pending": 0 }
+}
+```
+
+### `GET /money-management/friends/requests?direction=incoming|outgoing` 🔒
+Permintaan yang menunggu; default `incoming`. `user` adalah **pihak lain**
+(pengirim untuk `incoming`, tujuan untuk `outgoing`).
+```json
+{ "data": [ { "id": 5, "user": { "user_id": 12, "name": "Sari Dewi", "username": "saridewi", "avatar_url": null }, "created_at": "2026-10-26T03:00:00+00:00" } ] }
+```
+
+### `POST /money-management/friends/lookup` 🔒
+Langkah 1 tambah teman: cek pemilik username.
+```json
+{ "username": "saridewi" }
+```
+**Response `200`:**
+```json
+{ "data": { "name": "Sari Dewi", "username": "saridewi", "avatar_url": null, "relationship": "none" } }
+```
+`relationship`: `none`, `friends`, `pending_outgoing`, `pending_incoming` —
+dipakai untuk menonaktifkan tombol "Tambah" kalau sudah berelasi.
+
+### `POST /money-management/friends/requests` 🔒
+Langkah 2: kirim permintaan.
+```json
+{ "username": "saridewi" }
+```
+**Response `201`:** `{ "data": { "id": 5, "status": "pending" } }`
+(`"accepted"` kalau permintaan saling bertemu).
+
+### `POST /money-management/friends/requests/{id}/accept` 🔒
+### `POST /money-management/friends/requests/{id}/decline` 🔒
+Hanya penerima permintaan. **Response `200`:** `{ "success": true }`.
+`404` kalau `id` bukan permintaan masuk milik user.
+
+### `DELETE /money-management/friends/requests/{id}` 🔒
+Pengirim membatalkan permintaan keluar. **Response `200`:** `{ "success": true }`.
+
+### `DELETE /money-management/friends/{userId}` 🔒
+Hapus teman (`userId` = `user_id` teman). **Response `200`:**
+`{ "success": true }`. `404` kalau bukan teman.
 
 ---
 

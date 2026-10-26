@@ -4955,6 +4955,522 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tidak ada budget yang disimpan. Kategori yang dipilih tidak punya saran.'**
   String get brcAppliedNone;
+
+  /// No description provided for @frdPageTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Teman'**
+  String get frdPageTitle;
+
+  /// No description provided for @frdTileTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Teman'**
+  String get frdTileTitle;
+
+  /// No description provided for @frdTileSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah teman untuk menabung bareng'**
+  String get frdTileSubtitle;
+
+  /// No description provided for @frdTabFriends.
+  ///
+  /// In id, this message translates to:
+  /// **'Teman'**
+  String get frdTabFriends;
+
+  /// No description provided for @frdTabRequests.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan'**
+  String get frdTabRequests;
+
+  /// No description provided for @frdMyUsername.
+  ///
+  /// In id, this message translates to:
+  /// **'Username saya'**
+  String get frdMyUsername;
+
+  /// No description provided for @frdMyUsernameError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat'**
+  String get frdMyUsernameError;
+
+  /// No description provided for @frdCopyUsername.
+  ///
+  /// In id, this message translates to:
+  /// **'Salin username'**
+  String get frdCopyUsername;
+
+  /// No description provided for @frdUsernameCopied.
+  ///
+  /// In id, this message translates to:
+  /// **'Username disalin'**
+  String get frdUsernameCopied;
+
+  /// No description provided for @frdShareUsername.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagikan username'**
+  String get frdShareUsername;
+
+  /// No description provided for @frdShareText.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambahkan saya di Flowr! Username saya: @{username}'**
+  String frdShareText(String username);
+
+  /// No description provided for @frdEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada teman'**
+  String get frdEmptyTitle;
+
+  /// No description provided for @frdEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah teman lewat username untuk mulai menabung bareng.'**
+  String get frdEmptySubtitle;
+
+  /// No description provided for @frdRequestsEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada permintaan'**
+  String get frdRequestsEmptyTitle;
+
+  /// No description provided for @frdRequestsEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan pertemanan yang masuk atau yang kamu kirim akan muncul di sini.'**
+  String get frdRequestsEmptySubtitle;
+
+  /// No description provided for @frdIncomingSection.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan masuk'**
+  String get frdIncomingSection;
+
+  /// No description provided for @frdOutgoingSection.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan terkirim'**
+  String get frdOutgoingSection;
+
+  /// No description provided for @frdAccept.
+  ///
+  /// In id, this message translates to:
+  /// **'Terima'**
+  String get frdAccept;
+
+  /// No description provided for @frdDecline.
+  ///
+  /// In id, this message translates to:
+  /// **'Tolak'**
+  String get frdDecline;
+
+  /// No description provided for @frdCancelRequest.
+  ///
+  /// In id, this message translates to:
+  /// **'Batalkan'**
+  String get frdCancelRequest;
+
+  /// No description provided for @frdCancel.
+  ///
+  /// In id, this message translates to:
+  /// **'Batal'**
+  String get frdCancel;
+
+  /// No description provided for @frdRemoveTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus teman'**
+  String get frdRemoveTitle;
+
+  /// No description provided for @frdRemoveMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus {name} dari daftar teman? Tabungan bersama yang sudah berjalan tidak terpengaruh.'**
+  String frdRemoveMessage(String name);
+
+  /// No description provided for @frdRemoveConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus'**
+  String get frdRemoveConfirm;
+
+  /// No description provided for @frdAddTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambah teman'**
+  String get frdAddTitle;
+
+  /// No description provided for @frdAddUsernameField.
+  ///
+  /// In id, this message translates to:
+  /// **'Username teman'**
+  String get frdAddUsernameField;
+
+  /// No description provided for @frdAddUsernameHelper.
+  ///
+  /// In id, this message translates to:
+  /// **'Huruf besar/kecil tidak berpengaruh, awalan @ boleh dipakai'**
+  String get frdAddUsernameHelper;
+
+  /// No description provided for @frdAddUsernameRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukkan username'**
+  String get frdAddUsernameRequired;
+
+  /// No description provided for @frdAddSearch.
+  ///
+  /// In id, this message translates to:
+  /// **'Cari'**
+  String get frdAddSearch;
+
+  /// No description provided for @frdAddSend.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim permintaan'**
+  String get frdAddSend;
+
+  /// No description provided for @frdRequestSent.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan dikirim ke {name}'**
+  String frdRequestSent(String name);
+
+  /// No description provided for @frdNowFriends.
+  ///
+  /// In id, this message translates to:
+  /// **'Sekarang kamu berteman dengan {name}'**
+  String frdNowFriends(String name);
+
+  /// No description provided for @frdRelFriends.
+  ///
+  /// In id, this message translates to:
+  /// **'Kalian sudah berteman'**
+  String get frdRelFriends;
+
+  /// No description provided for @frdRelPendingOutgoing.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan sudah dikirim, menunggu dijawab'**
+  String get frdRelPendingOutgoing;
+
+  /// No description provided for @frdRelPendingIncoming.
+  ///
+  /// In id, this message translates to:
+  /// **'Dia sudah mengirim permintaan ke kamu — terima di tab Permintaan'**
+  String get frdRelPendingIncoming;
+
+  /// No description provided for @frdErrUserNotFound.
+  ///
+  /// In id, this message translates to:
+  /// **'Username tidak ditemukan'**
+  String get frdErrUserNotFound;
+
+  /// No description provided for @frdErrSelf.
+  ///
+  /// In id, this message translates to:
+  /// **'Itu username kamu sendiri'**
+  String get frdErrSelf;
+
+  /// No description provided for @frdErrAlreadyFriends.
+  ///
+  /// In id, this message translates to:
+  /// **'Kalian sudah berteman'**
+  String get frdErrAlreadyFriends;
+
+  /// No description provided for @frdErrRequestExists.
+  ///
+  /// In id, this message translates to:
+  /// **'Permintaan ke orang ini sudah dikirim'**
+  String get frdErrRequestExists;
+
+  /// No description provided for @frdErrRateLimit.
+  ///
+  /// In id, this message translates to:
+  /// **'Terlalu banyak percobaan. Coba lagi sebentar lagi.'**
+  String get frdErrRateLimit;
+
+  /// No description provided for @sgsPickerTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih teman'**
+  String get sgsPickerTitle;
+
+  /// No description provided for @sgsPickerSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih sampai {max} teman. Mereka harus menerima undangan dulu.'**
+  String sgsPickerSubtitle(int max);
+
+  /// No description provided for @sgsPickerLimit.
+  ///
+  /// In id, this message translates to:
+  /// **'Maksimal {max} teman'**
+  String sgsPickerLimit(int max);
+
+  /// No description provided for @sgsPickerNoFriends.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada teman yang bisa diundang. Tambah teman dulu.'**
+  String get sgsPickerNoFriends;
+
+  /// No description provided for @sgsPickerDone.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih ({count})'**
+  String sgsPickerDone(int count);
+
+  /// No description provided for @sgsErrNotFriends.
+  ///
+  /// In id, this message translates to:
+  /// **'Hanya teman yang bisa diundang'**
+  String get sgsErrNotFriends;
+
+  /// No description provided for @sgsErrMemberLimit.
+  ///
+  /// In id, this message translates to:
+  /// **'Satu tabungan maksimal 5 orang'**
+  String get sgsErrMemberLimit;
+
+  /// No description provided for @sgsErrAlreadyMember.
+  ///
+  /// In id, this message translates to:
+  /// **'Dia sudah menjadi anggota'**
+  String get sgsErrAlreadyMember;
+
+  /// No description provided for @sgsErrAlreadyInvited.
+  ///
+  /// In id, this message translates to:
+  /// **'Undangan masih menunggu jawaban'**
+  String get sgsErrAlreadyInvited;
+
+  /// No description provided for @sgsErrGoalArchived.
+  ///
+  /// In id, this message translates to:
+  /// **'Target yang diarsipkan tidak bisa menerima anggota baru'**
+  String get sgsErrGoalArchived;
+
+  /// No description provided for @sgsErrOwnerCannotLeave.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemilik tidak bisa keluar. Arsipkan atau hapus target ini.'**
+  String get sgsErrOwnerCannotLeave;
+
+  /// No description provided for @sgsErrNotOwner.
+  ///
+  /// In id, this message translates to:
+  /// **'Hanya pemilik yang bisa melakukan ini'**
+  String get sgsErrNotOwner;
+
+  /// No description provided for @sgsErrHasBalance.
+  ///
+  /// In id, this message translates to:
+  /// **'Target bersama yang masih ada saldonya tidak bisa dihapus. Arsipkan saja.'**
+  String get sgsErrHasBalance;
+
+  /// No description provided for @sgsErrInvitationExpired.
+  ///
+  /// In id, this message translates to:
+  /// **'Undangan sudah kedaluwarsa. Minta pemilik mengundang lagi.'**
+  String get sgsErrInvitationExpired;
+
+  /// No description provided for @sgsInvitationsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Undangan tabungan'**
+  String get sgsInvitationsTitle;
+
+  /// No description provided for @sgsInvitationsEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada undangan'**
+  String get sgsInvitationsEmptyTitle;
+
+  /// No description provided for @sgsInvitationsEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Undangan menabung bareng dari temanmu akan muncul di sini. Tarik ke bawah untuk memuat ulang.'**
+  String get sgsInvitationsEmptySubtitle;
+
+  /// No description provided for @sgsInvitationsBanner.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} undangan tabungan bersama menunggu'**
+  String sgsInvitationsBanner(int count);
+
+  /// No description provided for @sgsInvitationFrom.
+  ///
+  /// In id, this message translates to:
+  /// **'Diundang oleh {name}'**
+  String sgsInvitationFrom(String name);
+
+  /// No description provided for @sgsInvitationTarget.
+  ///
+  /// In id, this message translates to:
+  /// **'Target: {amount}'**
+  String sgsInvitationTarget(String amount);
+
+  /// No description provided for @sgsInvitationExpires.
+  ///
+  /// In id, this message translates to:
+  /// **'Berlaku sampai {date}'**
+  String sgsInvitationExpires(String date);
+
+  /// No description provided for @sgsInvitationAccepted.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu bergabung ke {goal}'**
+  String sgsInvitationAccepted(String goal);
+
+  /// No description provided for @sgsInvitationDeclined.
+  ///
+  /// In id, this message translates to:
+  /// **'Undangan ditolak'**
+  String get sgsInvitationDeclined;
+
+  /// No description provided for @sgsFormSectionTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tabungan bersama'**
+  String get sgsFormSectionTitle;
+
+  /// No description provided for @sgsFormSectionHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Undang teman agar bisa ikut menabung ke target ini. Akun dan saldo kamu tidak terlihat oleh mereka.'**
+  String get sgsFormSectionHint;
+
+  /// No description provided for @sgsFormInviteNone.
+  ///
+  /// In id, this message translates to:
+  /// **'Undang teman (opsional)'**
+  String get sgsFormInviteNone;
+
+  /// No description provided for @sgsFormInviteCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} teman dipilih'**
+  String sgsFormInviteCount(int count);
+
+  /// No description provided for @sgsSharedBadge.
+  ///
+  /// In id, this message translates to:
+  /// **'Bersama'**
+  String get sgsSharedBadge;
+
+  /// No description provided for @sgsPeopleCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} orang'**
+  String sgsPeopleCount(int count);
+
+  /// No description provided for @sgsOwnedBy.
+  ///
+  /// In id, this message translates to:
+  /// **'Milik {name}'**
+  String sgsOwnedBy(String name);
+
+  /// No description provided for @sgsLeaveTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluar dari tabungan?'**
+  String get sgsLeaveTitle;
+
+  /// No description provided for @sgsLeaveMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu tidak akan melihat {goal} lagi. Uang yang sudah kamu setor tetap tercatat di target ini.'**
+  String sgsLeaveMessage(String goal);
+
+  /// No description provided for @sgsLeaveConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluar'**
+  String get sgsLeaveConfirm;
+
+  /// No description provided for @sgsInviteAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Undang teman'**
+  String get sgsInviteAction;
+
+  /// No description provided for @sgsInviteSent.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} undangan terkirim'**
+  String sgsInviteSent(int count);
+
+  /// No description provided for @sgsMembersTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Anggota'**
+  String get sgsMembersTitle;
+
+  /// No description provided for @sgsMyContribution.
+  ///
+  /// In id, this message translates to:
+  /// **'Setoran kamu: {amount}'**
+  String sgsMyContribution(String amount);
+
+  /// No description provided for @sgsRoleOwner.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemilik'**
+  String get sgsRoleOwner;
+
+  /// No description provided for @sgsMemberPending.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu'**
+  String get sgsMemberPending;
+
+  /// No description provided for @sgsMemberLeft.
+  ///
+  /// In id, this message translates to:
+  /// **'Sudah keluar'**
+  String get sgsMemberLeft;
+
+  /// No description provided for @sgsRemoveMemberTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluarkan anggota'**
+  String get sgsRemoveMemberTitle;
+
+  /// No description provided for @sgsRemoveMemberMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluarkan {name} dari tabungan ini? Uang yang sudah dia setor tetap tercatat.'**
+  String sgsRemoveMemberMessage(String name);
+
+  /// No description provided for @sgsRemoveMemberConfirm.
+  ///
+  /// In id, this message translates to:
+  /// **'Keluarkan'**
+  String get sgsRemoveMemberConfirm;
+
+  /// No description provided for @sgsOnlyMine.
+  ///
+  /// In id, this message translates to:
+  /// **'Hanya saya'**
+  String get sgsOnlyMine;
+
+  /// No description provided for @sgsYou.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu'**
+  String get sgsYou;
+
+  /// No description provided for @sgsWithdrawHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Kamu hanya bisa menarik sebatas setoranmu sendiri: {amount}'**
+  String sgsWithdrawHint(String amount);
 }
 
 class _AppLocalizationsDelegate

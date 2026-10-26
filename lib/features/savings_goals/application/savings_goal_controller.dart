@@ -14,6 +14,13 @@ final savingsGoalContributionsProvider =
   return ref.watch(savingsGoalRepositoryProvider).getContributions(goalId);
 });
 
+/// Goal invitations waiting for the logged-in user. No push in v1 — this is
+/// re-read on pull-to-refresh / when the goal list opens (docs "Tabungan
+/// Bersama" > `GET /invitations`).
+final savingsGoalInvitationsProvider = FutureProvider<List<SavingsGoalInvitationModel>>((ref) {
+  return ref.watch(savingsGoalRepositoryProvider).getInvitations();
+});
+
 class SavingsGoalController extends AsyncNotifier<SavingsGoalsSummaryModel> {
   @override
   Future<SavingsGoalsSummaryModel> build() {
@@ -35,6 +42,7 @@ class SavingsGoalController extends AsyncNotifier<SavingsGoalsSummaryModel> {
     DateTime? targetDate,
     String? icon,
     String? color,
+    List<int> memberIds = const [],
   }) async {
     await ref.read(savingsGoalRepositoryProvider).createSavingsGoal(
           name: name,
@@ -44,8 +52,35 @@ class SavingsGoalController extends AsyncNotifier<SavingsGoalsSummaryModel> {
           targetDate: targetDate,
           icon: icon,
           color: color,
+          memberIds: memberIds,
         );
     await refresh();
+  }
+
+  /// Owner-only. Left un-guarded so the UI can map [ApiException.code].
+  Future<void> inviteMembers({required int goalId, required List<int> userIds}) async {
+    await ref.read(savingsGoalRepositoryProvider).inviteMembers(goalId: goalId, userIds: userIds);
+    await refresh();
+  }
+
+  /// Owner removes someone, or a member leaves with their own user id.
+  /// Contributions already made stay in the ledger (docs rule 6), so the
+  /// ledger is re-read as well.
+  Future<void> removeMember({required int goalId, required int userId}) async {
+    await ref.read(savingsGoalRepositoryProvider).removeMember(goalId: goalId, userId: userId);
+    ref.invalidate(savingsGoalContributionsProvider(goalId));
+    await refresh();
+  }
+
+  Future<void> acceptInvitation(int invitationId) async {
+    await ref.read(savingsGoalRepositoryProvider).acceptInvitation(invitationId);
+    ref.invalidate(savingsGoalInvitationsProvider);
+    await refresh();
+  }
+
+  Future<void> declineInvitation(int invitationId) async {
+    await ref.read(savingsGoalRepositoryProvider).declineInvitation(invitationId);
+    ref.invalidate(savingsGoalInvitationsProvider);
   }
 
   Future<void> editGoal({

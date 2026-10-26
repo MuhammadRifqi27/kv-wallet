@@ -142,6 +142,20 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
   tampil di device ini, supaya bisa dilihat lagi setelah hilang dari tray OS.
   Menyentuh notifikasi budget kini membuka halaman terkait (`/budget`), dan
   preferensi notifikasi disimpan per device.
+- Teman: menu "Teman" di Profile untuk berteman lewat username. Kirim
+  permintaan, terima/tolak permintaan masuk, batalkan permintaan terkirim,
+  dan hapus teman. Username sendiri bisa disalin atau dibagikan. Yang
+  terlihat dari teman hanya nama, username, dan foto — tidak pernah email,
+  nomor rekening, atau saldo.
+- Tabungan Bersama: Target Tabungan bisa dibuat bersama teman (maks 5 orang
+  per target). Saat membuat target, aktifkan undang teman; teman harus
+  menerima undangan dulu (inbox "Undangan tabungan", badge di daftar target,
+  tarik-untuk-refresh). Tiap orang menabung dari akunnya sendiri, progress
+  adalah jumlah semua kontribusi, dan penarikan dibatasi sebesar setoran
+  sendiri. Detail target menampilkan anggota beserta porsinya, riwayat dengan
+  nama pencatat, dan filter "Hanya saya". Pemilik bisa mengundang lagi atau
+  mengeluarkan anggota; anggota bisa keluar (setoran tetap tercatat).
+  Fitur online-only.
 
 ### Diubah
 - Nama aplikasi menjadi **Flowr**; logo, wordmark, dan icon app diganti

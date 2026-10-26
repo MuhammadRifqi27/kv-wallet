@@ -22,6 +22,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/summary_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../data/repositories/transfer_repository.dart';
+import '../../data/repositories/friend_repository.dart';
 import '../../data/repositories/wallet_repository.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../auth/biometric_service.dart';
@@ -238,4 +239,8 @@ final reportRepositoryProvider = Provider<ReportRepository>((ref) {
 
 final walletRepositoryProvider =Provider<WalletRepository>((ref) {
   return WalletRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final friendRepositoryProvider = Provider<FriendRepository>((ref) {
+  return FriendRepository(apiClient: ref.read(apiClientProvider));
 });

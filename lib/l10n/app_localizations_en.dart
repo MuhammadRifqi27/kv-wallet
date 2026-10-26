@@ -2760,4 +2760,314 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get brcAppliedNone =>
       'No budgets were saved. The selected categories had no suggestion.';
+
+  @override
+  String get frdPageTitle => 'Friends';
+
+  @override
+  String get frdTileTitle => 'Friends';
+
+  @override
+  String get frdTileSubtitle => 'Add friends to save together';
+
+  @override
+  String get frdTabFriends => 'Friends';
+
+  @override
+  String get frdTabRequests => 'Requests';
+
+  @override
+  String get frdMyUsername => 'My username';
+
+  @override
+  String get frdMyUsernameError => 'Couldn\'t load';
+
+  @override
+  String get frdCopyUsername => 'Copy username';
+
+  @override
+  String get frdUsernameCopied => 'Username copied';
+
+  @override
+  String get frdShareUsername => 'Share username';
+
+  @override
+  String frdShareText(String username) {
+    return 'Add me on Flowr! My username: @$username';
+  }
+
+  @override
+  String get frdEmptyTitle => 'No friends yet';
+
+  @override
+  String get frdEmptySubtitle =>
+      'Add friends by username to start saving together.';
+
+  @override
+  String get frdRequestsEmptyTitle => 'No requests';
+
+  @override
+  String get frdRequestsEmptySubtitle =>
+      'Friend requests you receive or send will show up here.';
+
+  @override
+  String get frdIncomingSection => 'Incoming requests';
+
+  @override
+  String get frdOutgoingSection => 'Sent requests';
+
+  @override
+  String get frdAccept => 'Accept';
+
+  @override
+  String get frdDecline => 'Decline';
+
+  @override
+  String get frdCancelRequest => 'Cancel';
+
+  @override
+  String get frdCancel => 'Cancel';
+
+  @override
+  String get frdRemoveTitle => 'Remove friend';
+
+  @override
+  String frdRemoveMessage(String name) {
+    return 'Remove $name from your friends? Shared savings already in progress are not affected.';
+  }
+
+  @override
+  String get frdRemoveConfirm => 'Remove';
+
+  @override
+  String get frdAddTitle => 'Add friend';
+
+  @override
+  String get frdAddUsernameField => 'Friend\'s username';
+
+  @override
+  String get frdAddUsernameHelper =>
+      'Case doesn\'t matter, a leading @ is fine';
+
+  @override
+  String get frdAddUsernameRequired => 'Enter a username';
+
+  @override
+  String get frdAddSearch => 'Search';
+
+  @override
+  String get frdAddSend => 'Send request';
+
+  @override
+  String frdRequestSent(String name) {
+    return 'Request sent to $name';
+  }
+
+  @override
+  String frdNowFriends(String name) {
+    return 'You are now friends with $name';
+  }
+
+  @override
+  String get frdRelFriends => 'You\'re already friends';
+
+  @override
+  String get frdRelPendingOutgoing =>
+      'Request already sent, waiting for a reply';
+
+  @override
+  String get frdRelPendingIncoming =>
+      'They already sent you a request — accept it in the Requests tab';
+
+  @override
+  String get frdErrUserNotFound => 'Username not found';
+
+  @override
+  String get frdErrSelf => 'That\'s your own username';
+
+  @override
+  String get frdErrAlreadyFriends => 'You\'re already friends';
+
+  @override
+  String get frdErrRequestExists => 'A request to this person was already sent';
+
+  @override
+  String get frdErrRateLimit => 'Too many attempts. Please try again shortly.';
+
+  @override
+  String get sgsPickerTitle => 'Choose friends';
+
+  @override
+  String sgsPickerSubtitle(int max) {
+    return 'Pick up to $max friends. They have to accept the invitation first.';
+  }
+
+  @override
+  String sgsPickerLimit(int max) {
+    return 'At most $max friends';
+  }
+
+  @override
+  String get sgsPickerNoFriends =>
+      'No friends to invite yet. Add a friend first.';
+
+  @override
+  String sgsPickerDone(int count) {
+    return 'Select ($count)';
+  }
+
+  @override
+  String get sgsErrNotFriends => 'Only friends can be invited';
+
+  @override
+  String get sgsErrMemberLimit => 'A shared goal can have at most 5 people';
+
+  @override
+  String get sgsErrAlreadyMember => 'They are already a member';
+
+  @override
+  String get sgsErrAlreadyInvited =>
+      'The invitation is still waiting for a reply';
+
+  @override
+  String get sgsErrGoalArchived => 'An archived goal can\'t take new members';
+
+  @override
+  String get sgsErrOwnerCannotLeave =>
+      'The owner can\'t leave. Archive or delete this goal instead.';
+
+  @override
+  String get sgsErrNotOwner => 'Only the owner can do this';
+
+  @override
+  String get sgsErrHasBalance =>
+      'A shared goal that still has a balance can\'t be deleted. Archive it instead.';
+
+  @override
+  String get sgsErrInvitationExpired =>
+      'The invitation has expired. Ask the owner to invite you again.';
+
+  @override
+  String get sgsInvitationsTitle => 'Savings invitations';
+
+  @override
+  String get sgsInvitationsEmptyTitle => 'No invitations';
+
+  @override
+  String get sgsInvitationsEmptySubtitle =>
+      'Invitations to save together from your friends show up here. Pull down to refresh.';
+
+  @override
+  String sgsInvitationsBanner(int count) {
+    return '$count shared savings invitation(s) waiting';
+  }
+
+  @override
+  String sgsInvitationFrom(String name) {
+    return 'Invited by $name';
+  }
+
+  @override
+  String sgsInvitationTarget(String amount) {
+    return 'Target: $amount';
+  }
+
+  @override
+  String sgsInvitationExpires(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String sgsInvitationAccepted(String goal) {
+    return 'You joined $goal';
+  }
+
+  @override
+  String get sgsInvitationDeclined => 'Invitation declined';
+
+  @override
+  String get sgsFormSectionTitle => 'Save together';
+
+  @override
+  String get sgsFormSectionHint =>
+      'Invite friends to save toward this goal. They can\'t see your accounts or balances.';
+
+  @override
+  String get sgsFormInviteNone => 'Invite friends (optional)';
+
+  @override
+  String sgsFormInviteCount(int count) {
+    return '$count friend(s) selected';
+  }
+
+  @override
+  String get sgsSharedBadge => 'Shared';
+
+  @override
+  String sgsPeopleCount(int count) {
+    return '$count people';
+  }
+
+  @override
+  String sgsOwnedBy(String name) {
+    return 'Owned by $name';
+  }
+
+  @override
+  String get sgsLeaveTitle => 'Leave this goal?';
+
+  @override
+  String sgsLeaveMessage(String goal) {
+    return 'You won\'t see $goal anymore. Money you already put in stays recorded on this goal.';
+  }
+
+  @override
+  String get sgsLeaveConfirm => 'Leave';
+
+  @override
+  String get sgsInviteAction => 'Invite friends';
+
+  @override
+  String sgsInviteSent(int count) {
+    return '$count invitation(s) sent';
+  }
+
+  @override
+  String get sgsMembersTitle => 'Members';
+
+  @override
+  String sgsMyContribution(String amount) {
+    return 'Your contribution: $amount';
+  }
+
+  @override
+  String get sgsRoleOwner => 'Owner';
+
+  @override
+  String get sgsMemberPending => 'Pending';
+
+  @override
+  String get sgsMemberLeft => 'Left';
+
+  @override
+  String get sgsRemoveMemberTitle => 'Remove member';
+
+  @override
+  String sgsRemoveMemberMessage(String name) {
+    return 'Remove $name from this goal? Money they already put in stays recorded.';
+  }
+
+  @override
+  String get sgsRemoveMemberConfirm => 'Remove';
+
+  @override
+  String get sgsOnlyMine => 'Only me';
+
+  @override
+  String get sgsYou => 'You';
+
+  @override
+  String sgsWithdrawHint(String amount) {
+    return 'You can only withdraw up to your own contribution: $amount';
+  }
 }

@@ -19,6 +19,7 @@ import '../../../shared/widgets/settings_tile.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../pin/presentation/confirm_pin_sheet.dart';
 import '../../tour/application/tour_controller.dart';
+import '../../friends/application/friend_controller.dart';
 import '../../wallet/presentation/profile_wallet_card.dart';
 
 const _customerServiceFormUrl = 'https://forms.gle/DsB5KK67qddKvUuM9';
@@ -181,6 +182,11 @@ class ProfilePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
+    // Pending incoming friend requests -> badge on the Teman tile. Only
+    // fetched for users who actually have the feature.
+    final pendingFriendRequests = (user?.hasPermission('friends') ?? false)
+        ? ref.watch(friendListControllerProvider).valueOrNull?.meta.incomingPending ?? 0
+        : 0;
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
@@ -228,6 +234,16 @@ class ProfilePage extends ConsumerWidget {
             subtitle: l10n.profileSavingsGoalTileSubtitle,
             onTap: () => context.push('/savings-goals'),
           ),
+          if (user?.hasPermission('friends') ?? false) ...[
+            const SizedBox(height: 8),
+            SettingsTile(
+              icon: Icons.people_alt_outlined,
+              title: l10n.frdTileTitle,
+              subtitle: l10n.frdTileSubtitle,
+              badgeCount: pendingFriendRequests,
+              onTap: () => context.push('/friends'),
+            ),
+          ],
           const SizedBox(height: 8),
           SettingsTile(
             icon: Icons.currency_bitcoin_outlined,

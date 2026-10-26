@@ -6,12 +6,23 @@ import '../../core/theme/app_colors.dart';
 /// used across Profile, Edit Profile, and anywhere else a simple "go to
 /// this sub-page" menu item is needed.
 class SettingsTile extends StatelessWidget {
-  const SettingsTile({super.key, required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const SettingsTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+
+  /// Shown as a small count badge before the chevron when greater than 0
+  /// (e.g. pending friend requests).
+  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +52,16 @@ class SettingsTile extends StatelessWidget {
           ),
           title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
           subtitle: Text(subtitle, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
-          trailing: Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (badgeCount > 0) ...[
+                Badge(label: Text('$badgeCount')),
+                const SizedBox(width: 8),
+              ],
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+            ],
+          ),
         ),
       ),
     );
