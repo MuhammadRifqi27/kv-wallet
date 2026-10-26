@@ -9,6 +9,7 @@ import '../../../data/models/savings_goal_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/list_states.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../application/fire_calculator_controller.dart';
 
@@ -33,6 +34,8 @@ class _FireCalculatorPageState extends ConsumerState<FireCalculatorPage> {
   double _returnRate = 0.06;
   double? _manualIncome;
   double? _manualExpense;
+  bool _manualIncomeHasError = false;
+  bool _manualExpenseHasError = false;
 
   @override
   void initState() {
@@ -51,15 +54,29 @@ class _FireCalculatorPageState extends ConsumerState<FireCalculatorPage> {
   }
 
   void _onManualIncomeChanged() {
-    final parsed = parseRupiahInput(_manualIncomeController.text);
+    final text = _manualIncomeController.text;
+    final parsed = parseRupiahInput(text);
     final value = (parsed != null && parsed > 0) ? parsed : null;
-    if (value != _manualIncome) setState(() => _manualIncome = value);
+    final hasError = text.trim().isNotEmpty && value == null;
+    if (value != _manualIncome || hasError != _manualIncomeHasError) {
+      setState(() {
+        _manualIncome = value;
+        _manualIncomeHasError = hasError;
+      });
+    }
   }
 
   void _onManualExpenseChanged() {
-    final parsed = parseRupiahInput(_manualExpenseController.text);
+    final text = _manualExpenseController.text;
+    final parsed = parseRupiahInput(text);
     final value = (parsed != null && parsed > 0) ? parsed : null;
-    if (value != _manualExpense) setState(() => _manualExpense = value);
+    final hasError = text.trim().isNotEmpty && value == null;
+    if (value != _manualExpense || hasError != _manualExpenseHasError) {
+      setState(() {
+        _manualExpense = value;
+        _manualExpenseHasError = hasError;
+      });
+    }
   }
 
   @override
@@ -74,30 +91,37 @@ class _FireCalculatorPageState extends ConsumerState<FireCalculatorPage> {
       body: SafeArea(
         child: dataAsync.when(
           loading: () => const Center(child: AppLoadingIndicator()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    error is ApiException ? error.message : l10n.fireLoadError,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => ref.invalidate(retirementDataProvider),
-                    child: Text(l10n.fireRetry),
-                  ),
-                ],
-              ),
+          // Was a hand-rolled block near-identical to ListErrorState but
+          // missing its icon — now the same shared widget Dashboard/Summary/
+          // every list page uses. See
+          // docs/ide-improvement-fitur-existing.txt BAGIAN E #36.
+          error: (error, _) => scrollableCenter(
+            ListErrorState(
+              message: error is ApiException
+                  ? error.message
+                  : l10n.fireLoadError,
+              onRetry: () async => ref.invalidate(retirementDataProvider),
             ),
           ),
           data: (data) {
-            final monthlyIncome = data.isDataSufficient ? data.averageMonthlyIncome : (_manualIncome ?? 0);
-            final monthlyExpense = data.isDataSufficient ? data.averageMonthlyExpense : (_manualExpense ?? 0);
-            final hasUsableData = monthlyExpense > 0 && monthlyIncome > 0;
+            final monthlyIncome = data.isDataSufficient
+                ? data.averageMonthlyIncome
+                : (_manualIncome ?? 0);
+            final monthlyExpense = data.isDataSufficient
+                ? data.averageMonthlyExpense
+                : (_manualExpense ?? 0);
+            // `monthlyIncome > monthlyExpense`, not just `> 0` — a saving
+            // rate of zero or negative can't project a FIRE date at all
+            // (annualSavings would be <= 0). Surfaced explicitly below via
+            // `hasNegativeSavingsRate` instead of just leaving the
+            // projection card at an unexplained "—" — see
+            // docs/ide-improvement-fitur-existing.txt BAGIAN D #23.
+            final hasNegativeSavingsRate =
+                monthlyIncome > 0 &&
+                monthlyExpense > 0 &&
+                monthlyIncome <= monthlyExpense;
+            final hasUsableData =
+                monthlyExpense > 0 && monthlyIncome > monthlyExpense;
             final projection = hasUsableData
                 ? projectFire(
                     currentNetWorth: data.currentNetWorth,
@@ -113,11 +137,24 @@ class _FireCalculatorPageState extends ConsumerState<FireCalculatorPage> {
                 if (data.isDataSufficient)
                   _DataCard(data: data)
                 else
-                  _ManualDataInput(incomeController: _manualIncomeController, expenseController: _manualExpenseController),
+                  _ManualDataInput(
+                    incomeController: _manualIncomeController,
+                    expenseController: _manualExpenseController,
+                    incomeErrorText: _manualIncomeHasError
+                        ? l10n.fireManualIncomeInvalid
+                        : null,
+                    expenseErrorText: _manualExpenseHasError
+                        ? l10n.fireManualExpenseInvalid
+                        : null,
+                  ),
                 const SizedBox(height: 20),
                 Text(
                   l10n.fireReturnRateLabel,
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -134,23 +171,30 @@ class _FireCalculatorPageState extends ConsumerState<FireCalculatorPage> {
                 ),
                 const SizedBox(height: 20),
                 _ProjectionCard(projection: projection),
+                if (hasNegativeSavingsRate) ...[
+                  const SizedBox(height: 12),
+                  const _NegativeSavingsRateWarning(),
+                ],
                 if (existingGoal != null && projection != null) ...[
                   const SizedBox(height: 16),
-                  _ExistingGoalProgressCard(goal: existingGoal, target: projection.targetAmount),
+                  _ExistingGoalProgressCard(
+                    goal: existingGoal,
+                    target: projection.targetAmount,
+                  ),
                 ],
                 const SizedBox(height: 24),
                 PrimaryButton(
                   label: l10n.fireCreateGoalButton,
                   onPressed: projection != null
                       ? () => context.push(
-                            '/savings-goals/form',
-                            extra: SavingsGoalDraft(
-                              name: l10n.fireGoalName,
-                              targetAmount: projection.targetAmount,
-                              icon: 'savings',
-                              color: 'info',
-                            ),
-                          )
+                          '/savings-goals/form',
+                          extra: SavingsGoalDraft(
+                            name: l10n.fireGoalName,
+                            targetAmount: projection.targetAmount,
+                            icon: 'savings',
+                            color: 'info',
+                          ),
+                        )
                       : null,
                 ),
               ],
@@ -170,7 +214,9 @@ class _DataCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final savingsRateColor = data.savingsRatePercent >= 0 ? AppColors.success : AppColors.error;
+    final savingsRateColor = data.savingsRatePercent >= 0
+        ? AppColors.success
+        : AppColors.error;
 
     return Container(
       width: double.infinity,
@@ -209,12 +255,19 @@ class _DataCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.fireSavingsRateLabel,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
                 ),
               ),
               Text(
                 '${data.savingsRatePercent.toStringAsFixed(0)}%',
-                style: TextStyle(color: savingsRateColor, fontWeight: FontWeight.w800, fontSize: 16),
+                style: TextStyle(
+                  color: savingsRateColor,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
@@ -230,7 +283,11 @@ class _DataCard extends StatelessWidget {
 }
 
 class _StatColumn extends StatelessWidget {
-  const _StatColumn({required this.label, required this.value, required this.color});
+  const _StatColumn({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final String value;
@@ -241,13 +298,20 @@ class _StatColumn extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+        Text(
+          label,
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+        ),
         const SizedBox(height: 4),
         Text(
           value,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 14),
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
         ),
       ],
     );
@@ -260,10 +324,17 @@ class _StatColumn extends StatelessWidget {
 /// projection depends on the gap between them. Purely local state, never
 /// sent to the backend.
 class _ManualDataInput extends StatelessWidget {
-  const _ManualDataInput({required this.incomeController, required this.expenseController});
+  const _ManualDataInput({
+    required this.incomeController,
+    required this.expenseController,
+    this.incomeErrorText,
+    this.expenseErrorText,
+  });
 
   final TextEditingController incomeController;
   final TextEditingController expenseController;
+  final String? incomeErrorText;
+  final String? expenseErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -281,12 +352,19 @@ class _ManualDataInput extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline_rounded, color: AppColors.accent, size: 18),
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.accent,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   l10n.fireManualHint,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
                 ),
               ),
             ],
@@ -297,6 +375,7 @@ class _ManualDataInput extends StatelessWidget {
             controller: incomeController,
             icon: Icons.trending_up_rounded,
             keyboardType: const TextInputType.numberWithOptions(decimal: false),
+            errorText: incomeErrorText,
           ),
           const SizedBox(height: 12),
           AppTextField(
@@ -304,6 +383,7 @@ class _ManualDataInput extends StatelessWidget {
             controller: expenseController,
             icon: Icons.trending_down_rounded,
             keyboardType: const TextInputType.numberWithOptions(decimal: false),
+            errorText: expenseErrorText,
           ),
         ],
       ),
@@ -312,7 +392,11 @@ class _ManualDataInput extends StatelessWidget {
 }
 
 class _ReturnRateChip extends StatelessWidget {
-  const _ReturnRateChip({required this.rate, required this.selected, required this.onTap});
+  const _ReturnRateChip({
+    required this.rate,
+    required this.selected,
+    required this.onTap,
+  });
 
   final double rate;
   final bool selected;
@@ -327,22 +411,30 @@ class _ReturnRateChip extends StatelessWidget {
       _ => l10n.fireReturnRateModerate,
     };
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? AppColors.primary : AppColors.border),
-        ),
-        child: Text(
-          '$label (${(rate * 100).toStringAsFixed(0)}%)',
-          style: TextStyle(
-            color: selected ? AppColors.onPrimary : AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 12.5,
+    // Semantics(selected: ...) — see BAGIAN I #49 note on the equivalent
+    // emergency-fund chip.
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? AppColors.primary : AppColors.border,
+            ),
+          ),
+          child: Text(
+            '$label (${(rate * 100).toStringAsFixed(0)}%)',
+            style: TextStyle(
+              color: selected ? AppColors.onPrimary : AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+            ),
           ),
         ),
       ),
@@ -376,23 +468,35 @@ class _ProjectionCard extends StatelessWidget {
         children: [
           Text(
             l10n.fireProjectionLabel,
-            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 12.5),
+            style: TextStyle(
+              color: AppColors.primaryDark.withValues(alpha: 0.65),
+              fontSize: 12.5,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             projection == null
                 ? '—'
                 : (projection!.reachable
-                    ? l10n.fireYearsToGo(projection!.years)
-                    : l10n.fireNotReachableWithinCap(projectionCapYears)),
-            style: const TextStyle(color: AppColors.primaryDark, fontSize: 24, fontWeight: FontWeight.w800),
+                      ? l10n.fireYearsToGo(projection!.years)
+                      : l10n.fireNotReachableWithinCap(projectionCapYears)),
+            style: const TextStyle(
+              color: AppColors.primaryDark,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           if (projection != null) ...[
             const SizedBox(height: 6),
             Text(
               projection!.reachable
-                  ? l10n.fireTargetYear(now.year + projection!.years, formatRupiah(projection!.targetAmount))
-                  : l10n.fireTargetAmountOnly(formatRupiah(projection!.targetAmount)),
+                  ? l10n.fireTargetYear(
+                      now.year + projection!.years,
+                      formatRupiah(projection!.targetAmount),
+                    )
+                  : l10n.fireTargetAmountOnly(
+                      formatRupiah(projection!.targetAmount),
+                    ),
               style: TextStyle(
                 color: AppColors.primaryDark.withValues(alpha: 0.65),
                 fontSize: 11.5,
@@ -400,6 +504,41 @@ class _ProjectionCard extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Explains WHY the projection card above is stuck at "—" when income and
+/// expense are both known but expense meets or exceeds income — distinct
+/// from the generic "not enough data yet" case, which needs no explanation
+/// beyond `_ManualDataInput`'s own hint text. See
+/// docs/ide-improvement-fitur-existing.txt BAGIAN D #23.
+class _NegativeSavingsRateWarning extends StatelessWidget {
+  const _NegativeSavingsRateWarning();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.fireNegativeSavingsWarning,
+              style: TextStyle(color: AppColors.error, fontSize: 12.5),
+            ),
+          ),
         ],
       ),
     );
@@ -415,7 +554,9 @@ class _ExistingGoalProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final progress = target > 0 ? (goal.savedAmount / target).clamp(0, 1).toDouble() : 0.0;
+    final progress = target > 0
+        ? (goal.savedAmount / target).clamp(0, 1).toDouble()
+        : 0.0;
 
     return Container(
       width: double.infinity,
@@ -435,7 +576,11 @@ class _ExistingGoalProgressCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.fireExistingGoalProgress(goal.name),
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -452,7 +597,10 @@ class _ExistingGoalProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.fireExistingGoalAmounts(formatRupiah(goal.savedAmount), formatRupiah(target)),
+            l10n.fireExistingGoalAmounts(
+              formatRupiah(goal.savedAmount),
+              formatRupiah(target),
+            ),
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ],

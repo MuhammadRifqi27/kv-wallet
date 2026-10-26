@@ -11,7 +11,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../master_data/application/investment_list_controller.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/portfolio_list_controller.dart';
 
 /// "Transfer Antar Akun" is a premium-only feature (see
@@ -237,17 +237,21 @@ class _PortfolioTile extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 ),
-                if (balance != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    formatRupiah(balance),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: balance < 0 ? AppColors.error : AppColors.success,
-                    ),
+                const SizedBox(height: 4),
+                // Explicit "—" placeholder when balance is null, instead of
+                // omitting the row entirely — an omitted row read as a
+                // broken/half-loaded tile rather than "balance unavailable".
+                // See docs/ide-improvement-fitur-existing.txt BAGIAN E #34.
+                Text(
+                  balance != null ? formatRupiah(balance) : '—',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: balance == null
+                        ? AppColors.textDisabled
+                        : (balance < 0 ? AppColors.error : AppColors.success),
                   ),
-                ],
+                ),
               ],
             ),
           ),

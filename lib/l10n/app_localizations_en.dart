@@ -168,7 +168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMembershipFallback => 'Member';
 
   @override
-  String get profileMembershipFree => 'Free — membership not upgraded yet';
+  String get profileMembershipFree => 'Free';
 
   @override
   String profileAppVersion(String version) {
@@ -207,6 +207,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emergencyFundManualLabel => 'Average monthly expense (Rp)';
+
+  @override
+  String get emergencyFundManualInvalid => 'Enter a valid amount';
 
   @override
   String emergencyFundRecommendationLabel(int multiplier) {
@@ -284,6 +287,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String notificationBudgetNearLimitTitle(String category) {
+    return '$category Budget Almost Used Up';
+  }
+
+  @override
+  String notificationBudgetNearLimitBody(
+    String spent,
+    String budget,
+    String month,
+    int year,
+  ) {
+    return 'Already used $spent of the $budget budget for $month $year.';
+  }
+
+  @override
   String notificationBudgetExceededBody(
     String spent,
     String budget,
@@ -292,6 +310,30 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'Used $spent of the $budget budget for $month $year.';
   }
+
+  @override
+  String get notificationHistoryAppBarTitle => 'Notification History';
+
+  @override
+  String get notificationHistoryEmptyTitle => 'No Notifications Yet';
+
+  @override
+  String get notificationHistoryEmptySubtitle =>
+      'Budget notifications you\'ve received will be saved here.';
+
+  @override
+  String get profileNotificationHistoryTileTitle => 'Notification History';
+
+  @override
+  String get profileNotificationHistoryTileSubtitle =>
+      'View budget notifications you\'ve received';
+
+  @override
+  String get profileNotificationToggleTitle => 'Budget Notifications';
+
+  @override
+  String get profileNotificationToggleSubtitle =>
+      'Alerts when a budget is near or over its limit';
 
   @override
   String get appChangePasswordSuccessMessage =>
@@ -402,8 +444,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appNavProfile => 'Profile';
 
   @override
-  String get appNavUpgradeRequired =>
-      'This feature requires a membership upgrade';
+  String get appNavUpgradeRequired => 'This feature is for Member accounts';
 
   @override
   String get authLoginWelcomeTitle => 'Welcome back';
@@ -519,6 +560,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authForgotPasswordPhoneRequired =>
       'WhatsApp/phone number is required';
+
+  @override
+  String get authForgotPasswordPhoneInvalid => 'Invalid phone number format';
 
   @override
   String get authForgotPasswordNoteLabel => 'Note (optional)';
@@ -737,7 +781,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walletPortfolioListUpgradeRequired =>
-      'This feature requires a membership upgrade';
+      'This feature is for Member accounts';
 
   @override
   String get walletPortfolioListTitle => 'Portfolio';
@@ -1092,6 +1136,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletDashboardRecentTransactionsTitle => 'Recent Transactions';
 
   @override
+  String get walletDashboardEmptyTitle => 'No Activity Yet';
+
+  @override
+  String get walletDashboardEmptySubtitle =>
+      'Log your first transaction to start seeing your financial summary here.';
+
+  @override
+  String get walletDashboardEmptyCta => 'Add Transaction';
+
+  @override
   String walletDashboardGreetingMorning(String name) {
     return 'Good Morning, $name';
   }
@@ -1128,6 +1182,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walletDashboardNetWorthLabel => 'Total Net Worth';
+
+  @override
+  String get walletDashboardToggleNominalShow => 'Show amount';
+
+  @override
+  String get walletDashboardToggleNominalHide => 'Hide amount';
+
+  @override
+  String pinCodeFieldSemanticLabel(int filled, int total) {
+    return 'PIN code input, $filled of $total digits filled';
+  }
 
   @override
   String get walletDashboardSavingsGoalsCardTitle => 'Savings Goals';
@@ -1188,6 +1253,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnCommonSelectCategoryTitle => 'Select category';
 
   @override
+  String get txnCategoryTypeIncome => 'Income';
+
+  @override
+  String get txnCategoryTypeExpense => 'Expense';
+
+  @override
   String get txnCommonNoCategoryForType => 'No categories yet for this type';
 
   @override
@@ -1222,8 +1293,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnRecurringMenuTileTitle => 'Recurring Transactions';
 
   @override
-  String get txnFeatureRequiresUpgrade =>
-      'This feature requires a membership upgrade';
+  String get txnFeatureRequiresUpgrade => 'This feature is for Member accounts';
 
   @override
   String get txnListTitle => 'Transactions';
@@ -1285,6 +1355,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get txnScanReceiptAutofilledMessage =>
       'Auto-filled from the receipt — please double-check before saving.';
+
+  @override
+  String get txnScanReceiptNoDataMessage =>
+      'The receipt text was read, but nothing recognizable was found — please fill in manually.';
+
+  @override
+  String get txnScanReceiptFieldAutofilledBadge =>
+      'Auto-filled from receipt scan';
+
+  @override
+  String get txnScanReceiptFieldGuessBadge =>
+      'Guessed from receipt scan — please double-check';
 
   @override
   String get txnFormTitleEdit => 'Edit Transaction';
@@ -1354,6 +1436,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnRecurringFrequencyLabel => 'Frequency';
 
   @override
+  String get txnRecurringFrequencyDaily => 'Daily';
+
+  @override
+  String get txnRecurringFrequencyWeekly => 'Weekly';
+
+  @override
+  String get txnRecurringFrequencyMonthly => 'Monthly';
+
+  @override
+  String get txnRecurringFrequencyYearly => 'Yearly';
+
+  @override
   String get txnRecurringStartDateLabel => 'Start Date';
 
   @override
@@ -1395,6 +1489,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Source and destination accounts can\'t be the same.';
 
   @override
+  String txnTransferInsufficientBalance(String balance) {
+    return 'Insufficient balance (available $balance)';
+  }
+
+  @override
   String get txnTransferAssetRequiredError =>
       'Enter the asset symbol (e.g. BTC) — one of the accounts is a crypto account.';
 
@@ -1433,8 +1532,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get txnBudgetListLoadError => 'Failed to load budget.';
 
   @override
+  String get txnBudgetListEmptyTitle => 'No Budget Yet';
+
+  @override
   String get txnBudgetListEmptyMessage =>
-      'No budget yet for this month.\nTap the + button to add one.';
+      'Tap the + button to add a budget for this month.';
 
   @override
   String get txnBudgetPerCategoryLabel => 'By Category';
@@ -1579,6 +1681,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Market price for this asset isn\'t available yet.';
 
   @override
+  String get investMarketPriceLoadError =>
+      'Couldn\'t load the market price. Check your connection and try again.';
+
+  @override
   String get investNoBalanceRecorded =>
       'No balance recorded for this asset yet.';
 
@@ -1685,17 +1791,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get investSelectCryptoAccountSheetTitle => 'Select crypto account';
 
   @override
-  String get investUpgradeMembershipTitle => 'Upgrade Membership';
+  String get investMembershipTitle => 'Membership';
+
+  @override
+  String get investMembershipInfoNote =>
+      'Feature access follows your account\'s membership status. Pull down to refresh the status.';
 
   @override
   String get investMembershipStatusLoadError =>
       'Failed to load membership status.';
 
   @override
-  String get investChoosePlanTitle => 'Choose a Plan';
+  String get investChoosePlanTitle => 'Membership Plans';
 
   @override
   String get investPlanListLoadError => 'Failed to load plan list.';
+
+  @override
+  String get investPlanListEmptyTitle => 'No Plans Available Yet';
+
+  @override
+  String get investPlanListEmptySubtitle =>
+      'Membership plans aren\'t available right now. Please check back later.';
 
   @override
   String get investMemberFallbackName => 'Member';
@@ -1710,74 +1827,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get investPendingVerificationSubtitle =>
-      'Waiting for payment verification from admin';
+      'Membership is being processed';
 
   @override
   String get investFreeLabel => 'Free';
 
   @override
-  String get investNoMembershipSubtitle => 'Haven\'t upgraded membership yet';
-
-  @override
-  String get investManualTransferTitle => 'Manual Transfer';
-
-  @override
-  String get investBankLabel => 'Bank';
-
-  @override
-  String get investAccountNumberLabel => 'Account Number';
-
-  @override
-  String get investAccountHolderLabel => 'Account Holder';
-
-  @override
-  String get investNominalLabel => 'Amount';
-
-  @override
-  String get investTransferInstructionsNote =>
-      'After transferring, admin will verify the payment and activate your membership manually.';
-
-  @override
-  String get investCheckStatusButton => 'I\'ve transferred, check status';
-
-  @override
-  String investConfirmPlanDialogTitle(String planName) {
-    return 'Confirm $planName';
-  }
-
-  @override
-  String investConfirmPlanDialogContent(
-    String planName,
-    String price,
-    int days,
-  ) {
-    return 'You will upgrade to the $planName plan for $price for $days days.';
-  }
-
-  @override
-  String get investSwitchPlanWarning =>
-      'Your current plan is still active. Switching to another plan will reset your access to Free until the new payment is verified by admin.';
-
-  @override
-  String get investConfirmButton => 'Confirm';
-
-  @override
-  String get investPlanSelectedSnackbar =>
-      'Plan selected. Please transfer according to the instructions above.';
-
-  @override
-  String get investSelectPlanError => 'Failed to select plan.';
+  String get investNoMembershipSubtitle => 'On the Free plan';
 
   @override
   String get investActivePlanLabel => 'Active Plan';
-
-  @override
-  String get investSelectPlanButton => 'Select Plan';
-
-  @override
-  String investPricePerDuration(String price, int days) {
-    return '$price / $days days';
-  }
 
   @override
   String get investPlanFeaturesTitle => 'Features included';
@@ -1887,6 +1946,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fireManualExpenseLabel => 'Average monthly expense (Rp)';
+
+  @override
+  String get fireManualIncomeInvalid => 'Enter a valid amount';
+
+  @override
+  String get fireManualExpenseInvalid => 'Enter a valid amount';
+
+  @override
+  String get fireNegativeSavingsWarning =>
+      'Expenses are equal to or higher than income, so there\'s nothing left to set aside for retirement yet. A projection can only be calculated once income is higher than expenses.';
 
   @override
   String get fireReturnRateConservative => 'Conservative';
@@ -2020,4 +2089,675 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileUserGuideOpenFailed =>
       'Couldn\'t open the guide. Make sure you have a PDF reader app installed.';
+
+  @override
+  String get wltSectionWallet => 'Wallet';
+
+  @override
+  String get wltCardTitle => 'Wallet Balance';
+
+  @override
+  String get wltCardCopyAccountNumber => 'Copy account number';
+
+  @override
+  String get wltCopiedAccountNumber => 'Account number copied';
+
+  @override
+  String get wltCardLoadError => 'Couldn\'t load wallet balance';
+
+  @override
+  String get wltCardRetry => 'Retry';
+
+  @override
+  String get wltCardFrozen => 'Wallet frozen';
+
+  @override
+  String get wltTransferTileTitle => 'Transfer';
+
+  @override
+  String get wltTransferTileSubtitle =>
+      'Send wallet balance to another user by account number';
+
+  @override
+  String get wltPageTitle => 'My Wallet';
+
+  @override
+  String get wltAccountNumberLabel => 'Account Number';
+
+  @override
+  String get wltActionTransfer => 'Transfer';
+
+  @override
+  String get wltActionTopup => 'Top Up';
+
+  @override
+  String get wltActionWithdraw => 'Withdraw';
+
+  @override
+  String get wltFrozenBanner =>
+      'Your wallet is frozen. Transactions are unavailable, please contact customer service.';
+
+  @override
+  String get wltLimitsTitle => 'Transfer Limits';
+
+  @override
+  String wltLimitPerTransaction(String min, String max) {
+    return 'Per transaction: $min – $max';
+  }
+
+  @override
+  String wltLimitRemainingToday(String remaining, String daily) {
+    return 'Remaining today: $remaining of $daily';
+  }
+
+  @override
+  String get wltHistoryTitle => 'Activity';
+
+  @override
+  String get wltFilterAll => 'All';
+
+  @override
+  String get wltFilterTransferOut => 'Sent';
+
+  @override
+  String get wltFilterTransferIn => 'Received';
+
+  @override
+  String get wltFilterTopup => 'Top Ups';
+
+  @override
+  String get wltFilterWithdraw => 'Withdrawals';
+
+  @override
+  String get wltHistoryEmptyTitle => 'No activity yet';
+
+  @override
+  String get wltHistoryEmptySubtitle =>
+      'Transfers, top ups and withdrawals will show up here.';
+
+  @override
+  String get wltHistoryLoadError => 'Couldn\'t load wallet activity.';
+
+  @override
+  String wltTxnTransferOut(String name) {
+    return 'Transfer to $name';
+  }
+
+  @override
+  String wltTxnTransferIn(String name) {
+    return 'Transfer from $name';
+  }
+
+  @override
+  String get wltTxnTopup => 'Top up from portfolio';
+
+  @override
+  String get wltTxnWithdraw => 'Withdraw to portfolio';
+
+  @override
+  String get wltTxnReversal => 'Transaction reversal';
+
+  @override
+  String get wltTxnAdjustment => 'Balance adjustment';
+
+  @override
+  String wltTxnBalanceAfter(String amount) {
+    return 'Balance: $amount';
+  }
+
+  @override
+  String get wltTransferTitle => 'Transfer';
+
+  @override
+  String get wltTransferAccountField => 'Recipient account number';
+
+  @override
+  String get wltTransferAccountHelper => '12 digits, starting with 88';
+
+  @override
+  String get wltTransferAccountInvalid => 'Account number must be 12 digits';
+
+  @override
+  String get wltTransferCheck => 'Check Account';
+
+  @override
+  String get wltTransferRecipientLabel => 'Recipient';
+
+  @override
+  String get wltTransferChange => 'Change';
+
+  @override
+  String get wltTransferAmountLabel => 'Amount (Rp)';
+
+  @override
+  String get wltTransferNoteLabel => 'Note (optional)';
+
+  @override
+  String wltTransferAvailableBalance(String balance) {
+    return 'Wallet balance: $balance';
+  }
+
+  @override
+  String get wltTransferContinue => 'Continue';
+
+  @override
+  String get wltTransferAmountRequired => 'Amount is required';
+
+  @override
+  String wltTransferAmountTooSmall(String min) {
+    return 'Minimum transfer is $min';
+  }
+
+  @override
+  String wltTransferAmountTooLarge(String max) {
+    return 'Maximum $max per transaction';
+  }
+
+  @override
+  String wltTransferExceedsDaily(String remaining) {
+    return 'Exceeds remaining daily limit ($remaining)';
+  }
+
+  @override
+  String get wltTransferInsufficient => 'Insufficient wallet balance';
+
+  @override
+  String get wltTransferConfirmTitle => 'Confirm Transfer';
+
+  @override
+  String get wltTransferConfirmCheckName =>
+      'Make sure the recipient\'s name is correct before sending.';
+
+  @override
+  String get wltTransferConfirmSend => 'Send';
+
+  @override
+  String get wltCancel => 'Cancel';
+
+  @override
+  String get wltPinTitle => 'Enter PIN';
+
+  @override
+  String get wltPinSubtitle =>
+      'Confirm this transaction with your 6-digit PIN.';
+
+  @override
+  String wltPinLocked(int minutes) {
+    return 'PIN is locked. Try again in $minutes minutes.';
+  }
+
+  @override
+  String get wltPinNotSet =>
+      'You don\'t have a PIN yet. Set one in the Profile menu first.';
+
+  @override
+  String get wltPinRetryNetwork =>
+      'Connection problem. Enter your PIN again to retry — the transfer won\'t be sent twice.';
+
+  @override
+  String get wltErrAccountNotFound => 'Account number not found.';
+
+  @override
+  String get wltErrSelfTransfer => 'You can\'t transfer to your own account.';
+
+  @override
+  String get wltErrFrozen => 'Your wallet is frozen.';
+
+  @override
+  String get wltErrInsufficientBalance => 'Insufficient wallet balance.';
+
+  @override
+  String get wltErrInsufficientPortfolio => 'Insufficient portfolio balance.';
+
+  @override
+  String get wltErrDailyLimit => 'Daily transfer limit exceeded.';
+
+  @override
+  String get wltErrAmountOutOfRange =>
+      'Amount is outside the per-transaction limits.';
+
+  @override
+  String get wltErrRateLimit => 'Too many attempts. Please try again shortly.';
+
+  @override
+  String get wltErrPinInvalid => 'Incorrect PIN.';
+
+  @override
+  String get wltReceiptTitle => 'Transfer Details';
+
+  @override
+  String get wltReceiptSuccess => 'Transfer Successful';
+
+  @override
+  String get wltReceiptReceivedHeader => 'Transfer Received';
+
+  @override
+  String get wltReceiptReference => 'Reference No.';
+
+  @override
+  String get wltReceiptDate => 'Time';
+
+  @override
+  String get wltReceiptStatus => 'Status';
+
+  @override
+  String get wltReceiptStatusCompleted => 'Completed';
+
+  @override
+  String get wltReceiptRecipient => 'Recipient';
+
+  @override
+  String get wltReceiptSender => 'Sender';
+
+  @override
+  String get wltReceiptAccount => 'Account';
+
+  @override
+  String get wltReceiptAmount => 'Amount';
+
+  @override
+  String get wltReceiptNote => 'Note';
+
+  @override
+  String get wltReceiptBalanceAfter => 'Balance after transfer';
+
+  @override
+  String get wltReceiptDone => 'Done';
+
+  @override
+  String get wltReceiptLoadError => 'Couldn\'t load transfer details.';
+
+  @override
+  String get wltTopupTitle => 'Top Up Wallet';
+
+  @override
+  String get wltWithdrawTitle => 'Withdraw to Portfolio';
+
+  @override
+  String get wltMoveTopupInfo =>
+      'Funds are taken from the selected portfolio and added to your wallet.';
+
+  @override
+  String get wltMoveWithdrawInfo =>
+      'Wallet funds are moved to the selected portfolio.';
+
+  @override
+  String get wltMovePortfolioLabel => 'Portfolio';
+
+  @override
+  String get wltMovePortfolioPlaceholder => 'Select portfolio';
+
+  @override
+  String get wltMoveSelectPortfolioError => 'Select a portfolio first';
+
+  @override
+  String get wltMoveDescriptionLabel => 'Description (optional)';
+
+  @override
+  String get wltMoveSubmitTopup => 'Top Up';
+
+  @override
+  String get wltMoveSubmitWithdraw => 'Withdraw';
+
+  @override
+  String get wltMoveSuccessTopup => 'Wallet topped up.';
+
+  @override
+  String get wltMoveSuccessWithdraw => 'Funds withdrawn to portfolio.';
+
+  @override
+  String wltMovePortfolioBalance(String balance) {
+    return 'Portfolio balance: $balance';
+  }
+
+  @override
+  String get rptPageTitle => 'Reports';
+
+  @override
+  String get rptTabCashFlow => 'Cash Flow';
+
+  @override
+  String get rptTabSavings => 'Savings';
+
+  @override
+  String get rptTabCompare => 'Compare';
+
+  @override
+  String get rptTabCategory => 'Category';
+
+  @override
+  String get rptTabUnexpected => 'Unexpected';
+
+  @override
+  String get rptTabYear => 'Yearly';
+
+  @override
+  String get rptTabTax => 'Tax';
+
+  @override
+  String get rptCardTitle => 'Reports';
+
+  @override
+  String get rptCardSubtitle =>
+      'Cash flow, savings rate, comparisons, tax and more';
+
+  @override
+  String get rptLoadError => 'Couldn\'t load the report.';
+
+  @override
+  String rptCyclesOption(int n) {
+    return '$n cycles';
+  }
+
+  @override
+  String get rptCfOpening => 'Opening Balance';
+
+  @override
+  String get rptCfClosing => 'Closing Balance';
+
+  @override
+  String get rptCfNet => 'Net';
+
+  @override
+  String get rptCfOther => 'Other adjustments';
+
+  @override
+  String get rptCfOtherHint =>
+      'Balance changes outside income/expenses, e.g. investment value changes.';
+
+  @override
+  String get rptCfBalanceChart => 'Running Balance';
+
+  @override
+  String get rptCfDailyTitle => 'Daily Movements';
+
+  @override
+  String get rptCfEmptyTitle => 'No transactions yet';
+
+  @override
+  String get rptCfEmptySubtitle => 'There are no transactions in this cycle.';
+
+  @override
+  String get rptSrCurrent => 'Current Rate';
+
+  @override
+  String get rptSrPrevious => 'Previous Cycle';
+
+  @override
+  String get rptSrAverage => 'Average';
+
+  @override
+  String get rptSrTargetLabel => 'Target';
+
+  @override
+  String rptSrChangePoints(String value) {
+    return '$value pts';
+  }
+
+  @override
+  String get rptSrFormula => '(Income − Expense) ÷ Income';
+
+  @override
+  String rptSrOnTarget(int count, int total) {
+    return '$count of $total cycles hit the target';
+  }
+
+  @override
+  String get rptSrSeriesTitle => 'Savings Rate Trend';
+
+  @override
+  String get rptSrBest => 'Best';
+
+  @override
+  String get rptSrWorst => 'Lowest';
+
+  @override
+  String get rptCmpCompareWith => 'Compare with';
+
+  @override
+  String get rptCmpDefaultPrev => 'Previous cycle';
+
+  @override
+  String get rptCmpMetrics => 'Summary';
+
+  @override
+  String get rptCmpSavingsRate => 'Savings Rate';
+
+  @override
+  String get rptCmpCategories => 'Expenses by Category';
+
+  @override
+  String get rptCmpNewLabel => 'New';
+
+  @override
+  String get rptCatSelect => 'Category';
+
+  @override
+  String get rptCatNoCategoryTitle => 'No categories yet';
+
+  @override
+  String get rptCatNoCategorySubtitle =>
+      'Add categories and transactions to see this report.';
+
+  @override
+  String get rptCatTotal => 'Total This Cycle';
+
+  @override
+  String rptCatCount(int count) {
+    return '$count transactions';
+  }
+
+  @override
+  String get rptCatPrevious => 'Previous Cycle';
+
+  @override
+  String get rptCatAverage => 'Avg/cycle';
+
+  @override
+  String get rptCatShare => 'Share';
+
+  @override
+  String get rptCatSeries => 'Trend per Cycle';
+
+  @override
+  String get rptCatTop => 'Largest Transactions';
+
+  @override
+  String get rptCatFrequent => 'Most Frequent';
+
+  @override
+  String rptCatFrequentLine(int count, String total) {
+    return '$count× · $total';
+  }
+
+  @override
+  String get rptCatAll => 'All Transactions';
+
+  @override
+  String get rptCatNoTx => 'No transactions in this category yet.';
+
+  @override
+  String rptUxHow(String factor, int cycles, int samples) {
+    return 'Expenses more than $factor× that category\'s average transaction over the previous $cycles cycles. Categories with fewer than $samples comparison transactions are skipped.';
+  }
+
+  @override
+  String get rptUxTotalFlagged => 'Total Flagged';
+
+  @override
+  String get rptUxAnalyzedLabel => 'Categories Analyzed';
+
+  @override
+  String get rptUxEmptyTitle => 'No unusual expenses';
+
+  @override
+  String get rptUxEmptySubtitle =>
+      'Your spending this cycle looks normal. Nice!';
+
+  @override
+  String rptUxRatio(String ratio) {
+    return '$ratio× average';
+  }
+
+  @override
+  String rptUxAverage(String amount) {
+    return 'Category average: $amount';
+  }
+
+  @override
+  String get rptYrAvgExpense => 'Avg Monthly Expense';
+
+  @override
+  String get rptYrMonthly => 'Monthly Income vs Expense';
+
+  @override
+  String get rptYrBest => 'Best Month';
+
+  @override
+  String get rptYrWorst => 'Worst Month';
+
+  @override
+  String get rptYrBiggest => 'Biggest Expense';
+
+  @override
+  String get rptYrTopExpenses => 'Top Expense Categories';
+
+  @override
+  String get rptYrTopIncome => 'Top Income Sources';
+
+  @override
+  String get rptYrBudgetTitle => 'Yearly Budget';
+
+  @override
+  String rptYrBudgetTotals(String spent, String budget) {
+    return 'Spent $spent of $budget';
+  }
+
+  @override
+  String rptYrBudgetMonthsOver(int over, int total) {
+    return '$over of $total months over budget';
+  }
+
+  @override
+  String rptYrBudgetUsed(String pct) {
+    return '$pct% used';
+  }
+
+  @override
+  String get rptYrOverItems => 'Biggest Budget Overruns';
+
+  @override
+  String rptYrOverBy(String amount, String pct) {
+    return '+$amount ($pct%)';
+  }
+
+  @override
+  String get rptYrOverCategories => 'Most Often Over Budget';
+
+  @override
+  String rptYrOverTimes(int times, String amount) {
+    return '$times× over · $amount';
+  }
+
+  @override
+  String get rptTaxDisclaimer =>
+      'This is only a recap, not a tax calculation: your yearly income and the expenses you mark as tax deductible. Consult a tax advisor for official figures.';
+
+  @override
+  String get rptTaxTotalIncome => 'Total Income';
+
+  @override
+  String get rptTaxTotalDeductible => 'Total Deductions';
+
+  @override
+  String get rptTaxAfter => 'Income After Deductions';
+
+  @override
+  String get rptTaxDeductibleList => 'Counted Deductions';
+
+  @override
+  String get rptTaxNoDeductible => 'No marked category has spending yet.';
+
+  @override
+  String get rptTaxCategoriesTitle => 'Tax-Deductible Categories';
+
+  @override
+  String get rptTaxCategoriesHint =>
+      'Check the expense categories that can reduce tax. The selection applies to every year.';
+
+  @override
+  String get rptTaxNoCategories => 'No expense categories yet.';
+
+  @override
+  String get rptTaxSave => 'Save Selection';
+
+  @override
+  String get rptTaxSaved => 'Selection saved.';
+
+  @override
+  String get brcTitle => 'Budget Recommendations';
+
+  @override
+  String get brcLoadError => 'Couldn\'t load budget recommendations.';
+
+  @override
+  String get brcEmptyTitle => 'No recommendations yet';
+
+  @override
+  String brcEmptySubtitle(int cycles) {
+    return 'Recommendations appear once there is spending history in the last $cycles cycles.';
+  }
+
+  @override
+  String brcBasisPercentage(String income, int cycles) {
+    return 'Suggestions use each category\'s average share of income over the last $cycles cycles, applied to this cycle\'s income ($income).';
+  }
+
+  @override
+  String brcBasisNominal(int cycles) {
+    return 'This cycle\'s income hasn\'t arrived yet, so suggestions use the average spending over the last $cycles cycles.';
+  }
+
+  @override
+  String brcSelectedCount(int selected, int total) {
+    return '$selected of $total selected';
+  }
+
+  @override
+  String get brcSelectAll => 'Select all';
+
+  @override
+  String get brcDeselectAll => 'Deselect all';
+
+  @override
+  String get brcNoBudgetYet => 'No budget yet';
+
+  @override
+  String brcAverageSpent(String amount, String percent) {
+    return 'Average spend $amount per cycle · $percent of income';
+  }
+
+  @override
+  String brcLimitedNote(int count) {
+    return 'Over budget in $count cycles, not raised';
+  }
+
+  @override
+  String brcApplyButton(int count) {
+    return 'Apply ($count)';
+  }
+
+  @override
+  String brcApplied(int count) {
+    return '$count budgets saved.';
+  }
+
+  @override
+  String brcAppliedPartial(int saved, int total) {
+    return '$saved of $total budgets saved. The rest had no suggestion.';
+  }
+
+  @override
+  String get brcAppliedNone =>
+      'No budgets were saved. The selected categories had no suggestion.';
 }

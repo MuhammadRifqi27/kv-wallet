@@ -27,8 +27,23 @@ final payrollCycleProvider = FutureProvider.family<PayrollCycle, DateTime>((ref,
         month: referenceMonth.month,
         year: referenceMonth.year,
       );
-  return PayrollCycle(
-    start: summary.cycleStartDate ?? DateTime(referenceMonth.year, referenceMonth.month, 1),
-    end: summary.cycleEndDate ?? DateTime(referenceMonth.year, referenceMonth.month + 1, 0),
-  );
+  final start = summary.cycleStartDate;
+  final end = summary.cycleEndDate;
+  // Was previously a silent calendar-month fallback (1st-to-end-of-month)
+  // when the backend omitted these — exactly the "silently drifting from
+  // what Dashboard/Budget/Ringkasan actually show" risk this class doc
+  // already warned about above. Throwing instead surfaces it as a real
+  // `AsyncError` on whichever provider called this (both existing call
+  // sites already handle that: `TransactionListController.build()`'s
+  // exception becomes its own AsyncError automatically, and `refresh()`
+  // wraps its call in `AsyncValue.guard`) — a visible retry-able error beats
+  // a wrong-but-successful date range with no indication anything's off.
+  // See docs/ide-improvement-fitur-existing.txt BAGIAN D #29.
+  if (start == null || end == null) {
+    throw StateError(
+      'Budget summary for $referenceMonth is missing cycle_start_date/cycle_end_date — '
+      'cannot resolve the real payroll cycle.',
+    );
+  }
+  return PayrollCycle(start: start, end: end);
 });

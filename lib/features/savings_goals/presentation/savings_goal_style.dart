@@ -28,14 +28,6 @@ Color savingsGoalColorFor(String? key) => switch (key) {
       _ => AppColors.primary,
     };
 
-String savingsGoalColorLabel(String key) => switch (key) {
-      'success' => 'Hijau',
-      'info' => 'Biru',
-      'warning' => 'Kuning',
-      'danger' => 'Merah',
-      _ => 'Rose',
-    };
-
 /// Small curated icon set — `icon` is a free-form string on the backend, so
 /// only these known keys render a matching glyph; anything else (or null)
 /// falls back to a generic savings icon.

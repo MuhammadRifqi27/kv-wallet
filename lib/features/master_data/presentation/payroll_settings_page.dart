@@ -8,7 +8,7 @@ import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../application/payroll_settings_controller.dart';
-import 'category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 
 class PayrollSettingsPage extends ConsumerWidget {
   const PayrollSettingsPage({super.key});

@@ -82,11 +82,16 @@ String monthNameShort(int month, Locale locale) => _monthNamesShortFor(locale)[m
 
 /// Compact Rupiah for tight spaces (chart axis labels) — "jt" (juta) and
 /// "rb" (ribu) instead of the full "Rp 5.000.000" `formatRupiah` gives.
-String formatCompactRupiah(num amount) {
+/// [locale] picks the suffix set — Indonesian ("M"/"jt"/"rb") or English
+/// ("B"/"M"/"K") — so an English-language user doesn't see Indonesian
+/// abbreviations on chart axes. See
+/// docs/ide-improvement-fitur-existing.txt BAGIAN B #9.
+String formatCompactRupiah(num amount, Locale locale) {
   final value = amount.abs();
   final sign = amount < 0 ? '-' : '';
-  if (value >= 1000000000) return '$sign${(value / 1000000000).toStringAsFixed(1)}M';
-  if (value >= 1000000) return '$sign${(value / 1000000).toStringAsFixed(1)}jt';
-  if (value >= 1000) return '$sign${(value / 1000).toStringAsFixed(0)}rb';
+  final isEn = locale.languageCode == 'en';
+  if (value >= 1000000000) return '$sign${(value / 1000000000).toStringAsFixed(1)}${isEn ? 'B' : 'M'}';
+  if (value >= 1000000) return '$sign${(value / 1000000).toStringAsFixed(1)}${isEn ? 'M' : 'jt'}';
+  if (value >= 1000) return '$sign${(value / 1000).toStringAsFixed(0)}${isEn ? 'K' : 'rb'}';
   return '$sign${value.toStringAsFixed(0)}';
 }

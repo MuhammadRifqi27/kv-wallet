@@ -112,6 +112,36 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
   Tanggal, dan Deskripsi di form Tambah Transaksi. Kategori dan Akun tetap
   wajib dipilih manual, dan seluruh hasil bacaan tetap bisa diedit sebelum
   disimpan.
+- Fitur Dompet Saldo & Transfer Antar Pengguna (Wallet): tiap user punya satu
+  dompet dengan nomor rekening 12 digit. Saldo dan nomor rekening tampil di
+  kartu di halaman Profile (di bawah kartu akun, di atas Portfolio), dengan
+  menu "Transfer" tepat di atasnya. Halaman Dompet berisi saldo, salin nomor
+  rekening, info limit transfer (per transaksi & harian), serta mutasi dengan
+  filter tipe. Alur transfer: cek nomor rekening (nama penerima ditampilkan
+  lengkap) → nominal & catatan → konfirmasi → PIN → struk transfer. Juga bisa
+  isi saldo dari portfolio dan tarik saldo ke portfolio. PIN dikirim dalam
+  request dan diverifikasi server (PIN salah/terkunci tampil di sheet PIN),
+  tiap transfer memakai idempotency key sehingga retry saat koneksi putus
+  tidak mengirim uang dua kali. Fitur online-only, saldo dompet ikut dihitung
+  di total kekayaan bersih (Dashboard & Ringkasan).
+- Fitur Laporan di menu Ringkasan (kartu "Laporan"): 7 tab — Arus Kas (saldo
+  harian + penyesuaian lain), Tabungan (rasio menabung & tren vs target),
+  Bandingkan (dua cycle berdampingan, termasuk per kategori), Kategori
+  (detail satu kategori selama 3/6/12 cycle), Tak Terduga (pengeluaran jauh di
+  atas rata-rata kategori), Tahunan (ringkasan setahun + anggaran), dan Pajak
+  (rekap pemasukan dan pengeluaran pengurang pajak yang bisa ditandai user;
+  hanya rekap, bukan perhitungan pajak). Semua angka dihitung server, periode
+  mengikuti cycle gaji. Export Excel/PDF belum tersedia di API.
+- Rekomendasi Budget: tombol lampu di halaman Budget membuka saran nominal
+  budget per kategori pengeluaran berdasarkan 3 cycle gaji terakhir (dihitung
+  server — dari porsi terhadap pemasukan, atau rata-rata nominal bila gaji
+  cycle ini belum masuk). User mencentang kategori yang mau diterapkan;
+  kategori yang pernah melebihi budget tidak dinaikkan dan diberi penanda.
+  Hasil penerapan memberi tahu bila sebagian kategori tidak punya saran.
+- Riwayat Notifikasi: halaman read-only berisi log notifikasi budget yang pernah
+  tampil di device ini, supaya bisa dilihat lagi setelah hilang dari tray OS.
+  Menyentuh notifikasi budget kini membuka halaman terkait (`/budget`), dan
+  preferensi notifikasi disimpan per device.
 
 ### Diubah
 - Nama aplikasi menjadi **Flowr**; logo, wordmark, dan icon app diganti
@@ -153,6 +183,18 @@ tercatat di bawah versi 1.0.0 (belum ada bump versi baru).
 - Logo aplikasi (di halaman Splash/Login/Register/PIN, AppBar Dashboard,
   dan footer Profile) otomatis berubah warna mengikuti tema aktif — hitam
   pekat di mode terang, putih di mode gelap.
+- Penanganan error API sekarang membawa kode error bisnis (`code`) dan
+  `retry_after`, serta pesan khusus untuk rate limit (429).
+- Halaman Membership kini hanya informasi (status akun + daftar plan beserta
+  fitur-fiturnya). Pilih plan, harga, dan instruksi transfer dihapus dari app
+  — pembelian membership dilakukan di web, dan status di app ikut
+  ter-update lewat tarik-untuk-refresh. Teks "butuh upgrade membership" di
+  tab/menu terkunci diganti jadi "khusus akun Member".
+- Loading state di banyak halaman (Dashboard, Ringkasan, Transaksi, Transfer,
+  Budget, Berulang, Target Tabungan, Portfolio, Investasi, Kategori, Laporan,
+  Dompet, Riwayat Notifikasi, dll.) diganti skeleton loading — placeholder
+  berbentuk konten asli dengan efek shimmer, mengikuti tema terang/gelap.
+  Daftar kosong dan error memakai komponen state yang seragam.
 
 ### Diperbaiki
 - Login gagal karena nama field request salah (`email` seharusnya `login`).

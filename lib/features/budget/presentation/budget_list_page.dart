@@ -10,7 +10,7 @@ import '../../../data/models/budget_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/budget_controller.dart';
 
 class BudgetListPage extends ConsumerWidget {
@@ -28,7 +28,16 @@ class BudgetListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(l10n.txnBudgetListTitle)),
+      appBar: AppBar(
+        title: Text(l10n.txnBudgetListTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.lightbulb_outline_rounded),
+            tooltip: l10n.brcTitle,
+            onPressed: () => context.push('/budget/recommendations'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/budget/form'),
         child: const Icon(Icons.add_rounded),
@@ -73,36 +82,50 @@ class _BudgetBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     if (summary.categories.isEmpty) {
+      // See docs/ide-improvement-fitur-existing.txt BAGIAN E #31 — was a
+      // bare Text, now consistent with every other list page's empty state.
       return scrollableCenter(
-        Text(
-          l10n.txnBudgetListEmptyMessage,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13.5),
+        ListEmptyState(
+          icon: Icons.calculate_outlined,
+          title: l10n.txnBudgetListEmptyTitle,
+          subtitle: l10n.txnBudgetListEmptyMessage,
         ),
       );
     }
 
-    return ListView(
+    // ListView.builder, not a plain ListView + `for` loop — categories are a
+    // user-grown collection (one per budgeted category), not a small fixed
+    // set. See docs/ide-improvement-fitur-existing.txt BAGIAN F #38. Header
+    // content (summary card + section label + hint) is index 0.
+    return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 88),
-      children: [
-        _SummaryCard(summary: summary),
-        const SizedBox(height: 16),
-        Text(
-          l10n.txnBudgetPerCategoryLabel,
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          l10n.txnBudgetTapToEditHint,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-        const SizedBox(height: 10),
-        for (final category in summary.categories) ...[
-          _BudgetCategoryCard(item: category),
-          const SizedBox(height: 10),
-        ],
-      ],
+      itemCount: summary.categories.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SummaryCard(summary: summary),
+              const SizedBox(height: 16),
+              Text(
+                l10n.txnBudgetPerCategoryLabel,
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                l10n.txnBudgetTapToEditHint,
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+              const SizedBox(height: 10),
+            ],
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _BudgetCategoryCard(item: summary.categories[index - 1]),
+        );
+      },
     );
   }
 }

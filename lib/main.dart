@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/providers/core_providers.dart';
 import 'core/storage/biometric_preference_service.dart';
 import 'core/storage/locale_preference_service.dart';
+import 'core/storage/notification_preference_service.dart';
 import 'core/storage/onboarding_service.dart';
 import 'core/storage/theme_preference_service.dart';
 import 'core/theme/app_colors.dart';
@@ -27,6 +28,7 @@ void main() async {
   final biometricEnabled = await BiometricPreferenceService().isEnabled();
   final themeMode = await ThemePreferenceService().getThemeMode();
   final locale = await LocalePreferenceService().getLocale();
+  final budgetNotificationsEnabled = await NotificationPreferenceService().isEnabled();
 
   runApp(
     ProviderScope(
@@ -35,6 +37,7 @@ void main() async {
         biometricEnabledProvider.overrideWith((ref) => biometricEnabled),
         themeModeProvider.overrideWith((ref) => themeMode),
         localeProvider.overrideWith((ref) => locale),
+        budgetNotificationsEnabledProvider.overrideWith((ref) => budgetNotificationsEnabled),
       ],
       child: const FlowrApp(),
     ),
@@ -56,6 +59,17 @@ class FlowrApp extends ConsumerWidget {
     // exist, and relying on which of those two happens to build first would
     // be fragile.
     ref.read(tourControllerProvider);
+
+    // Consumes the route a tapped local notification asked for (see
+    // pendingNotificationRouteProvider's doc) and resets it — a listener
+    // instead of a build-time read since this must fire once per tap, not
+    // once per rebuild.
+    ref.listen<String?>(pendingNotificationRouteProvider, (previous, next) {
+      if (next != null) {
+        router.go(next);
+        ref.read(pendingNotificationRouteProvider.notifier).state = null;
+      }
+    });
 
     // AppColors is a static namespace read directly by ~45 files instead of
     // through `Theme.of(context)` (see AppColors' class doc for why) — this

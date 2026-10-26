@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flowr/l10n/app_localizations.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/validators.dart';
 import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -151,7 +152,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       errorText: error?.errorFor('email'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return l10n.authRegisterEmailRequired;
-                        if (!value.contains('@')) return l10n.authRegisterEmailInvalid;
+                        if (!isValidEmail(value)) return l10n.authRegisterEmailInvalid;
                         return null;
                       },
                     ),

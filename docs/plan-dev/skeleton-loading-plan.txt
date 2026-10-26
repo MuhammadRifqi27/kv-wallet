@@ -1,0 +1,324 @@
+BLUEPRINT — SKELETON LOADING (KOMPONEN REUSABLE)
+=============================================================
+
+Status: DRAFT PLAN - belum diimplementasikan.
+
+CATATAN IMPLEMENTASI (2026-09-24) — TAHAP 1 SELESAI:
+Komponen (lib/shared/widgets/skeleton_loader.dart: SkeletonShimmer,
+SkeletonBox, SkeletonListTile, skeletonListTiles()) + token warna
+AppColors.skeletonBase/skeletonHighlight sudah dibuat sesuai BAGIAN 2.
+Proof-of-concept sudah dipasang di transaction_list_page.dart
+(_TransactionListBody, ganti AppLoadingIndicator -> skeletonListTiles()).
+`flutter analyze` bersih. BELUM diverifikasi visual manual (BAGIAN 6) —
+perlu dicoba langsung di device/emulator (cold-start Transaction List,
+toggle dark mode, pull-to-refresh, reduce-motion setting) sebelum
+lanjut Tahap 2. Tahap 2 (rollout ke sisa ~17 halaman per BAGIAN 3)
+BELUM dikerjakan.
+
+Permintaan: ganti loading state di seluruh app dengan skeleton loading
+(placeholder berbentuk konten asli + efek shimmer/pulse), dimulai dari
+membangun komponen yang reusable, baru rollout ke tiap halaman.
+Dokumen ini merinci desain komponen, pemetaan rollout per halaman, dan
+rencana implementasi bertahap sebelum mulai coding — mengikuti pola
+precedent docs/plan-dev/onboarding-tour-plan.txt & docs/plan-dev/
+prediksi-pengeluaran-plan.txt.
+
+
+BAGIAN 0 — SCOPE & KEPUTUSAN YANG SUDAH DIAMBIL
+-----------------------------------------
+- Ini PERUBAHAN BESAR (istilah user sendiri) — bukan satu file, tapi
+  ~18 halaman. Karena itu dipecah 2 tahap besar:
+  Tahap 1 (dokumen ini + implementasi berikutnya): bangun KOMPONEN
+  reusable-nya saja di lib/shared/widgets/, divalidasi di SATU halaman
+  contoh (transaction_list_page.dart) sebagai proof-of-concept.
+  Tahap 2 (turn-turn terpisah setelahnya, per-bagian seperti eksekusi
+  docs/ide-improvement-fitur-existing.txt BAGIAN A-N): rollout ke
+  sisa halaman sesuai pemetaan BAGIAN 3.
+  TIDAK mengerjakan ke-18 halaman dalam satu giliran — risiko error
+  besar & sulit di-review kalau digabung semua.
+- Efek shimmer HAND-ROLLED (AnimationController + interpolasi warna),
+  BUKAN nambah package `shimmer`/`skeletonizer` dari pub.dev. Alasan:
+  konsisten dengan AppLoadingIndicator (lib/shared/widgets/
+  app_loading_indicator.dart) yang juga hand-rolled, dan app ini sudah
+  punya kecenderungan "minim dependency" yang eksplisit disebut di
+  docs/plan-dev/onboarding-tour-plan.txt BAGIAN 0 (baru nambah
+  showcaseview karena effort hand-roll dinilai TIDAK sepadan untuk
+  fitur ITU — beda kasus dengan shimmer yang efeknya jauh lebih
+  sederhana: cuma interpolasi warna, sepadan untuk hand-roll).
+- Efek yang dipakai: PULSE warna (interpolasi antara warna dasar &
+  warna highlight bolak-balik), BUKAN gradient sweep/ShaderMask ala
+  package `shimmer` populer. Alasan: lebih sederhana diimplementasi &
+  di-maintain (cuma `Color.lerp` + `AnimationController`, tanpa
+  matematika gradient/Transform), efeknya tetap jelas terbaca sebagai
+  "loading", dan konsisten dengan filosofi AppLoadingIndicator yang
+  juga animasi sederhana (staggered dot, bukan efek kompleks). Gradient
+  sweep bisa jadi v2 enhancement kalau nanti dirasa kurang "premium" —
+  dicatat di BAGIAN 6, bukan blocker sekarang.
+- Komponen jadi SATU file baru: lib/shared/widgets/skeleton_loader.dart
+  — mengikuti konvensi list_states.dart yang juga membundel beberapa
+  widget terkait (scrollableCenter, ListEmptyState, ListErrorState)
+  dalam satu file, bukan satu file per class.
+- Kebijakan MANA yang diganti skeleton vs TETAP seperti sekarang
+  (supaya rollout tidak asal-ganti semua loading state):
+  - Loading state utama halaman (full-page/section, `.when(loading:)`
+    pada AsyncValue yang isinya list/card konten) -> DIGANTI skeleton.
+  - Loading kecil INLINE di dalam form (dropdown kategori/akun lagi
+    fetch, dst — pola `LinearProgressIndicator` di transaction_form_
+    page.dart:277,298 dkk) -> TETAP, skeleton berlebihan untuk elemen
+    sekecil itu. Ini konsisten dengan aturan AppLoadingIndicator sendiri
+    (lihat class doc-nya: "full-page/section" vs "small inline").
+  - Spinner tombol submit/proses (PIN pages, PrimaryButton.isLoading)
+    -> TETAP. Skeleton cuma relevan untuk "konten sedang dimuat", bukan
+    "aksi sedang diproses".
+  - splash_page.dart -> TETAP (pre-auth, tidak ada bentuk konten untuk
+    di-skeleton-kan).
+  - Footer "load more" pagination (transaction_list_page.dart:187)
+    -> TETAP (spinner kecil di footer, bukan full-content load).
+
+
+BAGIAN 1 — KONDISI SAAT INI (HASIL SURVEY)
+-----------------------------------------
+1.1. AppLoadingIndicator (lib/shared/widgets/app_loading_indicator.dart)
+     — 3 titik animasi staggered (scale+warna, loop 900ms), dipakai di
+     18 file lewat pola `xAsync.when(loading: () =>
+     scrollableCenter(const AppLoadingIndicator()), ...)`: dashboard,
+     summary (top-level), transactions, budget, investment (dashboard/
+     asset detail/btc activity), portfolio, savings goals (list/
+     detail), recurring, transfers, category list, investment provider
+     list, payroll settings, membership plans, 2 kalkulator. Ini SEMUA
+     kandidat skeleton (BAGIAN 3).
+1.2. Inkonsistensi yang sudah tercatat sebelumnya
+     (docs/ide-improvement-fitur-existing.txt): summary_page.dart
+     Budget Health card `.when(loading: () => const SizedBox.shrink())`
+     — TIDAK render apa-apa saat loading (bukan spinner, bukan
+     skeleton). Kandidat kuat buat skeleton kecil (BAGIAN 3).
+1.3. notification_history_page.dart (fitur baru sesi sebelumnya, BAGIAN
+     G #43) masih pakai `CircularProgressIndicator` polos, bukan
+     AppLoadingIndicator — kandidat skeleton juga sekalian
+     menyeragamkan (BAGIAN 3).
+1.4. Loading inline yang TETAP (lihat BAGIAN 0): dropdown kategori/akun
+     di semua form (`LinearProgressIndicator`), tombol submit (PIN
+     pages, `PrimaryButton.isLoading` pakai `CircularProgressIndicator`
+     di dalam tombol), splash_page.dart, footer pagination.
+1.5. AppColors (lib/core/theme/app_colors.dart) — token theme-aware
+     yang relevan: `surface`, `background`, `border`, `primaryLight`
+     (semua flip lewat `AppColors.updateBrightness`, dipanggil sekali
+     per frame oleh FlowrApp.build). Belum ada token khusus untuk fill
+     skeleton — lihat BAGIAN 2.3.
+1.6. Tidak ada package shimmer/skeleton apa pun di pubspec.yaml saat
+     ini (sudah dicek) — konsisten dengan keputusan BAGIAN 0 buat hand-
+     roll.
+
+
+BAGIAN 2 — DESAIN KOMPONEN REUSABLE
+-----------------------------------------
+Semua di lib/shared/widgets/skeleton_loader.dart.
+
+2.1. `SkeletonShimmer` — StatefulWidget ambient, MEMBUNGKUS satu blok
+     layout skeleton (bukan dipasang per-box). Punya SATU
+     `AnimationController` (`vsync: this`, `duration: ~1200ms,
+     repeat(reverse: true)`), diekspos ke descendant lewat
+     `InheritedNotifier<Animation<double>>` (pola standar Flutter buat
+     "satu controller, banyak consumer di bawahnya" — supaya tidak
+     perlu bikin AnimationController baru per kotak skeleton, cukup
+     SATU per instance `SkeletonShimmer`, N kotak di bawahnya ikut
+     berdenyut sinkron).
+     - Constructor: `SkeletonShimmer({required Widget child})`.
+     - Statis `SkeletonShimmer.of(context)` — dipakai `SkeletonBox`
+       buat baca nilai animasi saat ini.
+     - HORMATI `MediaQuery.of(context).disableAnimations` (flag
+       accessibility "reduce motion" bawaan Flutter) — kalau true,
+       render langsung warna dasar statis tanpa menjalankan
+       AnimationController sama sekali. Terhubung dengan kerja
+       aksesibilitas yang baru selesai di
+       docs/ide-improvement-fitur-existing.txt BAGIAN I.
+     - Dispose controller saat widget di-unmount (pola sama seperti
+       AppLoadingIndicator) — TIDAK dipasang ambient sekali di root
+       app (beda dari ShowcaseView.register()), supaya animasi cuma
+       jalan/nge-tick selagi ada skeleton yang benar-benar tampil di
+       layar, bukan terus-menerus seumur hidup app.
+
+2.2. `SkeletonBox` — StatelessWidget, primitif bentuk dasar.
+     - Params: `width` (nullable — null berarti `double.infinity`),
+       `height` (required), `borderRadius` (default kecil, mis. 6),
+       `shape` (`BoxShape.rectangle` default, `BoxShape.circle` buat
+       avatar/icon-bubble — kalau circle, `borderRadius` diabaikan
+       sama seperti API `Container`/`BoxDecoration` biasa).
+     - `build()` panggil `SkeletonShimmer.of(context)` buat ambil nilai
+       animasi, isi `Container` dengan `Color.lerp(skeletonBase,
+       skeletonHighlight, animationValue)`.
+     - Harus dipanggil DI DALAM `SkeletonShimmer` (bukan berdiri
+       sendiri) — kalau tidak ada ancestor `SkeletonShimmer`,
+       `SkeletonShimmer.of(context)` throw assertion error yang jelas
+       (fail fast, bukan silent fallback ke warna statis — supaya
+       salah pakai ketahuan pas development, bukan lolos ke user
+       sebagai kotak abu-abu diam yang terlihat seperti bug lain).
+
+2.3. Token warna baru di AppColors — `skeletonBase` & `skeletonHighlight`
+     (theme-aware, pola sama seperti getter lain, flip lewat
+     `_isDark`). BUKAN pakai ulang `border`/`surface` apa adanya —
+     kotak skeleton perlu FILL solid yang jelas kelihatan beda dari
+     background/card di sekitarnya (bukan cuma warna garis tepi), jadi
+     butuh kalibrasi sendiri. Nilai hex PERSIS ditentukan saat
+     implementasi, diverifikasi manual di kedua tema (pola sama seperti
+     `_infoColor` di savings_goal_style.dart — "Verified against both
+     theme backgrounds").
+
+2.4. `SkeletonListTile` — composite, meniru bentuk kartu list-item yang
+     berulang di ~9 halaman (icon bubble bulat 40x40 + 2 baris teks
+     [judul lebih lebar, subjudul lebih pendek] + opsional kotak
+     trailing kanan buat nominal/ikon aksi), dibungkus shell yang SAMA
+     persis dengan kartu list asli (`Material` + `Container` warna
+     `AppColors.surface`, border `AppColors.border`, radius 14) supaya
+     tidak ada lompatan layout waktu data asli muncul menggantikan.
+     - Params: `hasTrailing` (bool, default true).
+
+2.5. `skeletonListTiles({int count = 6, bool hasTrailing = true})` —
+     fungsi top-level (pola sama seperti `scrollableCenter()` di
+     list_states.dart, bukan class), balikin SATU `SkeletonShimmer`
+     yang membungkus `count` buah `SkeletonListTile` + `SizedBox(height:
+     8)` sebagai separator — dipakai langsung sebagai isi `loading:`
+     buat halaman-halaman list generik (BAGIAN 3). `count` default 6
+     dipilih supaya biasanya mengisi 1 layar penuh tanpa terlalu
+     panjang.
+
+2.6. Skeleton BESPOKE per halaman (Dashboard, Summary, dst — bentuk
+     kontennya beda-beda, tidak generik) DIBANGUN NANTI di masing-
+     masing file halaman sebagai private widget lokal (mis.
+     `_DashboardSkeleton` di dashboard_page.dart), disusun dari
+     `SkeletonShimmer` + `SkeletonBox` langsung — BUKAN masuk ke
+     skeleton_loader.dart. Ini konsisten dengan pola yang sudah ada:
+     `_DashboardEmptyState`/state lokal lain juga didefinisikan di
+     file halamannya masing-masing, bukan di shared widgets.
+
+
+BAGIAN 3 — PEMETAAN ROLLOUT PER HALAMAN
+-----------------------------------------
+Generik lewat `skeletonListTiles()` (Tahap 2a):
+  - transaction_list_page.dart (proof-of-concept, dikerjakan Tahap 1)
+  - portfolio_list_page.dart
+  - transfer_list_page.dart
+  - btc_activity_page.dart
+  - category_list_page.dart (master_data)
+  - investment_list_page.dart (provider investasi, master_data)
+  - recurring_list_page.dart
+  - notification_history_page.dart (sekalian ganti dari
+    CircularProgressIndicator polos ke pola seragam, lihat 1.3)
+
+Campuran generik + bespoke kecil (Tahap 2b):
+  - budget_list_page.dart — header ringkasan (bespoke, mirip
+    `_SummaryCard` asli) + `skeletonListTiles()` buat baris kategori.
+  - savings_goal_list_page.dart — baris ringkasan (bespoke) +
+    skeleton kartu goal (mirip `SkeletonListTile` tapi + 1 `SkeletonBox`
+    tambahan buat progress bar — evaluasi saat implementasi apakah
+    cukup pakai `SkeletonListTile` apa adanya atau perlu varian baru).
+  - investment_dashboard_page.dart — kartu total value (bespoke) +
+    `skeletonListTiles()` buat baris aset.
+  - membership_plans_page.dart — kartu plan (bespoke, lebih kaya:
+    harga + daftar fitur).
+
+Full bespoke (Tahap 2c, kontennya beda dari pola list manapun):
+  - dashboard_page.dart — kartu net worth (kotak besar rounded ~140px)
+    + grid 4 stat card + kartu savings goal.
+  - summary_page.dart — top-level (beberapa bentuk kartu berbeda:
+    budget health, chart trend, breakdown chart, advisor tile, CTA
+    kalkulator) DAN card-level Budget Health yang sekarang
+    `SizedBox.shrink()` (lihat 1.2) diganti skeleton kecil.
+  - savings_goal_detail_page.dart — header stat + `skeletonListTiles()`
+    untuk daftar kontribusi di dalamnya.
+  - asset_detail_page.dart — area chart (kotak besar) + beberapa baris
+    stat.
+
+Prioritas RENDAH / opsional (Tahap 2d, boleh belakangan atau di-skip
+kalau dirasa tidak worth it):
+  - payroll_settings_page.dart — halaman setting kecil (2-3 field),
+    bukan konten list/card — evaluasi saat implementasi apakah
+    skeleton worth it atau AppLoadingIndicator tetap cukup di sini.
+  - fire_calculator_page.dart, emergency_fund_calculator_page.dart —
+    loading singkat (1x fetch Summary), dampak UX skeleton lebih kecil
+    dibanding halaman list panjang.
+
+TIDAK diskeleton-kan (lihat BAGIAN 0 kebijakan): semua loading inline
+form, tombol submit, splash, footer pagination.
+
+
+BAGIAN 4 — RENCANA IMPLEMENTASI (TAHAP 1, GILIRAN BERIKUTNYA)
+-----------------------------------------
+File baru:
+  lib/shared/widgets/skeleton_loader.dart
+    - `SkeletonShimmer`, `SkeletonBox`, `SkeletonListTile`,
+      `skeletonListTiles()` sesuai BAGIAN 2.
+
+File yang diubah:
+  lib/core/theme/app_colors.dart
+    - Tambah getter `skeletonBase`/`skeletonHighlight` + entri
+      `_ColorSet` (BAGIAN 2.3).
+  lib/features/transactions/presentation/transaction_list_page.dart
+    - Proof-of-concept: ganti `loading: () =>
+      scrollableCenter(const AppLoadingIndicator())` jadi
+      `loading: () => skeletonListTiles()` di `_TransactionListBody`
+      (lihat docs/ide-improvement-fitur-existing.txt BAGIAN F #37 —
+      body ini sudah diekstrak terpisah, jadi perubahan ini kecil &
+      terisolasi).
+
+TIDAK ada perubahan l10n (skeleton tidak punya teks).
+
+Setelah Tahap 1 selesai & di-review manual (BAGIAN 6), lanjut Tahap
+2a/2b/2c/2d di giliran-giliran terpisah sesuai BAGIAN 3 — bukan
+sekaligus, konsisten dengan keputusan BAGIAN 0.
+
+
+BAGIAN 5 — HAL YANG PERLU DIPERHATIKAN
+-----------------------------------------
+1. Dark mode: `skeletonBase`/`skeletonHighlight` WAJIB diverifikasi
+   manual di kedua tema (toggle dari Profile) sebelum dianggap selesai
+   — jangan cuma percaya angka hex tanpa lihat langsung, sama seperti
+   pola verifikasi warna lain di app ini.
+2. PENTING — pull-to-refresh vs initial load: beberapa controller
+   (`refresh()` methods, pola `state = const AsyncLoading(); state =
+   await AsyncValue.guard(...)`) TIDAK memakai `.copyWithPrevious(state)`
+   saat set ulang ke `AsyncLoading` — artinya `RefreshIndicator`
+   (pull-to-refresh manual) KEMUNGKINAN BESAR memicu branch `loading:`
+   yang SAMA dengan cold-start, bukan cuma nampilin spinner kecil di
+   atas konten yang sudah ada. Ini perilaku YANG SUDAH ADA sekarang
+   (bukan diperkenalkan skeleton), tapi dengan AppLoadingIndicator yang
+   kecil, efeknya nyaris tidak terasa — begitu diganti skeleton
+   full-layar, "kedip ke skeleton" tiap kali pull-to-refresh bisa
+   terasa mengganggu/berlebihan. WAJIB dicek per halaman saat rollout
+   (BAGIAN 3): kalau memang mengganggu, pertimbangkan tambah
+   `.copyWithPrevious(state)` di `refresh()` controller terkait supaya
+   data lama tetap tampil selama refresh (perbaikan terpisah & kecil,
+   bukan bagian dari komponen skeleton itu sendiri).
+3. Aksesibilitas: `MediaQuery.disableAnimations` WAJIB dihormati
+   (BAGIAN 2.1) — user yang mengaktifkan "reduce motion" di sistem
+   tidak boleh lihat animasi pulse.
+4. Performa: satu `SkeletonShimmer` per BLOK layout (bukan per kotak)
+   — `skeletonListTiles()` sudah didesain begitu (BAGIAN 2.5). Kalau
+   satu halaman punya beberapa blok bespoke terpisah (mis. Dashboard:
+   net worth + stat grid + savings goal), masing-masing boleh punya
+   `SkeletonShimmer` sendiri — TIDAK sinkron sempurna antar blok, efek
+   visual minor, bukan blocker (dicatat di sini supaya bukan kejutan
+   saat implementasi).
+5. Layout shift: bentuk & tinggi skeleton harus mendekati bentuk asli
+   (BAGIAN 2.4's shell yang sama persis) supaya transisi skeleton ->
+   data tidak melompat.
+
+
+BAGIAN 6 — VERIFIKASI SETELAH TAHAP 1
+-----------------------------------------
+1. `flutter analyze` — pastikan tidak ada lint baru.
+2. Buka Transaction List dengan koneksi lambat (throttle network kalau
+   perlu) atau cold-start — pastikan skeleton tampil dulu, bentuknya
+   mirip kartu transaksi asli, lalu transisi mulus ke data asli.
+3. Toggle dark mode, ulangi poin 2 — pastikan warna skeleton kontras &
+   terbaca di kedua tema.
+4. Tarik pull-to-refresh di Transaction List — evaluasi BAGIAN 5 poin
+   2, putuskan apakah perlu perbaikan `.copyWithPrevious()`.
+5. Aktifkan "Remove animations"/"reduce motion" di setting sistem
+   (Android: Settings > Accessibility > Remove animations) — pastikan
+   skeleton tampil statis, tidak berdenyut.
+6. Kalau Tahap 1 oke: lanjut Tahap 2a (BAGIAN 3) di giliran berikutnya.
+
+Kalau blueprint ini sudah oke, langkah berikutnya: implementasi BAGIAN
+4 (Tahap 1 — komponen + 1 halaman proof-of-concept), verifikasi BAGIAN
+6, baru lanjut Tahap 2 bertahap.

@@ -58,10 +58,20 @@ class _SavingsGoalFormPageState extends ConsumerState<SavingsGoalFormPage> {
   }
 
   Future<void> _pickTargetDate() async {
+    // A goal's deadline shouldn't be settable in the past — but if this is
+    // an EXISTING goal that's already overdue, `firstDate` still has to
+    // accommodate that already-selected date or showDatePicker asserts
+    // (initialDate must fall within [firstDate, lastDate]). Falling back to
+    // the existing overdue date (rather than DateTime(2020)) still blocks
+    // picking any NEW, even-earlier past date. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN D #18.
+    final today = DateTime.now();
+    final existing = _targetDate;
+    final firstSelectable = (existing != null && existing.isBefore(today)) ? existing : today;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _targetDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
+      initialDate: existing ?? today,
+      firstDate: firstSelectable,
       lastDate: DateTime(2100),
     );
     if (picked != null) setState(() => _targetDate = picked);

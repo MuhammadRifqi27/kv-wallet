@@ -1,12 +1,5 @@
 enum CategoryType { income, expense }
 
-extension CategoryTypeLabel on CategoryType {
-  String get label => switch (this) {
-        CategoryType.income => 'Pemasukan',
-        CategoryType.expense => 'Pengeluaran',
-      };
-}
-
 class CategoryModel {
   const CategoryModel({
     required this.id,

@@ -395,7 +395,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileMembershipFree.
   ///
   /// In id, this message translates to:
-  /// **'Free — belum upgrade membership'**
+  /// **'Free'**
   String get profileMembershipFree;
 
   /// No description provided for @profileAppVersion.
@@ -463,6 +463,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Rata-rata pengeluaran bulanan (Rp)'**
   String get emergencyFundManualLabel;
+
+  /// No description provided for @emergencyFundManualInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukkan nominal yang valid'**
+  String get emergencyFundManualInvalid;
 
   /// No description provided for @emergencyFundRecommendationLabel.
   ///
@@ -584,6 +590,23 @@ abstract class AppLocalizations {
   /// **'Budget {category} Terlampaui'**
   String notificationBudgetExceededTitle(String category);
 
+  /// No description provided for @notificationBudgetNearLimitTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Budget {category} Hampir Habis'**
+  String notificationBudgetNearLimitTitle(String category);
+
+  /// No description provided for @notificationBudgetNearLimitBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Sudah terpakai {spent} dari budget {budget} bulan {month} {year}.'**
+  String notificationBudgetNearLimitBody(
+    String spent,
+    String budget,
+    String month,
+    int year,
+  );
+
   /// No description provided for @notificationBudgetExceededBody.
   ///
   /// In id, this message translates to:
@@ -594,6 +617,48 @@ abstract class AppLocalizations {
     String month,
     int year,
   );
+
+  /// No description provided for @notificationHistoryAppBarTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Notifikasi'**
+  String get notificationHistoryAppBarTitle;
+
+  /// No description provided for @notificationHistoryEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum Ada Notifikasi'**
+  String get notificationHistoryEmptyTitle;
+
+  /// No description provided for @notificationHistoryEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi budget yang pernah muncul akan tersimpan di sini.'**
+  String get notificationHistoryEmptySubtitle;
+
+  /// No description provided for @profileNotificationHistoryTileTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat Notifikasi'**
+  String get profileNotificationHistoryTileTitle;
+
+  /// No description provided for @profileNotificationHistoryTileSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat notifikasi budget yang pernah muncul'**
+  String get profileNotificationHistoryTileSubtitle;
+
+  /// No description provided for @profileNotificationToggleTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi Budget'**
+  String get profileNotificationToggleTitle;
+
+  /// No description provided for @profileNotificationToggleSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Peringatan saat budget hampir habis atau terlampaui'**
+  String get profileNotificationToggleSubtitle;
 
   /// No description provided for @appChangePasswordSuccessMessage.
   ///
@@ -808,7 +873,7 @@ abstract class AppLocalizations {
   /// No description provided for @appNavUpgradeRequired.
   ///
   /// In id, this message translates to:
-  /// **'Fitur ini butuh upgrade membership'**
+  /// **'Fitur ini khusus akun Member'**
   String get appNavUpgradeRequired;
 
   /// No description provided for @authLoginWelcomeTitle.
@@ -1026,6 +1091,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Nomor WhatsApp/telepon wajib diisi'**
   String get authForgotPasswordPhoneRequired;
+
+  /// No description provided for @authForgotPasswordPhoneInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Format nomor tidak valid'**
+  String get authForgotPasswordPhoneInvalid;
 
   /// No description provided for @authForgotPasswordNoteLabel.
   ///
@@ -1414,7 +1485,7 @@ abstract class AppLocalizations {
   /// No description provided for @walletPortfolioListUpgradeRequired.
   ///
   /// In id, this message translates to:
-  /// **'Fitur ini butuh upgrade membership'**
+  /// **'Fitur ini khusus akun Member'**
   String get walletPortfolioListUpgradeRequired;
 
   /// No description provided for @walletPortfolioListTitle.
@@ -2041,6 +2112,24 @@ abstract class AppLocalizations {
   /// **'Transaksi Terbaru'**
   String get walletDashboardRecentTransactionsTitle;
 
+  /// No description provided for @walletDashboardEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum Ada Aktivitas'**
+  String get walletDashboardEmptyTitle;
+
+  /// No description provided for @walletDashboardEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Catat transaksi pertamamu untuk mulai lihat ringkasan keuangan di sini.'**
+  String get walletDashboardEmptySubtitle;
+
+  /// No description provided for @walletDashboardEmptyCta.
+  ///
+  /// In id, this message translates to:
+  /// **'Catat Transaksi'**
+  String get walletDashboardEmptyCta;
+
   /// No description provided for @walletDashboardGreetingMorning.
   ///
   /// In id, this message translates to:
@@ -2088,6 +2177,24 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Total Kekayaan Bersih'**
   String get walletDashboardNetWorthLabel;
+
+  /// No description provided for @walletDashboardToggleNominalShow.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan nominal'**
+  String get walletDashboardToggleNominalShow;
+
+  /// No description provided for @walletDashboardToggleNominalHide.
+  ///
+  /// In id, this message translates to:
+  /// **'Sembunyikan nominal'**
+  String get walletDashboardToggleNominalHide;
+
+  /// No description provided for @pinCodeFieldSemanticLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Input kode PIN, {filled} dari {total} digit terisi'**
+  String pinCodeFieldSemanticLabel(int filled, int total);
 
   /// No description provided for @walletDashboardSavingsGoalsCardTitle.
   ///
@@ -2197,6 +2304,18 @@ abstract class AppLocalizations {
   /// **'Pilih kategori'**
   String get txnCommonSelectCategoryTitle;
 
+  /// No description provided for @txnCategoryTypeIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan'**
+  String get txnCategoryTypeIncome;
+
+  /// No description provided for @txnCategoryTypeExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran'**
+  String get txnCategoryTypeExpense;
+
   /// No description provided for @txnCommonNoCategoryForType.
   ///
   /// In id, this message translates to:
@@ -2260,7 +2379,7 @@ abstract class AppLocalizations {
   /// No description provided for @txnFeatureRequiresUpgrade.
   ///
   /// In id, this message translates to:
-  /// **'Fitur ini butuh upgrade membership'**
+  /// **'Fitur ini khusus akun Member'**
   String get txnFeatureRequiresUpgrade;
 
   /// No description provided for @txnListTitle.
@@ -2376,6 +2495,24 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Terisi otomatis dari struk — mohon periksa kembali sebelum simpan.'**
   String get txnScanReceiptAutofilledMessage;
+
+  /// No description provided for @txnScanReceiptNoDataMessage.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks struk terbaca, tapi tidak ada info yang bisa dikenali — silakan isi manual.'**
+  String get txnScanReceiptNoDataMessage;
+
+  /// No description provided for @txnScanReceiptFieldAutofilledBadge.
+  ///
+  /// In id, this message translates to:
+  /// **'Terisi otomatis dari scan struk'**
+  String get txnScanReceiptFieldAutofilledBadge;
+
+  /// No description provided for @txnScanReceiptFieldGuessBadge.
+  ///
+  /// In id, this message translates to:
+  /// **'Perkiraan dari scan struk — mohon cek kembali'**
+  String get txnScanReceiptFieldGuessBadge;
 
   /// No description provided for @txnFormTitleEdit.
   ///
@@ -2497,6 +2634,30 @@ abstract class AppLocalizations {
   /// **'Frekuensi'**
   String get txnRecurringFrequencyLabel;
 
+  /// No description provided for @txnRecurringFrequencyDaily.
+  ///
+  /// In id, this message translates to:
+  /// **'Harian'**
+  String get txnRecurringFrequencyDaily;
+
+  /// No description provided for @txnRecurringFrequencyWeekly.
+  ///
+  /// In id, this message translates to:
+  /// **'Mingguan'**
+  String get txnRecurringFrequencyWeekly;
+
+  /// No description provided for @txnRecurringFrequencyMonthly.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulanan'**
+  String get txnRecurringFrequencyMonthly;
+
+  /// No description provided for @txnRecurringFrequencyYearly.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahunan'**
+  String get txnRecurringFrequencyYearly;
+
   /// No description provided for @txnRecurringStartDateLabel.
   ///
   /// In id, this message translates to:
@@ -2568,6 +2729,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Akun asal dan tujuan tidak boleh sama.'**
   String get txnTransferSameAccountError;
+
+  /// No description provided for @txnTransferInsufficientBalance.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo tidak cukup (tersedia {balance})'**
+  String txnTransferInsufficientBalance(String balance);
 
   /// No description provided for @txnTransferAssetRequiredError.
   ///
@@ -2641,10 +2808,16 @@ abstract class AppLocalizations {
   /// **'Gagal memuat budget.'**
   String get txnBudgetListLoadError;
 
+  /// No description provided for @txnBudgetListEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum Ada Budget'**
+  String get txnBudgetListEmptyTitle;
+
   /// No description provided for @txnBudgetListEmptyMessage.
   ///
   /// In id, this message translates to:
-  /// **'Belum ada budget untuk bulan ini.\nTap tombol + untuk menambah.'**
+  /// **'Tap tombol + untuk menambah budget bulan ini.'**
   String get txnBudgetListEmptyMessage;
 
   /// No description provided for @txnBudgetPerCategoryLabel.
@@ -2887,6 +3060,12 @@ abstract class AppLocalizations {
   /// **'Harga pasar untuk aset ini belum tersedia.'**
   String get investMarketPriceUnavailable;
 
+  /// No description provided for @investMarketPriceLoadError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat harga pasar. Cek koneksi lalu coba lagi.'**
+  String get investMarketPriceLoadError;
+
   /// No description provided for @investNoBalanceRecorded.
   ///
   /// In id, this message translates to:
@@ -3085,11 +3264,17 @@ abstract class AppLocalizations {
   /// **'Pilih akun crypto'**
   String get investSelectCryptoAccountSheetTitle;
 
-  /// No description provided for @investUpgradeMembershipTitle.
+  /// No description provided for @investMembershipTitle.
   ///
   /// In id, this message translates to:
-  /// **'Upgrade Membership'**
-  String get investUpgradeMembershipTitle;
+  /// **'Membership'**
+  String get investMembershipTitle;
+
+  /// No description provided for @investMembershipInfoNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Akses fitur mengikuti status membership akun Anda. Tarik ke bawah untuk memperbarui status.'**
+  String get investMembershipInfoNote;
 
   /// No description provided for @investMembershipStatusLoadError.
   ///
@@ -3100,7 +3285,7 @@ abstract class AppLocalizations {
   /// No description provided for @investChoosePlanTitle.
   ///
   /// In id, this message translates to:
-  /// **'Pilih Plan'**
+  /// **'Paket Membership'**
   String get investChoosePlanTitle;
 
   /// No description provided for @investPlanListLoadError.
@@ -3108,6 +3293,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Gagal memuat daftar plan.'**
   String get investPlanListLoadError;
+
+  /// No description provided for @investPlanListEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum Ada Plan Tersedia'**
+  String get investPlanListEmptyTitle;
+
+  /// No description provided for @investPlanListEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Paket membership belum tersedia saat ini. Coba lagi nanti.'**
+  String get investPlanListEmptySubtitle;
 
   /// No description provided for @investMemberFallbackName.
   ///
@@ -3130,7 +3327,7 @@ abstract class AppLocalizations {
   /// No description provided for @investPendingVerificationSubtitle.
   ///
   /// In id, this message translates to:
-  /// **'Menunggu verifikasi pembayaran dari admin'**
+  /// **'Membership sedang diproses'**
   String get investPendingVerificationSubtitle;
 
   /// No description provided for @investFreeLabel.
@@ -3142,108 +3339,14 @@ abstract class AppLocalizations {
   /// No description provided for @investNoMembershipSubtitle.
   ///
   /// In id, this message translates to:
-  /// **'Belum upgrade membership'**
+  /// **'Menggunakan paket Free'**
   String get investNoMembershipSubtitle;
-
-  /// No description provided for @investManualTransferTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Transfer Manual'**
-  String get investManualTransferTitle;
-
-  /// No description provided for @investBankLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Bank'**
-  String get investBankLabel;
-
-  /// No description provided for @investAccountNumberLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'No. Rekening'**
-  String get investAccountNumberLabel;
-
-  /// No description provided for @investAccountHolderLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Atas Nama'**
-  String get investAccountHolderLabel;
-
-  /// No description provided for @investNominalLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Nominal'**
-  String get investNominalLabel;
-
-  /// No description provided for @investTransferInstructionsNote.
-  ///
-  /// In id, this message translates to:
-  /// **'Setelah transfer, admin akan memverifikasi pembayaran dan mengaktifkan membership Anda secara manual.'**
-  String get investTransferInstructionsNote;
-
-  /// No description provided for @investCheckStatusButton.
-  ///
-  /// In id, this message translates to:
-  /// **'Saya sudah transfer, cek status'**
-  String get investCheckStatusButton;
-
-  /// No description provided for @investConfirmPlanDialogTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Konfirmasi {planName}'**
-  String investConfirmPlanDialogTitle(String planName);
-
-  /// No description provided for @investConfirmPlanDialogContent.
-  ///
-  /// In id, this message translates to:
-  /// **'Anda akan upgrade ke plan {planName} seharga {price} untuk {days} hari.'**
-  String investConfirmPlanDialogContent(
-    String planName,
-    String price,
-    int days,
-  );
-
-  /// No description provided for @investSwitchPlanWarning.
-  ///
-  /// In id, this message translates to:
-  /// **'Plan Anda saat ini masih aktif. Mengganti ke plan lain akan mereset akses Anda ke Free sampai pembayaran baru diverifikasi admin.'**
-  String get investSwitchPlanWarning;
-
-  /// No description provided for @investConfirmButton.
-  ///
-  /// In id, this message translates to:
-  /// **'Konfirmasi'**
-  String get investConfirmButton;
-
-  /// No description provided for @investPlanSelectedSnackbar.
-  ///
-  /// In id, this message translates to:
-  /// **'Plan dipilih. Silakan transfer sesuai instruksi di atas.'**
-  String get investPlanSelectedSnackbar;
-
-  /// No description provided for @investSelectPlanError.
-  ///
-  /// In id, this message translates to:
-  /// **'Gagal memilih plan.'**
-  String get investSelectPlanError;
 
   /// No description provided for @investActivePlanLabel.
   ///
   /// In id, this message translates to:
   /// **'Plan Aktif'**
   String get investActivePlanLabel;
-
-  /// No description provided for @investSelectPlanButton.
-  ///
-  /// In id, this message translates to:
-  /// **'Pilih Plan'**
-  String get investSelectPlanButton;
-
-  /// No description provided for @investPricePerDuration.
-  ///
-  /// In id, this message translates to:
-  /// **'{price} / {days} hari'**
-  String investPricePerDuration(String price, int days);
 
   /// No description provided for @investPlanFeaturesTitle.
   ///
@@ -3442,6 +3545,24 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Rata-rata pengeluaran bulanan (Rp)'**
   String get fireManualExpenseLabel;
+
+  /// No description provided for @fireManualIncomeInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukkan nominal yang valid'**
+  String get fireManualIncomeInvalid;
+
+  /// No description provided for @fireManualExpenseInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukkan nominal yang valid'**
+  String get fireManualExpenseInvalid;
+
+  /// No description provided for @fireNegativeSavingsWarning.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran sama atau lebih besar dari pemasukan, jadi belum ada yang bisa disisihkan untuk pensiun. Proyeksi baru bisa dihitung kalau pemasukan lebih besar dari pengeluaran.'**
+  String get fireNegativeSavingsWarning;
 
   /// No description provided for @fireReturnRateConservative.
   ///
@@ -3658,6 +3779,1182 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu.'**
   String get profileUserGuideOpenFailed;
+
+  /// No description provided for @wltSectionWallet.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet'**
+  String get wltSectionWallet;
+
+  /// No description provided for @wltCardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo Dompet'**
+  String get wltCardTitle;
+
+  /// No description provided for @wltCardCopyAccountNumber.
+  ///
+  /// In id, this message translates to:
+  /// **'Salin nomor rekening'**
+  String get wltCardCopyAccountNumber;
+
+  /// No description provided for @wltCopiedAccountNumber.
+  ///
+  /// In id, this message translates to:
+  /// **'Nomor rekening disalin'**
+  String get wltCopiedAccountNumber;
+
+  /// No description provided for @wltCardLoadError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat saldo dompet'**
+  String get wltCardLoadError;
+
+  /// No description provided for @wltCardRetry.
+  ///
+  /// In id, this message translates to:
+  /// **'Coba lagi'**
+  String get wltCardRetry;
+
+  /// No description provided for @wltCardFrozen.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet dibekukan'**
+  String get wltCardFrozen;
+
+  /// No description provided for @wltTransferTileTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer'**
+  String get wltTransferTileTitle;
+
+  /// No description provided for @wltTransferTileSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim saldo dompet ke pengguna lain lewat nomor rekening'**
+  String get wltTransferTileSubtitle;
+
+  /// No description provided for @wltPageTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet Saya'**
+  String get wltPageTitle;
+
+  /// No description provided for @wltAccountNumberLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Nomor Rekening'**
+  String get wltAccountNumberLabel;
+
+  /// No description provided for @wltActionTransfer.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer'**
+  String get wltActionTransfer;
+
+  /// No description provided for @wltActionTopup.
+  ///
+  /// In id, this message translates to:
+  /// **'Isi Saldo'**
+  String get wltActionTopup;
+
+  /// No description provided for @wltActionWithdraw.
+  ///
+  /// In id, this message translates to:
+  /// **'Tarik'**
+  String get wltActionWithdraw;
+
+  /// No description provided for @wltFrozenBanner.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet Anda dibekukan. Transaksi tidak dapat dilakukan, hubungi customer service.'**
+  String get wltFrozenBanner;
+
+  /// No description provided for @wltLimitsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Limit Transfer'**
+  String get wltLimitsTitle;
+
+  /// No description provided for @wltLimitPerTransaction.
+  ///
+  /// In id, this message translates to:
+  /// **'Per transaksi: {min} – {max}'**
+  String wltLimitPerTransaction(String min, String max);
+
+  /// No description provided for @wltLimitRemainingToday.
+  ///
+  /// In id, this message translates to:
+  /// **'Sisa limit hari ini: {remaining} dari {daily}'**
+  String wltLimitRemainingToday(String remaining, String daily);
+
+  /// No description provided for @wltHistoryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Mutasi'**
+  String get wltHistoryTitle;
+
+  /// No description provided for @wltFilterAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua'**
+  String get wltFilterAll;
+
+  /// No description provided for @wltFilterTransferOut.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer Keluar'**
+  String get wltFilterTransferOut;
+
+  /// No description provided for @wltFilterTransferIn.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer Masuk'**
+  String get wltFilterTransferIn;
+
+  /// No description provided for @wltFilterTopup.
+  ///
+  /// In id, this message translates to:
+  /// **'Isi Saldo'**
+  String get wltFilterTopup;
+
+  /// No description provided for @wltFilterWithdraw.
+  ///
+  /// In id, this message translates to:
+  /// **'Tarik Saldo'**
+  String get wltFilterWithdraw;
+
+  /// No description provided for @wltHistoryEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada mutasi'**
+  String get wltHistoryEmptyTitle;
+
+  /// No description provided for @wltHistoryEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer, isi saldo, dan penarikan akan muncul di sini.'**
+  String get wltHistoryEmptySubtitle;
+
+  /// No description provided for @wltHistoryLoadError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat mutasi dompet.'**
+  String get wltHistoryLoadError;
+
+  /// No description provided for @wltTxnTransferOut.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer ke {name}'**
+  String wltTxnTransferOut(String name);
+
+  /// No description provided for @wltTxnTransferIn.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer dari {name}'**
+  String wltTxnTransferIn(String name);
+
+  /// No description provided for @wltTxnTopup.
+  ///
+  /// In id, this message translates to:
+  /// **'Isi saldo dari portofolio'**
+  String get wltTxnTopup;
+
+  /// No description provided for @wltTxnWithdraw.
+  ///
+  /// In id, this message translates to:
+  /// **'Tarik ke portofolio'**
+  String get wltTxnWithdraw;
+
+  /// No description provided for @wltTxnReversal.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembatalan transaksi'**
+  String get wltTxnReversal;
+
+  /// No description provided for @wltTxnAdjustment.
+  ///
+  /// In id, this message translates to:
+  /// **'Penyesuaian saldo'**
+  String get wltTxnAdjustment;
+
+  /// No description provided for @wltTxnBalanceAfter.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo: {amount}'**
+  String wltTxnBalanceAfter(String amount);
+
+  /// No description provided for @wltTransferTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer'**
+  String get wltTransferTitle;
+
+  /// No description provided for @wltTransferAccountField.
+  ///
+  /// In id, this message translates to:
+  /// **'Nomor rekening tujuan'**
+  String get wltTransferAccountField;
+
+  /// No description provided for @wltTransferAccountHelper.
+  ///
+  /// In id, this message translates to:
+  /// **'12 digit, diawali 88'**
+  String get wltTransferAccountHelper;
+
+  /// No description provided for @wltTransferAccountInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'Nomor rekening harus 12 digit angka'**
+  String get wltTransferAccountInvalid;
+
+  /// No description provided for @wltTransferCheck.
+  ///
+  /// In id, this message translates to:
+  /// **'Cek Rekening'**
+  String get wltTransferCheck;
+
+  /// No description provided for @wltTransferRecipientLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Penerima'**
+  String get wltTransferRecipientLabel;
+
+  /// No description provided for @wltTransferChange.
+  ///
+  /// In id, this message translates to:
+  /// **'Ubah'**
+  String get wltTransferChange;
+
+  /// No description provided for @wltTransferAmountLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal (Rp)'**
+  String get wltTransferAmountLabel;
+
+  /// No description provided for @wltTransferNoteLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan (opsional)'**
+  String get wltTransferNoteLabel;
+
+  /// No description provided for @wltTransferAvailableBalance.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet: {balance}'**
+  String wltTransferAvailableBalance(String balance);
+
+  /// No description provided for @wltTransferContinue.
+  ///
+  /// In id, this message translates to:
+  /// **'Lanjut'**
+  String get wltTransferContinue;
+
+  /// No description provided for @wltTransferAmountRequired.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal wajib diisi'**
+  String get wltTransferAmountRequired;
+
+  /// No description provided for @wltTransferAmountTooSmall.
+  ///
+  /// In id, this message translates to:
+  /// **'Minimal transfer {min}'**
+  String wltTransferAmountTooSmall(String min);
+
+  /// No description provided for @wltTransferAmountTooLarge.
+  ///
+  /// In id, this message translates to:
+  /// **'Maksimal {max} per transaksi'**
+  String wltTransferAmountTooLarge(String max);
+
+  /// No description provided for @wltTransferExceedsDaily.
+  ///
+  /// In id, this message translates to:
+  /// **'Melebihi sisa limit harian ({remaining})'**
+  String wltTransferExceedsDaily(String remaining);
+
+  /// No description provided for @wltTransferInsufficient.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet tidak cukup'**
+  String get wltTransferInsufficient;
+
+  /// No description provided for @wltTransferConfirmTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi Transfer'**
+  String get wltTransferConfirmTitle;
+
+  /// No description provided for @wltTransferConfirmCheckName.
+  ///
+  /// In id, this message translates to:
+  /// **'Pastikan nama penerima sudah benar sebelum mengirim.'**
+  String get wltTransferConfirmCheckName;
+
+  /// No description provided for @wltTransferConfirmSend.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim'**
+  String get wltTransferConfirmSend;
+
+  /// No description provided for @wltCancel.
+  ///
+  /// In id, this message translates to:
+  /// **'Batal'**
+  String get wltCancel;
+
+  /// No description provided for @wltPinTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Masukkan PIN'**
+  String get wltPinTitle;
+
+  /// No description provided for @wltPinSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi transaksi dengan PIN 6 digit Anda.'**
+  String get wltPinSubtitle;
+
+  /// No description provided for @wltPinLocked.
+  ///
+  /// In id, this message translates to:
+  /// **'PIN terkunci. Coba lagi dalam {minutes} menit.'**
+  String wltPinLocked(int minutes);
+
+  /// No description provided for @wltPinNotSet.
+  ///
+  /// In id, this message translates to:
+  /// **'Anda belum memiliki PIN. Atur PIN terlebih dulu di menu Profil.'**
+  String get wltPinNotSet;
+
+  /// No description provided for @wltPinRetryNetwork.
+  ///
+  /// In id, this message translates to:
+  /// **'Koneksi bermasalah. Masukkan PIN lagi untuk mencoba ulang — transfer tidak akan terkirim dua kali.'**
+  String get wltPinRetryNetwork;
+
+  /// No description provided for @wltErrAccountNotFound.
+  ///
+  /// In id, this message translates to:
+  /// **'Nomor rekening tidak ditemukan.'**
+  String get wltErrAccountNotFound;
+
+  /// No description provided for @wltErrSelfTransfer.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak bisa transfer ke rekening sendiri.'**
+  String get wltErrSelfTransfer;
+
+  /// No description provided for @wltErrFrozen.
+  ///
+  /// In id, this message translates to:
+  /// **'Dompet Anda dibekukan.'**
+  String get wltErrFrozen;
+
+  /// No description provided for @wltErrInsufficientBalance.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet tidak cukup.'**
+  String get wltErrInsufficientBalance;
+
+  /// No description provided for @wltErrInsufficientPortfolio.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo portofolio tidak cukup.'**
+  String get wltErrInsufficientPortfolio;
+
+  /// No description provided for @wltErrDailyLimit.
+  ///
+  /// In id, this message translates to:
+  /// **'Limit transfer harian terlampaui.'**
+  String get wltErrDailyLimit;
+
+  /// No description provided for @wltErrAmountOutOfRange.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal di luar batas minimum/maksimum per transaksi.'**
+  String get wltErrAmountOutOfRange;
+
+  /// No description provided for @wltErrRateLimit.
+  ///
+  /// In id, this message translates to:
+  /// **'Terlalu banyak percobaan. Coba lagi sebentar lagi.'**
+  String get wltErrRateLimit;
+
+  /// No description provided for @wltErrPinInvalid.
+  ///
+  /// In id, this message translates to:
+  /// **'PIN salah.'**
+  String get wltErrPinInvalid;
+
+  /// No description provided for @wltReceiptTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Detail Transfer'**
+  String get wltReceiptTitle;
+
+  /// No description provided for @wltReceiptSuccess.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer Berhasil'**
+  String get wltReceiptSuccess;
+
+  /// No description provided for @wltReceiptReceivedHeader.
+  ///
+  /// In id, this message translates to:
+  /// **'Transfer Diterima'**
+  String get wltReceiptReceivedHeader;
+
+  /// No description provided for @wltReceiptReference.
+  ///
+  /// In id, this message translates to:
+  /// **'No. Referensi'**
+  String get wltReceiptReference;
+
+  /// No description provided for @wltReceiptDate.
+  ///
+  /// In id, this message translates to:
+  /// **'Waktu'**
+  String get wltReceiptDate;
+
+  /// No description provided for @wltReceiptStatus.
+  ///
+  /// In id, this message translates to:
+  /// **'Status'**
+  String get wltReceiptStatus;
+
+  /// No description provided for @wltReceiptStatusCompleted.
+  ///
+  /// In id, this message translates to:
+  /// **'Berhasil'**
+  String get wltReceiptStatusCompleted;
+
+  /// No description provided for @wltReceiptRecipient.
+  ///
+  /// In id, this message translates to:
+  /// **'Penerima'**
+  String get wltReceiptRecipient;
+
+  /// No description provided for @wltReceiptSender.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengirim'**
+  String get wltReceiptSender;
+
+  /// No description provided for @wltReceiptAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Rekening'**
+  String get wltReceiptAccount;
+
+  /// No description provided for @wltReceiptAmount.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal'**
+  String get wltReceiptAmount;
+
+  /// No description provided for @wltReceiptNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Catatan'**
+  String get wltReceiptNote;
+
+  /// No description provided for @wltReceiptBalanceAfter.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo setelah transfer'**
+  String get wltReceiptBalanceAfter;
+
+  /// No description provided for @wltReceiptDone.
+  ///
+  /// In id, this message translates to:
+  /// **'Selesai'**
+  String get wltReceiptDone;
+
+  /// No description provided for @wltReceiptLoadError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat detail transfer.'**
+  String get wltReceiptLoadError;
+
+  /// No description provided for @wltTopupTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Isi Saldo Dompet'**
+  String get wltTopupTitle;
+
+  /// No description provided for @wltWithdrawTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tarik ke Portofolio'**
+  String get wltWithdrawTitle;
+
+  /// No description provided for @wltMoveTopupInfo.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo diambil dari portofolio yang dipilih dan masuk ke dompet.'**
+  String get wltMoveTopupInfo;
+
+  /// No description provided for @wltMoveWithdrawInfo.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet dipindahkan ke portofolio yang dipilih.'**
+  String get wltMoveWithdrawInfo;
+
+  /// No description provided for @wltMovePortfolioLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Portofolio'**
+  String get wltMovePortfolioLabel;
+
+  /// No description provided for @wltMovePortfolioPlaceholder.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih portofolio'**
+  String get wltMovePortfolioPlaceholder;
+
+  /// No description provided for @wltMoveSelectPortfolioError.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih portofolio terlebih dulu'**
+  String get wltMoveSelectPortfolioError;
+
+  /// No description provided for @wltMoveDescriptionLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Keterangan (opsional)'**
+  String get wltMoveDescriptionLabel;
+
+  /// No description provided for @wltMoveSubmitTopup.
+  ///
+  /// In id, this message translates to:
+  /// **'Isi Saldo'**
+  String get wltMoveSubmitTopup;
+
+  /// No description provided for @wltMoveSubmitWithdraw.
+  ///
+  /// In id, this message translates to:
+  /// **'Tarik Saldo'**
+  String get wltMoveSubmitWithdraw;
+
+  /// No description provided for @wltMoveSuccessTopup.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo dompet berhasil diisi.'**
+  String get wltMoveSuccessTopup;
+
+  /// No description provided for @wltMoveSuccessWithdraw.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo berhasil ditarik ke portofolio.'**
+  String get wltMoveSuccessWithdraw;
+
+  /// No description provided for @wltMovePortfolioBalance.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo portofolio: {balance}'**
+  String wltMovePortfolioBalance(String balance);
+
+  /// No description provided for @rptPageTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan'**
+  String get rptPageTitle;
+
+  /// No description provided for @rptTabCashFlow.
+  ///
+  /// In id, this message translates to:
+  /// **'Arus Kas'**
+  String get rptTabCashFlow;
+
+  /// No description provided for @rptTabSavings.
+  ///
+  /// In id, this message translates to:
+  /// **'Tabungan'**
+  String get rptTabSavings;
+
+  /// No description provided for @rptTabCompare.
+  ///
+  /// In id, this message translates to:
+  /// **'Bandingkan'**
+  String get rptTabCompare;
+
+  /// No description provided for @rptTabCategory.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori'**
+  String get rptTabCategory;
+
+  /// No description provided for @rptTabUnexpected.
+  ///
+  /// In id, this message translates to:
+  /// **'Tak Terduga'**
+  String get rptTabUnexpected;
+
+  /// No description provided for @rptTabYear.
+  ///
+  /// In id, this message translates to:
+  /// **'Tahunan'**
+  String get rptTabYear;
+
+  /// No description provided for @rptTabTax.
+  ///
+  /// In id, this message translates to:
+  /// **'Pajak'**
+  String get rptTabTax;
+
+  /// No description provided for @rptCardTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Laporan'**
+  String get rptCardTitle;
+
+  /// No description provided for @rptCardSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Arus kas, rasio menabung, perbandingan, pajak, dan lainnya'**
+  String get rptCardSubtitle;
+
+  /// No description provided for @rptLoadError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat laporan.'**
+  String get rptLoadError;
+
+  /// No description provided for @rptCyclesOption.
+  ///
+  /// In id, this message translates to:
+  /// **'{n} cycle'**
+  String rptCyclesOption(int n);
+
+  /// No description provided for @rptCfOpening.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo Awal'**
+  String get rptCfOpening;
+
+  /// No description provided for @rptCfClosing.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo Akhir'**
+  String get rptCfClosing;
+
+  /// No description provided for @rptCfNet.
+  ///
+  /// In id, this message translates to:
+  /// **'Selisih Bersih'**
+  String get rptCfNet;
+
+  /// No description provided for @rptCfOther.
+  ///
+  /// In id, this message translates to:
+  /// **'Penyesuaian lain'**
+  String get rptCfOther;
+
+  /// No description provided for @rptCfOtherHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Perubahan saldo di luar pemasukan/pengeluaran, mis. perubahan nilai investasi.'**
+  String get rptCfOtherHint;
+
+  /// No description provided for @rptCfBalanceChart.
+  ///
+  /// In id, this message translates to:
+  /// **'Saldo Berjalan'**
+  String get rptCfBalanceChart;
+
+  /// No description provided for @rptCfDailyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pergerakan Harian'**
+  String get rptCfDailyTitle;
+
+  /// No description provided for @rptCfEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada transaksi'**
+  String get rptCfEmptyTitle;
+
+  /// No description provided for @rptCfEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada transaksi pada cycle ini.'**
+  String get rptCfEmptySubtitle;
+
+  /// No description provided for @rptSrCurrent.
+  ///
+  /// In id, this message translates to:
+  /// **'Rasio Saat Ini'**
+  String get rptSrCurrent;
+
+  /// No description provided for @rptSrPrevious.
+  ///
+  /// In id, this message translates to:
+  /// **'Cycle Lalu'**
+  String get rptSrPrevious;
+
+  /// No description provided for @rptSrAverage.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata'**
+  String get rptSrAverage;
+
+  /// No description provided for @rptSrTargetLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Target'**
+  String get rptSrTargetLabel;
+
+  /// No description provided for @rptSrChangePoints.
+  ///
+  /// In id, this message translates to:
+  /// **'{value} poin'**
+  String rptSrChangePoints(String value);
+
+  /// No description provided for @rptSrFormula.
+  ///
+  /// In id, this message translates to:
+  /// **'(Pemasukan − Pengeluaran) ÷ Pemasukan'**
+  String get rptSrFormula;
+
+  /// No description provided for @rptSrOnTarget.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} dari {total} cycle mencapai target'**
+  String rptSrOnTarget(int count, int total);
+
+  /// No description provided for @rptSrSeriesTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tren Rasio Menabung'**
+  String get rptSrSeriesTitle;
+
+  /// No description provided for @rptSrBest.
+  ///
+  /// In id, this message translates to:
+  /// **'Terbaik'**
+  String get rptSrBest;
+
+  /// No description provided for @rptSrWorst.
+  ///
+  /// In id, this message translates to:
+  /// **'Terendah'**
+  String get rptSrWorst;
+
+  /// No description provided for @rptCmpCompareWith.
+  ///
+  /// In id, this message translates to:
+  /// **'Dibanding dengan'**
+  String get rptCmpCompareWith;
+
+  /// No description provided for @rptCmpDefaultPrev.
+  ///
+  /// In id, this message translates to:
+  /// **'Cycle sebelumnya'**
+  String get rptCmpDefaultPrev;
+
+  /// No description provided for @rptCmpMetrics.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan'**
+  String get rptCmpMetrics;
+
+  /// No description provided for @rptCmpSavingsRate.
+  ///
+  /// In id, this message translates to:
+  /// **'Rasio Menabung'**
+  String get rptCmpSavingsRate;
+
+  /// No description provided for @rptCmpCategories.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran per Kategori'**
+  String get rptCmpCategories;
+
+  /// No description provided for @rptCmpNewLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Baru'**
+  String get rptCmpNewLabel;
+
+  /// No description provided for @rptCatSelect.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori'**
+  String get rptCatSelect;
+
+  /// No description provided for @rptCatNoCategoryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada kategori'**
+  String get rptCatNoCategoryTitle;
+
+  /// No description provided for @rptCatNoCategorySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tambahkan kategori dan transaksi untuk melihat laporan ini.'**
+  String get rptCatNoCategorySubtitle;
+
+  /// No description provided for @rptCatTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Cycle Ini'**
+  String get rptCatTotal;
+
+  /// No description provided for @rptCatCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} transaksi'**
+  String rptCatCount(int count);
+
+  /// No description provided for @rptCatPrevious.
+  ///
+  /// In id, this message translates to:
+  /// **'Cycle Lalu'**
+  String get rptCatPrevious;
+
+  /// No description provided for @rptCatAverage.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata/cycle'**
+  String get rptCatAverage;
+
+  /// No description provided for @rptCatShare.
+  ///
+  /// In id, this message translates to:
+  /// **'Porsi'**
+  String get rptCatShare;
+
+  /// No description provided for @rptCatSeries.
+  ///
+  /// In id, this message translates to:
+  /// **'Tren per Cycle'**
+  String get rptCatSeries;
+
+  /// No description provided for @rptCatTop.
+  ///
+  /// In id, this message translates to:
+  /// **'Transaksi Terbesar'**
+  String get rptCatTop;
+
+  /// No description provided for @rptCatFrequent.
+  ///
+  /// In id, this message translates to:
+  /// **'Paling Sering'**
+  String get rptCatFrequent;
+
+  /// No description provided for @rptCatFrequentLine.
+  ///
+  /// In id, this message translates to:
+  /// **'{count}× · {total}'**
+  String rptCatFrequentLine(int count, String total);
+
+  /// No description provided for @rptCatAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua Transaksi'**
+  String get rptCatAll;
+
+  /// No description provided for @rptCatNoTx.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada transaksi di kategori ini.'**
+  String get rptCatNoTx;
+
+  /// No description provided for @rptUxHow.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran lebih dari {factor}× rata-rata transaksi kategori itu dalam {cycles} cycle sebelumnya. Kategori dengan kurang dari {samples} transaksi pembanding tidak dianalisis.'**
+  String rptUxHow(String factor, int cycles, int samples);
+
+  /// No description provided for @rptUxTotalFlagged.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Ditandai'**
+  String get rptUxTotalFlagged;
+
+  /// No description provided for @rptUxAnalyzedLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Dianalisis'**
+  String get rptUxAnalyzedLabel;
+
+  /// No description provided for @rptUxEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada pengeluaran mencurigakan'**
+  String get rptUxEmptyTitle;
+
+  /// No description provided for @rptUxEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaranmu di cycle ini masih wajar. Bagus!'**
+  String get rptUxEmptySubtitle;
+
+  /// No description provided for @rptUxRatio.
+  ///
+  /// In id, this message translates to:
+  /// **'{ratio}× rata-rata'**
+  String rptUxRatio(String ratio);
+
+  /// No description provided for @rptUxAverage.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata kategori: {amount}'**
+  String rptUxAverage(String amount);
+
+  /// No description provided for @rptYrAvgExpense.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata Pengeluaran/Bulan'**
+  String get rptYrAvgExpense;
+
+  /// No description provided for @rptYrMonthly.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan vs Pengeluaran Bulanan'**
+  String get rptYrMonthly;
+
+  /// No description provided for @rptYrBest.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan Terbaik'**
+  String get rptYrBest;
+
+  /// No description provided for @rptYrWorst.
+  ///
+  /// In id, this message translates to:
+  /// **'Bulan Terburuk'**
+  String get rptYrWorst;
+
+  /// No description provided for @rptYrBiggest.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengeluaran Terbesar'**
+  String get rptYrBiggest;
+
+  /// No description provided for @rptYrTopExpenses.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Pengeluaran Teratas'**
+  String get rptYrTopExpenses;
+
+  /// No description provided for @rptYrTopIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Sumber Pemasukan Teratas'**
+  String get rptYrTopIncome;
+
+  /// No description provided for @rptYrBudgetTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Anggaran Setahun'**
+  String get rptYrBudgetTitle;
+
+  /// No description provided for @rptYrBudgetTotals.
+  ///
+  /// In id, this message translates to:
+  /// **'Terpakai {spent} dari {budget}'**
+  String rptYrBudgetTotals(String spent, String budget);
+
+  /// No description provided for @rptYrBudgetMonthsOver.
+  ///
+  /// In id, this message translates to:
+  /// **'{over} dari {total} bulan melebihi anggaran'**
+  String rptYrBudgetMonthsOver(int over, int total);
+
+  /// No description provided for @rptYrBudgetUsed.
+  ///
+  /// In id, this message translates to:
+  /// **'{pct}% terpakai'**
+  String rptYrBudgetUsed(String pct);
+
+  /// No description provided for @rptYrOverItems.
+  ///
+  /// In id, this message translates to:
+  /// **'Kelebihan Anggaran Terbesar'**
+  String get rptYrOverItems;
+
+  /// No description provided for @rptYrOverBy.
+  ///
+  /// In id, this message translates to:
+  /// **'+{amount} ({pct}%)'**
+  String rptYrOverBy(String amount, String pct);
+
+  /// No description provided for @rptYrOverCategories.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Paling Sering Melebihi'**
+  String get rptYrOverCategories;
+
+  /// No description provided for @rptYrOverTimes.
+  ///
+  /// In id, this message translates to:
+  /// **'{times}× melebihi · {amount}'**
+  String rptYrOverTimes(int times, String amount);
+
+  /// No description provided for @rptTaxDisclaimer.
+  ///
+  /// In id, this message translates to:
+  /// **'Ini hanya rekap, bukan perhitungan pajak: total pemasukan setahun dan pengeluaran yang kamu tandai sebagai pengurang pajak. Konsultasikan ke konsultan pajak untuk hitungan resmi.'**
+  String get rptTaxDisclaimer;
+
+  /// No description provided for @rptTaxTotalIncome.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Pemasukan'**
+  String get rptTaxTotalIncome;
+
+  /// No description provided for @rptTaxTotalDeductible.
+  ///
+  /// In id, this message translates to:
+  /// **'Total Pengurang'**
+  String get rptTaxTotalDeductible;
+
+  /// No description provided for @rptTaxAfter.
+  ///
+  /// In id, this message translates to:
+  /// **'Pemasukan Setelah Pengurang'**
+  String get rptTaxAfter;
+
+  /// No description provided for @rptTaxDeductibleList.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengurang Terhitung'**
+  String get rptTaxDeductibleList;
+
+  /// No description provided for @rptTaxNoDeductible.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada kategori yang ditandai dan memiliki pengeluaran.'**
+  String get rptTaxNoDeductible;
+
+  /// No description provided for @rptTaxCategoriesTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kategori Pengurang Pajak'**
+  String get rptTaxCategoriesTitle;
+
+  /// No description provided for @rptTaxCategoriesHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Centang kategori pengeluaran yang dapat mengurangi pajak. Pilihan berlaku untuk semua tahun.'**
+  String get rptTaxCategoriesHint;
+
+  /// No description provided for @rptTaxNoCategories.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada kategori pengeluaran.'**
+  String get rptTaxNoCategories;
+
+  /// No description provided for @rptTaxSave.
+  ///
+  /// In id, this message translates to:
+  /// **'Simpan Pilihan'**
+  String get rptTaxSave;
+
+  /// No description provided for @rptTaxSaved.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilihan disimpan.'**
+  String get rptTaxSaved;
+
+  /// No description provided for @brcTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Rekomendasi Budget'**
+  String get brcTitle;
+
+  /// No description provided for @brcLoadError.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal memuat rekomendasi budget.'**
+  String get brcLoadError;
+
+  /// No description provided for @brcEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada rekomendasi'**
+  String get brcEmptyTitle;
+
+  /// No description provided for @brcEmptySubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Rekomendasi muncul setelah ada riwayat pengeluaran dalam {cycles} cycle terakhir.'**
+  String brcEmptySubtitle(int cycles);
+
+  /// No description provided for @brcBasisPercentage.
+  ///
+  /// In id, this message translates to:
+  /// **'Saran dihitung dari rata-rata porsi pengeluaran tiap kategori terhadap pemasukan selama {cycles} cycle terakhir, dikalikan pemasukan cycle ini ({income}).'**
+  String brcBasisPercentage(String income, int cycles);
+
+  /// No description provided for @brcBasisNominal.
+  ///
+  /// In id, this message translates to:
+  /// **'Gaji cycle ini belum masuk, saran memakai rata-rata nominal pengeluaran selama {cycles} cycle terakhir.'**
+  String brcBasisNominal(int cycles);
+
+  /// No description provided for @brcSelectedCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{selected} dari {total} dipilih'**
+  String brcSelectedCount(int selected, int total);
+
+  /// No description provided for @brcSelectAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih semua'**
+  String get brcSelectAll;
+
+  /// No description provided for @brcDeselectAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Batal pilih semua'**
+  String get brcDeselectAll;
+
+  /// No description provided for @brcNoBudgetYet.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada budget'**
+  String get brcNoBudgetYet;
+
+  /// No description provided for @brcAverageSpent.
+  ///
+  /// In id, this message translates to:
+  /// **'Rata-rata belanja {amount} per cycle · {percent} dari pemasukan'**
+  String brcAverageSpent(String amount, String percent);
+
+  /// No description provided for @brcLimitedNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Melebihi budget di {count} cycle, tidak dinaikkan'**
+  String brcLimitedNote(int count);
+
+  /// No description provided for @brcApplyButton.
+  ///
+  /// In id, this message translates to:
+  /// **'Terapkan ({count})'**
+  String brcApplyButton(int count);
+
+  /// No description provided for @brcApplied.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} budget berhasil disimpan.'**
+  String brcApplied(int count);
+
+  /// No description provided for @brcAppliedPartial.
+  ///
+  /// In id, this message translates to:
+  /// **'{saved} dari {total} budget disimpan. Sisanya tidak punya saran.'**
+  String brcAppliedPartial(int saved, int total);
+
+  /// No description provided for @brcAppliedNone.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada budget yang disimpan. Kategori yang dipilih tidak punya saran.'**
+  String get brcAppliedNone;
 }
 
 class _AppLocalizationsDelegate

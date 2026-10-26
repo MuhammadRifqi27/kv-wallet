@@ -16,11 +16,13 @@ import '../../data/repositories/btc_tracking_repository.dart';
 import '../../data/repositories/crypto_price_repository.dart';
 import '../../data/repositories/portfolio_repository.dart';
 import '../../data/repositories/recurring_repository.dart';
+import '../../data/repositories/report_repository.dart';
 import '../../data/repositories/savings_goal_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/summary_repository.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../data/repositories/transfer_repository.dart';
+import '../../data/repositories/wallet_repository.dart';
 import '../../features/auth/application/auth_controller.dart';
 import '../auth/biometric_service.dart';
 import '../network/api_client.dart';
@@ -28,6 +30,8 @@ import '../notifications/notification_service.dart';
 import '../ocr/receipt_scanner.dart';
 import '../storage/biometric_preference_service.dart';
 import '../storage/biometric_prompt_service.dart';
+import '../storage/notification_history_service.dart';
+import '../storage/notification_preference_service.dart';
 import '../storage/locale_preference_service.dart';
 import '../storage/onboarding_service.dart';
 import '../storage/secure_storage_service.dart';
@@ -93,8 +97,41 @@ final effectiveLocaleProvider = Provider<Locale>((ref) {
   return isSupported ? Locale(deviceLanguage) : const Locale('id');
 });
 
+/// Set by [NotificationService] when a local notification is tapped (its
+/// `payload`, a route string like `/budget`) — consumed once by FlowrApp to
+/// navigate there via the router. Kept as simple pending-state rather than
+/// NotificationService reaching into `appRouterProvider` directly, which
+/// would create an import cycle. See
+/// docs/ide-improvement-fitur-existing.txt BAGIAN G #40.
+final pendingNotificationRouteProvider = StateProvider<String?>((ref) => null);
+
+final notificationHistoryServiceProvider = Provider<NotificationHistoryService>((ref) {
+  return NotificationHistoryService();
+});
+
+/// Re-reads the persisted log fresh every time it's watched (autoDispose,
+/// no manual invalidation) — simplest correct option since entries are only
+/// ever appended from outside the widget tree (NotificationService), so
+/// there's no single write-site to invalidate this from.
+final notificationHistoryProvider = FutureProvider.autoDispose<List<NotificationHistoryEntry>>((ref) {
+  return ref.read(notificationHistoryServiceProvider).getAll();
+});
+
+final notificationPreferenceServiceProvider = Provider<NotificationPreferenceService>((ref) {
+  return NotificationPreferenceService();
+});
+
+/// Overridden in main.dart with the persisted value read at startup, same
+/// pattern as [biometricEnabledProvider]. Flipped at runtime by the toggle
+/// in ProfilePage; [BudgetController] checks this before firing a budget
+/// notification. See docs/ide-improvement-fitur-existing.txt BAGIAN G #43.
+final budgetNotificationsEnabledProvider = StateProvider<bool>((ref) => true);
+
 final notificationServiceProvider = Provider<NotificationService>((ref) {
-  return NotificationService();
+  return NotificationService(
+    onNotificationTapped: (route) => ref.read(pendingNotificationRouteProvider.notifier).state = route,
+    onNotificationShown: (title, body) => ref.read(notificationHistoryServiceProvider).add(title, body),
+  );
 });
 
 final receiptScannerProvider = Provider<ReceiptScanner>((ref) {
@@ -193,4 +230,12 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
 
 final transferRepositoryProvider = Provider<TransferRepository>((ref) {
   return TransferRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final reportRepositoryProvider = Provider<ReportRepository>((ref) {
+  return ReportRepository(apiClient: ref.read(apiClientProvider));
+});
+
+final walletRepositoryProvider =Provider<WalletRepository>((ref) {
+  return WalletRepository(apiClient: ref.read(apiClientProvider));
 });

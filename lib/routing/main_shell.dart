@@ -40,6 +40,11 @@ String _navLabelFor(AppLocalizations l10n, String permission) {
     case 'settings':
       return l10n.appNavProfile;
     default:
+      // A future tab added without a matching case here would otherwise
+      // silently leak the raw permission string to users (e.g. literal
+      // "portfolio") — fail loudly in debug instead. See
+      // docs/ide-improvement-fitur-existing.txt BAGIAN B #11.
+      assert(false, 'No label mapped for nav permission "$permission" — add a case to _navLabelFor.');
       return permission;
   }
 }
@@ -60,6 +65,7 @@ String _navLabelFor(AppLocalizations l10n, String permission) {
     case 'settings':
       return (l10n.tourNavProfileTitle, l10n.tourNavProfileDescription);
     default:
+      assert(false, 'No tour copy mapped for nav permission "$permission" — add a case to _navTourCopyFor.');
       return (permission, '');
   }
 }

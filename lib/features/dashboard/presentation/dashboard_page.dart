@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
 import '../../auth/application/auth_controller.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../../savings_goals/application/savings_goal_controller.dart';
 import '../../savings_goals/presentation/savings_goal_style.dart';
 import '../../tour/application/tour_controller.dart';
@@ -53,8 +54,15 @@ class DashboardPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ColorFiltered(
-              colorFilter: ColorFilter.mode(AppColors.textPrimary, BlendMode.srcIn),
-              child: Image.asset('assets/branding/logo_mark.png', height: 22, fit: BoxFit.contain),
+              colorFilter: ColorFilter.mode(
+                AppColors.textPrimary,
+                BlendMode.srcIn,
+              ),
+              child: Image.asset(
+                'assets/branding/logo_mark.png',
+                height: 22,
+                fit: BoxFit.contain,
+              ),
             ),
             const SizedBox(width: 8),
             const Text('Flowr'),
@@ -74,8 +82,10 @@ class DashboardPage extends ConsumerWidget {
                 // keeps the original default behavior for anyone who taps
                 // back to "Bulan Ini" instead of leaving a redundant explicit
                 // selection sitting in state.
-                final isCurrentCycle = value.year == now.year && value.month == now.month;
-                ref.read(selectedDashboardPeriodProvider.notifier).state = isCurrentCycle ? null : value;
+                final isCurrentCycle =
+                    value.year == now.year && value.month == now.month;
+                ref.read(selectedDashboardPeriodProvider.notifier).state =
+                    isCurrentCycle ? null : value;
               },
             ),
           ),
@@ -87,11 +97,16 @@ class DashboardPage extends ConsumerWidget {
                 loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : l10n.walletDashboardLoadError,
+                    message: error is ApiException
+                        ? error.message
+                        : l10n.walletDashboardLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
-                data: (dashboard) => _DashboardBody(dashboard: dashboard, hideNominal: hideNominal),
+                data: (dashboard) => _DashboardBody(
+                  dashboard: dashboard,
+                  hideNominal: hideNominal,
+                ),
               ),
             ),
           ),
@@ -130,7 +145,11 @@ class _DashboardBody extends StatelessWidget {
           tooltipBackgroundColor: AppColors.surface,
           textColor: AppColors.textPrimary,
           targetBorderRadius: BorderRadius.circular(20),
-          child: _NetWorthCard(amount: dashboard.totalNetWorth, cycleStart: cycleStart, cycleEnd: cycleEnd),
+          child: _NetWorthCard(
+            amount: dashboard.totalNetWorth,
+            cycleStart: cycleStart,
+            cycleEnd: cycleEnd,
+          ),
         ),
         const SizedBox(height: 12),
         Showcase(
@@ -148,7 +167,10 @@ class _DashboardBody extends StatelessWidget {
                     child: _StatCard(
                       icon: Icons.payments_outlined,
                       label: l10n.walletDashboardCashBalanceLabel,
-                      value: maskRupiah(dashboard.totalLiquidCash, hide: hideNominal),
+                      value: maskRupiah(
+                        dashboard.totalLiquidCash,
+                        hide: hideNominal,
+                      ),
                       color: AppColors.primary,
                     ),
                   ),
@@ -157,7 +179,10 @@ class _DashboardBody extends StatelessWidget {
                     child: _StatCard(
                       icon: Icons.trending_up_rounded,
                       label: l10n.walletDashboardInvestmentBalanceLabel,
-                      value: maskRupiah(dashboard.totalInvestmentValue, hide: hideNominal),
+                      value: maskRupiah(
+                        dashboard.totalInvestmentValue,
+                        hide: hideNominal,
+                      ),
                       color: AppColors.accent,
                     ),
                   ),
@@ -170,7 +195,10 @@ class _DashboardBody extends StatelessWidget {
                     child: _StatCard(
                       icon: Icons.arrow_downward_rounded,
                       label: l10n.walletDashboardIncomeLabel,
-                      value: maskRupiah(dashboard.incomePool, hide: hideNominal),
+                      value: maskRupiah(
+                        dashboard.incomePool,
+                        hide: hideNominal,
+                      ),
                       color: AppColors.success,
                     ),
                   ),
@@ -179,7 +207,10 @@ class _DashboardBody extends StatelessWidget {
                     child: _StatCard(
                       icon: Icons.arrow_upward_rounded,
                       label: l10n.walletDashboardExpenseLabel,
-                      value: maskRupiah(dashboard.monthlyExpense, hide: hideNominal),
+                      value: maskRupiah(
+                        dashboard.monthlyExpense,
+                        hide: hideNominal,
+                      ),
                       color: AppColors.error,
                     ),
                   ),
@@ -198,11 +229,32 @@ class _DashboardBody extends StatelessWidget {
           targetBorderRadius: BorderRadius.circular(14),
           child: _SavingsGoalsCard(hideNominal: hideNominal),
         ),
+        // One consolidated prompt when there's truly nothing anywhere below
+        // (a brand-new account), rather than each of the 5 sections below
+        // just silently vanishing with zero guidance. Deliberately NOT a
+        // separate empty-state block per section (accounts/income/top
+        // categories/recent transactions) — for an ESTABLISHED user who
+        // simply hasn't touched one particular section yet (e.g. no
+        // investment accounts, but plenty of transactions), stacking
+        // multiple "nothing here" cards among real data would be more
+        // clutter than help; that case is left as a silent omission like
+        // before. See docs/ide-improvement-fitur-existing.txt BAGIAN E #30.
+        if (dashboard.portfolios.isEmpty &&
+            dashboard.incomeBreakdown.isEmpty &&
+            dashboard.topExpenses.isEmpty &&
+            dashboard.recentTransactions.isEmpty) ...[
+          const SizedBox(height: 24),
+          const _DashboardEmptyState(),
+        ],
         if (_dailyAccounts.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
             l10n.walletDashboardDailyAccountsTitle,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 10),
           for (final portfolio in _dailyAccounts) ...[
@@ -214,7 +266,11 @@ class _DashboardBody extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             l10n.walletDashboardInvestmentAccountsTitle,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 10),
           for (final portfolio in _investmentAccounts) ...[
@@ -226,33 +282,104 @@ class _DashboardBody extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             l10n.walletDashboardIncomeSourcesTitle,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 10),
-          _NamedAmountCard(items: dashboard.incomeBreakdown, hideNominal: hideNominal),
+          _NamedAmountCard(
+            items: dashboard.incomeBreakdown,
+            hideNominal: hideNominal,
+          ),
         ],
         if (dashboard.topExpenses.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
             l10n.walletDashboardTopCategoriesTitle,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 10),
-          _NamedAmountCard(items: dashboard.topExpenses, hideNominal: hideNominal),
+          _NamedAmountCard(
+            items: dashboard.topExpenses,
+            hideNominal: hideNominal,
+          ),
         ],
         if (dashboard.recentTransactions.isNotEmpty) ...[
           const SizedBox(height: 24),
           Text(
             l10n.walletDashboardRecentTransactionsTitle,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 10),
           for (final transaction in dashboard.recentTransactions) ...[
-            _RecentTransactionTile(transaction: transaction, hideNominal: hideNominal),
+            _RecentTransactionTile(
+              transaction: transaction,
+              hideNominal: hideNominal,
+            ),
             const SizedBox(height: 8),
           ],
         ],
       ],
+    );
+  }
+}
+
+/// See the "consolidated empty state" comment at its call site in
+/// `_DashboardBody.build` above — docs/ide-improvement-fitur-existing.txt
+/// BAGIAN E #30.
+class _DashboardEmptyState extends StatelessWidget {
+  const _DashboardEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.receipt_long_outlined,
+            size: 40,
+            color: AppColors.textDisabled,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.walletDashboardEmptyTitle,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.walletDashboardEmptySubtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => context.push('/transactions/form'),
+            child: Text(l10n.walletDashboardEmptyCta),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -269,8 +396,13 @@ enum _GreetingMoment { payday, endingSoon, morning, midday, afternoon, night }
 /// lagi" (next payday coming up) — both more useful context on this card
 /// than just the hour. Falls back to plain time-of-day (pagi/siang/sore/
 /// malam) the rest of the cycle, or always if cycle dates aren't loaded yet.
-_GreetingMoment _resolveGreetingMoment(DateTime now, DateTime? cycleStart, DateTime? cycleEnd) {
-  bool isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+_GreetingMoment _resolveGreetingMoment(
+  DateTime now,
+  DateTime? cycleStart,
+  DateTime? cycleEnd,
+) {
+  bool isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   if (cycleStart != null && isSameDay(now, cycleStart)) {
     return _GreetingMoment.payday;
@@ -291,7 +423,11 @@ _GreetingMoment _resolveGreetingMoment(DateTime now, DateTime? cycleStart, DateT
   return _GreetingMoment.night;
 }
 
-String _greetingFor(AppLocalizations l10n, _GreetingMoment moment, String name) {
+String _greetingFor(
+  AppLocalizations l10n,
+  _GreetingMoment moment,
+  String name,
+) {
   switch (moment) {
     case _GreetingMoment.payday:
       return l10n.walletDashboardGreetingPayday(name);
@@ -336,14 +472,25 @@ class _NetWorthCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _greetingFor(l10n, _resolveGreetingMoment(DateTime.now(), cycleStart, cycleEnd), userName ?? ''),
-            style: const TextStyle(color: AppColors.primaryDark, fontSize: 15, fontWeight: FontWeight.w700),
+            _greetingFor(
+              l10n,
+              _resolveGreetingMoment(DateTime.now(), cycleStart, cycleEnd),
+              userName ?? '',
+            ),
+            style: const TextStyle(
+              color: AppColors.primaryDark,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           if (cycleStart != null && cycleEnd != null) ...[
             const SizedBox(height: 4),
             Text(
               l10n.walletDashboardCycleRange(
-                formatLocalizedDate(cycleStart!, Localizations.localeOf(context)),
+                formatLocalizedDate(
+                  cycleStart!,
+                  Localizations.localeOf(context),
+                ),
                 formatLocalizedDate(cycleEnd!, Localizations.localeOf(context)),
               ),
               style: TextStyle(
@@ -356,25 +503,49 @@ class _NetWorthCard extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             l10n.walletDashboardNetWorthLabel,
-            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
+            style: TextStyle(
+              color: AppColors.primaryDark.withValues(alpha: 0.65),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               Text(
                 maskRupiah(amount, hide: hideNominal),
-                style: const TextStyle(color: AppColors.primaryDark, fontSize: 26, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  color: AppColors.primaryDark,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(width: 8),
-              InkWell(
-                onTap: () => ref.read(hideNominalProvider.notifier).state = !hideNominal,
-                borderRadius: BorderRadius.circular(20),
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(
-                    hideNominal ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                    color: AppColors.primaryDark.withValues(alpha: 0.65),
-                    size: 20,
+              Tooltip(
+                message: hideNominal
+                    ? l10n.walletDashboardToggleNominalShow
+                    : l10n.walletDashboardToggleNominalHide,
+                child: Semantics(
+                  button: true,
+                  label: hideNominal
+                      ? l10n.walletDashboardToggleNominalShow
+                      : l10n.walletDashboardToggleNominalHide,
+                  child: InkWell(
+                    onTap: () => ref.read(hideNominalProvider.notifier).state =
+                        !hideNominal,
+                    borderRadius: BorderRadius.circular(24),
+                    child: SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(
+                        child: Icon(
+                          hideNominal
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
+                          color: AppColors.primaryDark.withValues(alpha: 0.65),
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -387,7 +558,12 @@ class _NetWorthCard extends ConsumerWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.icon, required this.label, required this.value, required this.color});
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final IconData icon;
   final String label;
@@ -408,13 +584,20 @@ class _StatCard extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text(
+            label,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          ),
           const SizedBox(height: 2),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
@@ -434,73 +617,123 @@ class _SavingsGoalsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summary = ref.watch(savingsGoalControllerProvider).valueOrNull;
-    if (summary == null || summary.goals.isEmpty) return const SizedBox.shrink();
+    final summaryAsync = ref.watch(savingsGoalControllerProvider);
+    // Still renders nothing either way — a secondary card failing
+    // shouldn't break the primary Dashboard — but a genuine fetch failure
+    // is now at least distinguishable from "no goals yet" in debug logs,
+    // instead of both silently collapsing to the exact same
+    // SizedBox.shrink(). See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN E #35.
+    if (summaryAsync.hasError && kDebugMode) {
+      debugPrint(
+        '[_SavingsGoalsCard] failed to load savings goals: ${summaryAsync.error}',
+      );
+    }
+    final summary = summaryAsync.valueOrNull;
+    if (summary == null || summary.goals.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    final activeGoals = summary.goals.where((g) => g.status == SavingsGoalStatus.active).toList()
-      ..sort((a, b) => b.progressPercent.compareTo(a.progressPercent));
-    final highlight = activeGoals.isNotEmpty ? activeGoals.first : summary.goals.first;
+    final activeGoals =
+        summary.goals
+            .where((g) => g.status == SavingsGoalStatus.active)
+            .toList()
+          ..sort((a, b) => b.progressPercent.compareTo(a.progressPercent));
+    final highlight = activeGoals.isNotEmpty
+        ? activeGoals.first
+        : summary.goals.first;
     final color = savingsGoalColorFor(highlight.color);
     final l10n = AppLocalizations.of(context);
 
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => context.push('/savings-goals'),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.savings_outlined, color: AppColors.primary, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.walletDashboardSavingsGoalsCardTitle,
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+      // MergeSemantics — without it a screen reader steps through each
+      // descendant Text as a separate stop instead of announcing this
+      // whole tappable card as one "go to Savings Goals" button. See
+      // docs/ide-improvement-fitur-existing.txt BAGIAN I #49.
+      child: MergeSemantics(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => context.push('/savings-goals'),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.savings_outlined,
+                      color: AppColors.primary,
+                      size: 18,
                     ),
-                  ),
-                  Text(
-                    l10n.walletDashboardSavingsGoalsSummary(summary.activeCount, summary.achievedCount),
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                  ),
-                  Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                highlight.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: highlight.progress,
-                  minHeight: 6,
-                  backgroundColor: AppColors.background,
-                  color: color,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.walletDashboardSavingsGoalsCardTitle,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l10n.walletDashboardSavingsGoalsSummary(
+                        summary.activeCount,
+                        summary.achievedCount,
+                      ),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary,
+                      size: 18,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.walletDashboardSavingsGoalProgress(
-                  maskRupiah(highlight.savedAmount, hide: hideNominal),
-                  maskRupiah(highlight.targetAmount, hide: hideNominal),
+                const SizedBox(height: 10),
+                Text(
+                  highlight.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              ),
-            ],
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: highlight.progress,
+                    minHeight: 6,
+                    backgroundColor: AppColors.background,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.walletDashboardSavingsGoalProgress(
+                    maskRupiah(highlight.savedAmount, hide: hideNominal),
+                    maskRupiah(highlight.targetAmount, hide: hideNominal),
+                  ),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -528,9 +761,14 @@ class _AccountTile extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              shape: BoxShape.circle,
+            ),
             child: Icon(
-              portfolio.isInvestment ? Icons.trending_up_rounded : Icons.account_balance_wallet_outlined,
+              portfolio.isInvestment
+                  ? Icons.trending_up_rounded
+                  : Icons.account_balance_wallet_outlined,
               color: AppColors.primary,
               size: 18,
             ),
@@ -542,19 +780,30 @@ class _AccountTile extends StatelessWidget {
               children: [
                 Text(
                   portfolio.name,
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
                 ),
                 if (portfolio.investmentCode != null)
                   Text(
                     portfolio.investmentCode!,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11.5,
+                    ),
                   ),
               ],
             ),
           ),
           Text(
             maskRupiah(portfolio.balance, hide: hideNominal),
-            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 12.5),
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+            ),
           ),
         ],
       ),
@@ -572,7 +821,9 @@ class _NamedAmountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxAmount = items.map((c) => c.amount).fold<double>(0, (a, b) => a > b ? a : b);
+    final maxAmount = items
+        .map((c) => c.amount)
+        .fold<double>(0, (a, b) => a > b ? a : b);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -585,7 +836,11 @@ class _NamedAmountCard extends StatelessWidget {
         children: [
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0) const SizedBox(height: 12),
-            _AmountBar(item: items[i], maxAmount: maxAmount, hideNominal: hideNominal),
+            _AmountBar(
+              item: items[i],
+              maxAmount: maxAmount,
+              hideNominal: hideNominal,
+            ),
           ],
         ],
       ),
@@ -594,7 +849,11 @@ class _NamedAmountCard extends StatelessWidget {
 }
 
 class _AmountBar extends StatelessWidget {
-  const _AmountBar({required this.item, required this.maxAmount, required this.hideNominal});
+  const _AmountBar({
+    required this.item,
+    required this.maxAmount,
+    required this.hideNominal,
+  });
 
   final NamedAmount item;
   final double maxAmount;
@@ -602,7 +861,9 @@ class _AmountBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fraction = maxAmount > 0 ? (item.amount / maxAmount).clamp(0.0, 1.0) : 0.0;
+    final fraction = maxAmount > 0
+        ? (item.amount / maxAmount).clamp(0.0, 1.0)
+        : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -615,7 +876,11 @@ class _AmountBar extends StatelessWidget {
                 item.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             Text(
@@ -654,7 +919,10 @@ class _AmountBar extends StatelessWidget {
 }
 
 class _RecentTransactionTile extends StatelessWidget {
-  const _RecentTransactionTile({required this.transaction, required this.hideNominal});
+  const _RecentTransactionTile({
+    required this.transaction,
+    required this.hideNominal,
+  });
 
   final RecentTransactionItem transaction;
   final bool hideNominal;
@@ -675,9 +943,14 @@ class _RecentTransactionTile extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
             child: Icon(
-              transaction.isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+              transaction.isIncome
+                  ? Icons.arrow_downward_rounded
+                  : Icons.arrow_upward_rounded,
               color: color,
               size: 18,
             ),
@@ -689,16 +962,27 @@ class _RecentTransactionTile extends StatelessWidget {
               children: [
                 Text(
                   transaction.categoryName,
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 13),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                  ),
                 ),
                 Text(
                   [
-                    formatLocalizedDateShort(transaction.date, Localizations.localeOf(context)),
-                    if (transaction.portfolioName != null) transaction.portfolioName!,
+                    formatLocalizedDateShort(
+                      transaction.date,
+                      Localizations.localeOf(context),
+                    ),
+                    if (transaction.portfolioName != null)
+                      transaction.portfolioName!,
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11.5),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5,
+                  ),
                 ),
               ],
             ),
@@ -707,7 +991,11 @@ class _RecentTransactionTile extends StatelessWidget {
             hideNominal
                 ? maskRupiah(transaction.amount, hide: true)
                 : '${transaction.isIncome ? '+' : '-'} ${formatRupiah(transaction.amount)}',
-            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+            ),
           ),
         ],
       ),

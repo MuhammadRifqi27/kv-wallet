@@ -23,21 +23,6 @@ class MembershipRepository {
     }
   }
 
-  /// Records the user's plan choice — does NOT grant access by itself, admin
-  /// still has to verify the manual transfer before `is_paid_member` flips.
-  Future<MembershipStatus> selectPlan(int planId) async {
-    try {
-      final response = await _apiClient.dio.post(ApiEndpoints.membershipSelectPlan, data: {
-        'membership_plan_id': planId,
-      });
-      return MembershipStatus.fromJson(_unwrapMap(response.data));
-    } on DioException catch (e) {
-      throw ApiException.fromDioException(e);
-    } catch (e) {
-      throw ApiException(message: 'Gagal membaca respons server: $e');
-    }
-  }
-
   Future<MembershipStatus> getStatus() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.membershipStatus);

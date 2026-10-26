@@ -81,6 +81,13 @@ class CryptoPrice {
 
   double? _floatingPnl(double currentValueIdr, double? pct) {
     if (pct == null) return null;
+    // `pct == -100` means the price collapsed to zero over the period —
+    // `100 + pct` is then 0, so the division below would yield NaN/Infinity
+    // instead of a real number. No meaningful "floating P&L" can be
+    // computed from a starting value of zero/undefined, so just decline to
+    // answer rather than let a NaN/Infinity leak into formatRupiah. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN D #25.
+    if (pct == -100) return null;
     return currentValueIdr * pct / (100 + pct);
   }
 

@@ -7,7 +7,7 @@ import '../../../data/models/investment_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../application/investment_list_controller.dart';
-import 'category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 
 /// Read-only — provider investasi (bank/exchange/broker) is managed by
 /// admin via the web app, not from mobile.

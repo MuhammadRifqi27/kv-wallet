@@ -3,7 +3,21 @@ PLAN - NAVBAR & MENU SESUAI MONEY MANAGEMENT PERMISSIONS
 Dibuat: 2026-08-25
 Update: 2026-08-25 (permission key final + ganti pendekatan jadi "lock &
         blur", bukan sembunyikan tab)
-Status: DRAFT PLAN - belum diimplementasikan, siap eksekusi.
+Update: 2026-09-24 — Status diperbarui: SUDAH DIIMPLEMENTASIKAN (lihat
+        CHECKLIST RINGKAS di bawah). Gating juga sudah berkembang jauh
+        melebihi 5 route yang dibahas plan ini (recurring, internal-
+        transfers, savings-goals, budgets, btc-tracking, plus 2
+        kalkulator ikut permission 'summary') — tabel route di BAGIAN 1.3
+        di bawah TIDAK di-update ulang di sini karena akan basi lagi;
+        `_routePermissions` di lib/routing/app_router.dart adalah SATU
+        sumber kebenaran yang selalu current, baca dari sana, bukan dari
+        dokumen ini. Lihat juga
+        docs/ide-improvement-fitur-existing.txt BAGIAN H (#44-47, gap
+        implementasi vs keputusan plan ini yang belum diperbaiki) dan
+        BAGIAN L #56.
+Status: SUDAH DIIMPLEMENTASIKAN (main_shell.dart + app_router.dart).
+        Lihat catatan update 2026-09-24 di atas untuk penyimpangan yang
+        belum diselaraskan balik ke dokumen ini.
 
 Tujuan: tab di bottom navbar (Dashboard, Transaksi, Ringkasan, Portfolio,
 Settings) tetap semua kelihatan (konsisten, tidak menghilang), tapi tab yang
@@ -184,12 +198,20 @@ BAGIAN 2 - URUTAN IMPLEMENTASI
 
 CHECKLIST RINGKAS
 ======================
-[ ] main_shell.dart: MainShell jadi permission-aware (ConsumerWidget)
-[ ] Widget _LockedNavIcon (icon blur + badge lock kecil)
-[ ] onDestinationSelected: intercept tab locked -> snackbar + push ke
-    /settings/membership, JANGAN goBranch
-[ ] app_router.dart: redirect guard defense-in-depth per branch
+(Diperbarui 2026-09-24 — status aktual di kode, bukan lagi rencana)
+[x] main_shell.dart: MainShell jadi permission-aware (ConsumerWidget)
+[x] Widget locked-icon (icon blur + badge lock kecil) — bernama `_NavIcon`
+    di kode aktual, bukan `_LockedNavIcon` seperti nama rencana awal
+[x] onDestinationSelected: intercept tab locked -> push ke
+    /profile/membership, JANGAN goBranch (via `_onDestinationSelected`)
+[x] app_router.dart: redirect guard defense-in-depth per branch (lewat
+    `_routePermissions`/`_permissionFor` — cakupannya sudah lebih luas
+    dari tabel BAGIAN 1.3 di atas, lihat catatan update di header)
 [ ] Test manual dengan beberapa kombinasi permission berbeda (termasuk user
-    yang cuma punya sedikit permission)
-[ ] Pastikan tidak ada perubahan di settings_page.dart (semua tile di sana
-    tetap selalu terbuka sesuai keputusan)
+    yang cuma punya sedikit permission) — belum ada catatan hasil test
+    tersimpan di dokumen ini
+[x] Tidak ada perubahan di ProfilePage untuk tile-tile yang memang
+    diputuskan selalu terbuka (BAGIAN 0) — TAPI lihat
+    docs/ide-improvement-fitur-existing.txt BAGIAN H #44: tile Portfolio/
+    Savings Goal/Investment di ProfilePage TIDAK termasuk keputusan ini
+    dan ternyata belum digating konsisten dengan pola di atas

@@ -50,7 +50,7 @@
   "profileLogoutConfirm": "Keluar",
   "profileEditTooltip": "Edit Profil",
   "profileMembershipFallback": "Member",
-  "profileMembershipFree": "Free — belum upgrade membership",
+  "profileMembershipFree": "Free",
   "profileAppVersion": "Versi {version}",
   "@profileAppVersion": {
     "placeholders": {
@@ -73,6 +73,7 @@
   },
   "emergencyFundManualHint": "Data transaksi kamu belum cukup untuk menghitung rata-rata otomatis. Isi manual di bawah:",
   "emergencyFundManualLabel": "Rata-rata pengeluaran bulanan (Rp)",
+  "emergencyFundManualInvalid": "Masukkan nominal yang valid",
   "emergencyFundRecommendationLabel": "Rekomendasi Dana Darurat ({multiplier}x pengeluaran bulanan)",
   "@emergencyFundRecommendationLabel": {
     "placeholders": {
@@ -133,6 +134,21 @@
       "category": {"type": "String"}
     }
   },
+  "notificationBudgetNearLimitTitle": "Budget {category} Hampir Habis",
+  "@notificationBudgetNearLimitTitle": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "notificationBudgetNearLimitBody": "Sudah terpakai {spent} dari budget {budget} bulan {month} {year}.",
+  "@notificationBudgetNearLimitBody": {
+    "placeholders": {
+      "spent": {"type": "String"},
+      "budget": {"type": "String"},
+      "month": {"type": "String"},
+      "year": {"type": "int"}
+    }
+  },
   "notificationBudgetExceededBody": "Terpakai {spent} dari budget {budget} bulan {month} {year}.",
   "@notificationBudgetExceededBody": {
     "placeholders": {
@@ -142,6 +158,13 @@
       "year": {"type": "int"}
     }
   },
+  "notificationHistoryAppBarTitle": "Riwayat Notifikasi",
+  "notificationHistoryEmptyTitle": "Belum Ada Notifikasi",
+  "notificationHistoryEmptySubtitle": "Notifikasi budget yang pernah muncul akan tersimpan di sini.",
+  "profileNotificationHistoryTileTitle": "Riwayat Notifikasi",
+  "profileNotificationHistoryTileSubtitle": "Lihat notifikasi budget yang pernah muncul",
+  "profileNotificationToggleTitle": "Notifikasi Budget",
+  "profileNotificationToggleSubtitle": "Peringatan saat budget hampir habis atau terlampaui",
 
   "appChangePasswordSuccessMessage": "Password berhasil diperbarui.",
   "appChangePasswordAppBarTitle": "Ubah Password",
@@ -178,7 +201,7 @@
   "appNavBudgets": "Budget",
   "appNavInvestment": "Investment",
   "appNavProfile": "Profile",
-  "appNavUpgradeRequired": "Fitur ini butuh upgrade membership",
+  "appNavUpgradeRequired": "Fitur ini khusus akun Member",
 
   "authLoginWelcomeTitle": "Selamat datang kembali",
   "authLoginWelcomeSubtitle": "Masuk untuk melanjutkan kelola keuangan Anda",
@@ -218,6 +241,7 @@
   "authForgotPasswordIdentifierRequired": "Email atau username wajib diisi",
   "authForgotPasswordPhoneLabel": "Nomor WhatsApp/telepon",
   "authForgotPasswordPhoneRequired": "Nomor WhatsApp/telepon wajib diisi",
+  "authForgotPasswordPhoneInvalid": "Format nomor tidak valid",
   "authForgotPasswordNoteLabel": "Catatan (opsional)",
   "authForgotPasswordSubmitButton": "Kirim Pengajuan",
   "authForgotPasswordCheckStatusLink": "Sudah pernah mengajukan? Cek status",
@@ -296,7 +320,7 @@
   "authBiometricPromptFailedContent": "Verifikasi biometrik gagal atau dibatalkan. Anda bisa coba lagi kapan saja lewat Profile.",
   "authBiometricPromptOkButton": "Oke",
 
-  "walletPortfolioListUpgradeRequired": "Fitur ini butuh upgrade membership",
+  "walletPortfolioListUpgradeRequired": "Fitur ini khusus akun Member",
   "walletPortfolioListTitle": "Portfolio",
   "walletPortfolioListLoadError": "Gagal memuat portfolio.",
   "walletPortfolioListEmptyTitle": "Belum ada akun",
@@ -453,6 +477,9 @@
   "walletDashboardIncomeSourcesTitle": "Sumber Pemasukan",
   "walletDashboardTopCategoriesTitle": "Kategori Terbesar",
   "walletDashboardRecentTransactionsTitle": "Transaksi Terbaru",
+  "walletDashboardEmptyTitle": "Belum Ada Aktivitas",
+  "walletDashboardEmptySubtitle": "Catat transaksi pertamamu untuk mulai lihat ringkasan keuangan di sini.",
+  "walletDashboardEmptyCta": "Catat Transaksi",
   "walletDashboardGreetingMorning": "Selamat Pagi, {name}",
   "@walletDashboardGreetingMorning": {
     "placeholders": {
@@ -497,6 +524,15 @@
     }
   },
   "walletDashboardNetWorthLabel": "Total Kekayaan Bersih",
+  "walletDashboardToggleNominalShow": "Tampilkan nominal",
+  "walletDashboardToggleNominalHide": "Sembunyikan nominal",
+  "pinCodeFieldSemanticLabel": "Input kode PIN, {filled} dari {total} digit terisi",
+  "@pinCodeFieldSemanticLabel": {
+    "placeholders": {
+      "filled": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "walletDashboardSavingsGoalsCardTitle": "Target Tabungan",
   "walletDashboardSavingsGoalsSummary": "{active} aktif · {achieved} tercapai",
   "@walletDashboardSavingsGoalsSummary": {
@@ -528,6 +564,8 @@
   "txnCommonDescriptionLabel": "Deskripsi (opsional)",
   "txnCommonAmountRpLabel": "Jumlah (Rp)",
   "txnCommonSelectCategoryTitle": "Pilih kategori",
+  "txnCategoryTypeIncome": "Pemasukan",
+  "txnCategoryTypeExpense": "Pengeluaran",
   "txnCommonNoCategoryForType": "Belum ada kategori untuk tipe ini",
   "txnCommonSelectAccountTitle": "Pilih akun",
   "txnCommonNoneOption": "Tidak ada",
@@ -549,7 +587,7 @@
   },
   "txnRecurringMenuTileTitle": "Transaksi Berulang",
 
-  "txnFeatureRequiresUpgrade": "Fitur ini butuh upgrade membership",
+  "txnFeatureRequiresUpgrade": "Fitur ini khusus akun Member",
   "txnListTitle": "Transaksi",
   "txnListLoadError": "Gagal memuat transaksi.",
   "txnListEmptyTitle": "Belum ada transaksi",
@@ -570,6 +608,9 @@
 
   "txnScanReceiptFailedMessage": "Tidak bisa membaca struk ini, silakan isi manual.",
   "txnScanReceiptAutofilledMessage": "Terisi otomatis dari struk — mohon periksa kembali sebelum simpan.",
+  "txnScanReceiptNoDataMessage": "Teks struk terbaca, tapi tidak ada info yang bisa dikenali — silakan isi manual.",
+  "txnScanReceiptFieldAutofilledBadge": "Terisi otomatis dari scan struk",
+  "txnScanReceiptFieldGuessBadge": "Perkiraan dari scan struk — mohon cek kembali",
   "txnFormTitleEdit": "Edit Transaksi",
   "txnFormTitleAdd": "Tambah Transaksi",
   "txnFormAccountOptionalLabel": "Akun (opsional)",
@@ -602,6 +643,10 @@
   "txnRecurringNameRequired": "Nama wajib diisi",
   "txnRecurringAccountSectionLabel": "Akun",
   "txnRecurringFrequencyLabel": "Frekuensi",
+  "txnRecurringFrequencyDaily": "Harian",
+  "txnRecurringFrequencyWeekly": "Mingguan",
+  "txnRecurringFrequencyMonthly": "Bulanan",
+  "txnRecurringFrequencyYearly": "Tahunan",
   "txnRecurringStartDateLabel": "Mulai Tanggal",
   "txnRecurringStartDateHistoricalNote": "Template ini sudah pernah diproses, jadi mengubah tanggal ini tidak menggeser jadwal berikutnya — cuma jadi catatan kapan pertama dibuat.",
   "txnRecurringSubmitAdd": "Tambah",
@@ -616,6 +661,12 @@
 
   "txnTransferSelectAccountsError": "Pilih akun asal dan akun tujuan.",
   "txnTransferSameAccountError": "Akun asal dan tujuan tidak boleh sama.",
+  "txnTransferInsufficientBalance": "Saldo tidak cukup (tersedia {balance})",
+  "@txnTransferInsufficientBalance": {
+    "placeholders": {
+      "balance": {"type": "String"}
+    }
+  },
   "txnTransferAssetRequiredError": "Isi simbol aset (mis. BTC) — salah satu akun tipe crypto.",
   "txnTransferFormTitleEdit": "Edit Transfer",
   "txnTransferFromAccountLabel": "Dari Akun",
@@ -629,7 +680,8 @@
 
   "txnBudgetListTitle": "Budget",
   "txnBudgetListLoadError": "Gagal memuat budget.",
-  "txnBudgetListEmptyMessage": "Belum ada budget untuk bulan ini.\nTap tombol + untuk menambah.",
+  "txnBudgetListEmptyTitle": "Belum Ada Budget",
+  "txnBudgetListEmptyMessage": "Tap tombol + untuk menambah budget bulan ini.",
   "txnBudgetPerCategoryLabel": "Per Kategori",
   "txnBudgetTapToEditHint": "Tap salah satu untuk mengubah jumlah budget-nya.",
   "txnBudgetTotalLabel": "Total Budget",
@@ -720,6 +772,7 @@
   "investPeriod5y": "5 Tahun",
   "investDataUnavailable": "Data tidak tersedia",
   "investMarketPriceUnavailable": "Harga pasar untuk aset ini belum tersedia.",
+  "investMarketPriceLoadError": "Gagal memuat harga pasar. Cek koneksi lalu coba lagi.",
   "investNoBalanceRecorded": "Belum ada saldo tercatat untuk aset ini.",
   "investAccountFallbackName": "Akun #{accountId}",
   "@investAccountFallbackName": {
@@ -761,10 +814,13 @@
   "investSaveButton": "Simpan",
   "investSelectCryptoAccountSheetTitle": "Pilih akun crypto",
 
-  "investUpgradeMembershipTitle": "Upgrade Membership",
+  "investMembershipTitle": "Membership",
+  "investMembershipInfoNote": "Akses fitur mengikuti status membership akun Anda. Tarik ke bawah untuk memperbarui status.",
   "investMembershipStatusLoadError": "Gagal memuat status membership.",
-  "investChoosePlanTitle": "Pilih Plan",
+  "investChoosePlanTitle": "Paket Membership",
   "investPlanListLoadError": "Gagal memuat daftar plan.",
+  "investPlanListEmptyTitle": "Belum Ada Plan Tersedia",
+  "investPlanListEmptySubtitle": "Paket membership belum tersedia saat ini. Coba lagi nanti.",
   "investMemberFallbackName": "Member",
   "investActiveUntil": "Berlaku sampai {date}",
   "@investActiveUntil": {
@@ -773,43 +829,10 @@
     }
   },
   "investActiveLabel": "Aktif",
-  "investPendingVerificationSubtitle": "Menunggu verifikasi pembayaran dari admin",
+  "investPendingVerificationSubtitle": "Membership sedang diproses",
   "investFreeLabel": "Free",
-  "investNoMembershipSubtitle": "Belum upgrade membership",
-  "investManualTransferTitle": "Transfer Manual",
-  "investBankLabel": "Bank",
-  "investAccountNumberLabel": "No. Rekening",
-  "investAccountHolderLabel": "Atas Nama",
-  "investNominalLabel": "Nominal",
-  "investTransferInstructionsNote": "Setelah transfer, admin akan memverifikasi pembayaran dan mengaktifkan membership Anda secara manual.",
-  "investCheckStatusButton": "Saya sudah transfer, cek status",
-  "investConfirmPlanDialogTitle": "Konfirmasi {planName}",
-  "@investConfirmPlanDialogTitle": {
-    "placeholders": {
-      "planName": {"type": "String"}
-    }
-  },
-  "investConfirmPlanDialogContent": "Anda akan upgrade ke plan {planName} seharga {price} untuk {days} hari.",
-  "@investConfirmPlanDialogContent": {
-    "placeholders": {
-      "planName": {"type": "String"},
-      "price": {"type": "String"},
-      "days": {"type": "int"}
-    }
-  },
-  "investSwitchPlanWarning": "Plan Anda saat ini masih aktif. Mengganti ke plan lain akan mereset akses Anda ke Free sampai pembayaran baru diverifikasi admin.",
-  "investConfirmButton": "Konfirmasi",
-  "investPlanSelectedSnackbar": "Plan dipilih. Silakan transfer sesuai instruksi di atas.",
-  "investSelectPlanError": "Gagal memilih plan.",
+  "investNoMembershipSubtitle": "Menggunakan paket Free",
   "investActivePlanLabel": "Plan Aktif",
-  "investSelectPlanButton": "Pilih Plan",
-  "investPricePerDuration": "{price} / {days} hari",
-  "@investPricePerDuration": {
-    "placeholders": {
-      "price": {"type": "String"},
-      "days": {"type": "int"}
-    }
-  },
   "investPlanFeaturesTitle": "Fitur yang didapat",
   "investPlanFeaturesUnavailable": "Detail fitur untuk plan ini belum tersedia.",
 
@@ -857,6 +880,9 @@
   "fireManualHint": "Data transaksi kamu belum cukup untuk menghitung rata-rata otomatis. Isi manual di bawah:",
   "fireManualIncomeLabel": "Rata-rata pemasukan bulanan (Rp)",
   "fireManualExpenseLabel": "Rata-rata pengeluaran bulanan (Rp)",
+  "fireManualIncomeInvalid": "Masukkan nominal yang valid",
+  "fireManualExpenseInvalid": "Masukkan nominal yang valid",
+  "fireNegativeSavingsWarning": "Pengeluaran sama atau lebih besar dari pemasukan, jadi belum ada yang bisa disisihkan untuk pensiun. Proyeksi baru bisa dihitung kalau pemasukan lebih besar dari pengeluaran.",
   "fireReturnRateConservative": "Konservatif",
   "fireReturnRateModerate": "Moderat",
   "fireReturnRateAggressive": "Agresif",
@@ -927,5 +953,303 @@
 
   "profileUserGuideTileTitle": "Panduan Pengguna",
   "profileUserGuideTileSubtitle": "Buku panduan lengkap cara pakai aplikasi (PDF)",
-  "profileUserGuideOpenFailed": "Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu."
+  "profileUserGuideOpenFailed": "Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu.",
+
+  "wltSectionWallet": "Dompet",
+  "wltCardTitle": "Saldo Dompet",
+  "wltCardCopyAccountNumber": "Salin nomor rekening",
+  "wltCopiedAccountNumber": "Nomor rekening disalin",
+  "wltCardLoadError": "Gagal memuat saldo dompet",
+  "wltCardRetry": "Coba lagi",
+  "wltCardFrozen": "Dompet dibekukan",
+  "wltTransferTileTitle": "Transfer",
+  "wltTransferTileSubtitle": "Kirim saldo dompet ke pengguna lain lewat nomor rekening",
+  "wltPageTitle": "Dompet Saya",
+  "wltAccountNumberLabel": "Nomor Rekening",
+  "wltActionTransfer": "Transfer",
+  "wltActionTopup": "Isi Saldo",
+  "wltActionWithdraw": "Tarik",
+  "wltFrozenBanner": "Dompet Anda dibekukan. Transaksi tidak dapat dilakukan, hubungi customer service.",
+  "wltLimitsTitle": "Limit Transfer",
+  "wltLimitPerTransaction": "Per transaksi: {min} – {max}",
+  "@wltLimitPerTransaction": {
+    "placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}
+  },
+  "wltLimitRemainingToday": "Sisa limit hari ini: {remaining} dari {daily}",
+  "@wltLimitRemainingToday": {
+    "placeholders": {"remaining": {"type": "String"}, "daily": {"type": "String"}}
+  },
+  "wltHistoryTitle": "Mutasi",
+  "wltFilterAll": "Semua",
+  "wltFilterTransferOut": "Transfer Keluar",
+  "wltFilterTransferIn": "Transfer Masuk",
+  "wltFilterTopup": "Isi Saldo",
+  "wltFilterWithdraw": "Tarik Saldo",
+  "wltHistoryEmptyTitle": "Belum ada mutasi",
+  "wltHistoryEmptySubtitle": "Transfer, isi saldo, dan penarikan akan muncul di sini.",
+  "wltHistoryLoadError": "Gagal memuat mutasi dompet.",
+  "wltTxnTransferOut": "Transfer ke {name}",
+  "@wltTxnTransferOut": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "wltTxnTransferIn": "Transfer dari {name}",
+  "@wltTxnTransferIn": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "wltTxnTopup": "Isi saldo dari portofolio",
+  "wltTxnWithdraw": "Tarik ke portofolio",
+  "wltTxnReversal": "Pembatalan transaksi",
+  "wltTxnAdjustment": "Penyesuaian saldo",
+  "wltTxnBalanceAfter": "Saldo: {amount}",
+  "@wltTxnBalanceAfter": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "wltTransferTitle": "Transfer",
+  "wltTransferAccountField": "Nomor rekening tujuan",
+  "wltTransferAccountHelper": "12 digit, diawali 88",
+  "wltTransferAccountInvalid": "Nomor rekening harus 12 digit angka",
+  "wltTransferCheck": "Cek Rekening",
+  "wltTransferRecipientLabel": "Penerima",
+  "wltTransferChange": "Ubah",
+  "wltTransferAmountLabel": "Nominal (Rp)",
+  "wltTransferNoteLabel": "Catatan (opsional)",
+  "wltTransferAvailableBalance": "Saldo dompet: {balance}",
+  "@wltTransferAvailableBalance": {
+    "placeholders": {"balance": {"type": "String"}}
+  },
+  "wltTransferContinue": "Lanjut",
+  "wltTransferAmountRequired": "Nominal wajib diisi",
+  "wltTransferAmountTooSmall": "Minimal transfer {min}",
+  "@wltTransferAmountTooSmall": {
+    "placeholders": {"min": {"type": "String"}}
+  },
+  "wltTransferAmountTooLarge": "Maksimal {max} per transaksi",
+  "@wltTransferAmountTooLarge": {
+    "placeholders": {"max": {"type": "String"}}
+  },
+  "wltTransferExceedsDaily": "Melebihi sisa limit harian ({remaining})",
+  "@wltTransferExceedsDaily": {
+    "placeholders": {"remaining": {"type": "String"}}
+  },
+  "wltTransferInsufficient": "Saldo dompet tidak cukup",
+  "wltTransferConfirmTitle": "Konfirmasi Transfer",
+  "wltTransferConfirmCheckName": "Pastikan nama penerima sudah benar sebelum mengirim.",
+  "wltTransferConfirmSend": "Kirim",
+  "wltCancel": "Batal",
+  "wltPinTitle": "Masukkan PIN",
+  "wltPinSubtitle": "Konfirmasi transaksi dengan PIN 6 digit Anda.",
+  "wltPinLocked": "PIN terkunci. Coba lagi dalam {minutes} menit.",
+  "@wltPinLocked": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "wltPinNotSet": "Anda belum memiliki PIN. Atur PIN terlebih dulu di menu Profil.",
+  "wltPinRetryNetwork": "Koneksi bermasalah. Masukkan PIN lagi untuk mencoba ulang — transfer tidak akan terkirim dua kali.",
+  "wltErrAccountNotFound": "Nomor rekening tidak ditemukan.",
+  "wltErrSelfTransfer": "Tidak bisa transfer ke rekening sendiri.",
+  "wltErrFrozen": "Dompet Anda dibekukan.",
+  "wltErrInsufficientBalance": "Saldo dompet tidak cukup.",
+  "wltErrInsufficientPortfolio": "Saldo portofolio tidak cukup.",
+  "wltErrDailyLimit": "Limit transfer harian terlampaui.",
+  "wltErrAmountOutOfRange": "Nominal di luar batas minimum/maksimum per transaksi.",
+  "wltErrRateLimit": "Terlalu banyak percobaan. Coba lagi sebentar lagi.",
+  "wltErrPinInvalid": "PIN salah.",
+  "wltReceiptTitle": "Detail Transfer",
+  "wltReceiptSuccess": "Transfer Berhasil",
+  "wltReceiptReceivedHeader": "Transfer Diterima",
+  "wltReceiptReference": "No. Referensi",
+  "wltReceiptDate": "Waktu",
+  "wltReceiptStatus": "Status",
+  "wltReceiptStatusCompleted": "Berhasil",
+  "wltReceiptRecipient": "Penerima",
+  "wltReceiptSender": "Pengirim",
+  "wltReceiptAccount": "Rekening",
+  "wltReceiptAmount": "Nominal",
+  "wltReceiptNote": "Catatan",
+  "wltReceiptBalanceAfter": "Saldo setelah transfer",
+  "wltReceiptDone": "Selesai",
+  "wltReceiptLoadError": "Gagal memuat detail transfer.",
+  "wltTopupTitle": "Isi Saldo Dompet",
+  "wltWithdrawTitle": "Tarik ke Portofolio",
+  "wltMoveTopupInfo": "Saldo diambil dari portofolio yang dipilih dan masuk ke dompet.",
+  "wltMoveWithdrawInfo": "Saldo dompet dipindahkan ke portofolio yang dipilih.",
+  "wltMovePortfolioLabel": "Portofolio",
+  "wltMovePortfolioPlaceholder": "Pilih portofolio",
+  "wltMoveSelectPortfolioError": "Pilih portofolio terlebih dulu",
+  "wltMoveDescriptionLabel": "Keterangan (opsional)",
+  "wltMoveSubmitTopup": "Isi Saldo",
+  "wltMoveSubmitWithdraw": "Tarik Saldo",
+  "wltMoveSuccessTopup": "Saldo dompet berhasil diisi.",
+  "wltMoveSuccessWithdraw": "Saldo berhasil ditarik ke portofolio.",
+  "wltMovePortfolioBalance": "Saldo portofolio: {balance}",
+  "@wltMovePortfolioBalance": {
+    "placeholders": {"balance": {"type": "String"}}
+  },
+
+  "rptPageTitle": "Laporan",
+  "rptTabCashFlow": "Arus Kas",
+  "rptTabSavings": "Tabungan",
+  "rptTabCompare": "Bandingkan",
+  "rptTabCategory": "Kategori",
+  "rptTabUnexpected": "Tak Terduga",
+  "rptTabYear": "Tahunan",
+  "rptTabTax": "Pajak",
+  "rptCardTitle": "Laporan",
+  "rptCardSubtitle": "Arus kas, rasio menabung, perbandingan, pajak, dan lainnya",
+  "rptLoadError": "Gagal memuat laporan.",
+  "rptCyclesOption": "{n} cycle",
+  "@rptCyclesOption": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "rptCfOpening": "Saldo Awal",
+  "rptCfClosing": "Saldo Akhir",
+  "rptCfNet": "Selisih Bersih",
+  "rptCfOther": "Penyesuaian lain",
+  "rptCfOtherHint": "Perubahan saldo di luar pemasukan/pengeluaran, mis. perubahan nilai investasi.",
+  "rptCfBalanceChart": "Saldo Berjalan",
+  "rptCfDailyTitle": "Pergerakan Harian",
+  "rptCfEmptyTitle": "Belum ada transaksi",
+  "rptCfEmptySubtitle": "Tidak ada transaksi pada cycle ini.",
+  "rptSrCurrent": "Rasio Saat Ini",
+  "rptSrPrevious": "Cycle Lalu",
+  "rptSrAverage": "Rata-rata",
+  "rptSrTargetLabel": "Target",
+  "rptSrChangePoints": "{value} poin",
+  "@rptSrChangePoints": {
+    "placeholders": {"value": {"type": "String"}}
+  },
+  "rptSrFormula": "(Pemasukan − Pengeluaran) ÷ Pemasukan",
+  "rptSrOnTarget": "{count} dari {total} cycle mencapai target",
+  "@rptSrOnTarget": {
+    "placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "rptSrSeriesTitle": "Tren Rasio Menabung",
+  "rptSrBest": "Terbaik",
+  "rptSrWorst": "Terendah",
+  "rptCmpCompareWith": "Dibanding dengan",
+  "rptCmpDefaultPrev": "Cycle sebelumnya",
+  "rptCmpMetrics": "Ringkasan",
+  "rptCmpSavingsRate": "Rasio Menabung",
+  "rptCmpCategories": "Pengeluaran per Kategori",
+  "rptCmpNewLabel": "Baru",
+  "rptCatSelect": "Kategori",
+  "rptCatNoCategoryTitle": "Belum ada kategori",
+  "rptCatNoCategorySubtitle": "Tambahkan kategori dan transaksi untuk melihat laporan ini.",
+  "rptCatTotal": "Total Cycle Ini",
+  "rptCatCount": "{count} transaksi",
+  "@rptCatCount": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "rptCatPrevious": "Cycle Lalu",
+  "rptCatAverage": "Rata-rata/cycle",
+  "rptCatShare": "Porsi",
+  "rptCatSeries": "Tren per Cycle",
+  "rptCatTop": "Transaksi Terbesar",
+  "rptCatFrequent": "Paling Sering",
+  "rptCatFrequentLine": "{count}× · {total}",
+  "@rptCatFrequentLine": {
+    "placeholders": {"count": {"type": "int"}, "total": {"type": "String"}}
+  },
+  "rptCatAll": "Semua Transaksi",
+  "rptCatNoTx": "Belum ada transaksi di kategori ini.",
+  "rptUxHow": "Pengeluaran lebih dari {factor}× rata-rata transaksi kategori itu dalam {cycles} cycle sebelumnya. Kategori dengan kurang dari {samples} transaksi pembanding tidak dianalisis.",
+  "@rptUxHow": {
+    "placeholders": {"factor": {"type": "String"}, "cycles": {"type": "int"}, "samples": {"type": "int"}}
+  },
+  "rptUxTotalFlagged": "Total Ditandai",
+  "rptUxAnalyzedLabel": "Kategori Dianalisis",
+  "rptUxEmptyTitle": "Tidak ada pengeluaran mencurigakan",
+  "rptUxEmptySubtitle": "Pengeluaranmu di cycle ini masih wajar. Bagus!",
+  "rptUxRatio": "{ratio}× rata-rata",
+  "@rptUxRatio": {
+    "placeholders": {"ratio": {"type": "String"}}
+  },
+  "rptUxAverage": "Rata-rata kategori: {amount}",
+  "@rptUxAverage": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "rptYrAvgExpense": "Rata-rata Pengeluaran/Bulan",
+  "rptYrMonthly": "Pemasukan vs Pengeluaran Bulanan",
+  "rptYrBest": "Bulan Terbaik",
+  "rptYrWorst": "Bulan Terburuk",
+  "rptYrBiggest": "Pengeluaran Terbesar",
+  "rptYrTopExpenses": "Kategori Pengeluaran Teratas",
+  "rptYrTopIncome": "Sumber Pemasukan Teratas",
+  "rptYrBudgetTitle": "Anggaran Setahun",
+  "rptYrBudgetTotals": "Terpakai {spent} dari {budget}",
+  "@rptYrBudgetTotals": {
+    "placeholders": {"spent": {"type": "String"}, "budget": {"type": "String"}}
+  },
+  "rptYrBudgetMonthsOver": "{over} dari {total} bulan melebihi anggaran",
+  "@rptYrBudgetMonthsOver": {
+    "placeholders": {"over": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "rptYrBudgetUsed": "{pct}% terpakai",
+  "@rptYrBudgetUsed": {
+    "placeholders": {"pct": {"type": "String"}}
+  },
+  "rptYrOverItems": "Kelebihan Anggaran Terbesar",
+  "rptYrOverBy": "+{amount} ({pct}%)",
+  "@rptYrOverBy": {
+    "placeholders": {"amount": {"type": "String"}, "pct": {"type": "String"}}
+  },
+  "rptYrOverCategories": "Kategori Paling Sering Melebihi",
+  "rptYrOverTimes": "{times}× melebihi · {amount}",
+  "@rptYrOverTimes": {
+    "placeholders": {"times": {"type": "int"}, "amount": {"type": "String"}}
+  },
+  "rptTaxDisclaimer": "Ini hanya rekap, bukan perhitungan pajak: total pemasukan setahun dan pengeluaran yang kamu tandai sebagai pengurang pajak. Konsultasikan ke konsultan pajak untuk hitungan resmi.",
+  "rptTaxTotalIncome": "Total Pemasukan",
+  "rptTaxTotalDeductible": "Total Pengurang",
+  "rptTaxAfter": "Pemasukan Setelah Pengurang",
+  "rptTaxDeductibleList": "Pengurang Terhitung",
+  "rptTaxNoDeductible": "Belum ada kategori yang ditandai dan memiliki pengeluaran.",
+  "rptTaxCategoriesTitle": "Kategori Pengurang Pajak",
+  "rptTaxCategoriesHint": "Centang kategori pengeluaran yang dapat mengurangi pajak. Pilihan berlaku untuk semua tahun.",
+  "rptTaxNoCategories": "Belum ada kategori pengeluaran.",
+  "rptTaxSave": "Simpan Pilihan",
+  "rptTaxSaved": "Pilihan disimpan.",
+
+  "brcTitle": "Rekomendasi Budget",
+  "brcLoadError": "Gagal memuat rekomendasi budget.",
+  "brcEmptyTitle": "Belum ada rekomendasi",
+  "brcEmptySubtitle": "Rekomendasi muncul setelah ada riwayat pengeluaran dalam {cycles} cycle terakhir.",
+  "@brcEmptySubtitle": {
+    "placeholders": {"cycles": {"type": "int"}}
+  },
+  "brcBasisPercentage": "Saran dihitung dari rata-rata porsi pengeluaran tiap kategori terhadap pemasukan selama {cycles} cycle terakhir, dikalikan pemasukan cycle ini ({income}).",
+  "@brcBasisPercentage": {
+    "placeholders": {"income": {"type": "String"}, "cycles": {"type": "int"}}
+  },
+  "brcBasisNominal": "Gaji cycle ini belum masuk, saran memakai rata-rata nominal pengeluaran selama {cycles} cycle terakhir.",
+  "@brcBasisNominal": {
+    "placeholders": {"cycles": {"type": "int"}}
+  },
+  "brcSelectedCount": "{selected} dari {total} dipilih",
+  "@brcSelectedCount": {
+    "placeholders": {"selected": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "brcSelectAll": "Pilih semua",
+  "brcDeselectAll": "Batal pilih semua",
+  "brcNoBudgetYet": "Belum ada budget",
+  "brcAverageSpent": "Rata-rata belanja {amount} per cycle · {percent} dari pemasukan",
+  "@brcAverageSpent": {
+    "placeholders": {"amount": {"type": "String"}, "percent": {"type": "String"}}
+  },
+  "brcLimitedNote": "Melebihi budget di {count} cycle, tidak dinaikkan",
+  "@brcLimitedNote": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "brcApplyButton": "Terapkan ({count})",
+  "@brcApplyButton": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "brcApplied": "{count} budget berhasil disimpan.",
+  "@brcApplied": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "brcAppliedPartial": "{saved} dari {total} budget disimpan. Sisanya tidak punya saran.",
+  "@brcAppliedPartial": {
+    "placeholders": {"saved": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "brcAppliedNone": "Tidak ada budget yang disimpan. Kategori yang dipilih tidak punya saran."
 }

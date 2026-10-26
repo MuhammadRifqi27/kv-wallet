@@ -8,7 +8,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/savings_goal_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/savings_goal_controller.dart';
 import 'savings_goal_style.dart';
 
@@ -50,17 +50,25 @@ class SavingsGoalListPage extends ConsumerWidget {
                 ),
               );
             }
-            return ListView(
+            // ListView.builder, not a plain ListView + `for` loop — goals
+            // are a user-grown collection. See
+            // docs/ide-improvement-fitur-existing.txt BAGIAN F #38.
+            return ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              children: [
-                _SummaryRow(activeCount: summary.activeCount, achievedCount: summary.achievedCount),
-                const SizedBox(height: 16),
-                for (final goal in summary.goals) ...[
-                  _GoalCard(goal: goal),
-                  const SizedBox(height: 10),
-                ],
-              ],
+              itemCount: summary.goals.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _SummaryRow(activeCount: summary.activeCount, achievedCount: summary.achievedCount),
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _GoalCard(goal: summary.goals[index - 1]),
+                );
+              },
             );
           },
         ),

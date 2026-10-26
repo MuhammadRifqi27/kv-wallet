@@ -209,7 +209,14 @@ class _BtcEntryFormPageState extends ConsumerState<BtcEntryFormPage> {
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.investAmountRequiredError;
                     final parsed = parseRupiahInput(value);
-                    if (parsed == null || parsed < 0) return l10n.investAmountInvalidError;
+                    // `<= 0`, not `< 0` — a Rp 0 profit/loss entry isn't a
+                    // meaningful event to log (direction/sign already comes
+                    // from the separate profit/loss type toggle above, so
+                    // `amount` here is a magnitude that should be genuinely
+                    // nonzero). Matches transfer_form_page.dart's amount
+                    // validator for consistency. See
+                    // docs/ide-improvement-fitur-existing.txt BAGIAN D #26.
+                    if (parsed == null || parsed <= 0) return l10n.investAmountInvalidError;
                     return null;
                   },
                 ),

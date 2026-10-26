@@ -145,13 +145,27 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
     final portfoliosAsync = ref.watch(portfolioListControllerProvider);
     final investmentsAsync = ref.watch(investmentListControllerProvider);
     final generalError = _error != null && _error!.fieldErrors == null;
+    final portfolios = portfoliosAsync.valueOrNull ?? const [];
     final cryptoIds = filterCryptoPortfolios(
-      portfoliosAsync.valueOrNull ?? const [],
+      portfolios,
       investmentsAsync.valueOrNull ?? const [],
     ).map((p) => p.id).toSet();
     final involvesCrypto = cryptoIds.contains(_fromAccountId) || cryptoIds.contains(_toAccountId);
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context);
+    // Only known once the source account is actually picked and its
+    // balance came back non-null — used by the amount field's validator
+    // below for a client-side "insufficient balance" check instead of
+    // relying purely on the backend's error (which the user only sees
+    // after already submitting). See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN D #27.
+    PortfolioModel? fromPortfolio;
+    for (final portfolio in portfolios) {
+      if (portfolio.id == _fromAccountId) {
+        fromPortfolio = portfolio;
+        break;
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -246,6 +260,10 @@ class _TransferFormPageState extends ConsumerState<TransferFormPage> {
                     if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
                     final parsed = parseRupiahInput(value);
                     if (parsed == null || parsed <= 0) return l10n.txnCommonAmountInvalid;
+                    final balance = fromPortfolio?.balance;
+                    if (balance != null && parsed > balance) {
+                      return l10n.txnTransferInsufficientBalance(formatRupiah(balance));
+                    }
                     return null;
                   },
                 ),
@@ -278,7 +296,7 @@ class _TapField extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +360,12 @@ class _AccountPickerField extends StatelessWidget {
     return _TapField(
       icon: Icons.account_balance_wallet_outlined,
       label: selected?.accountName ?? (portfolios.isEmpty ? AppLocalizations.of(context).txnCommonNoAccountAvailable : placeholder),
-      onTap: portfolios.isEmpty ? () {} : () => _openPicker(context),
+      // `null`, not a no-op closure — otherwise InkWell still renders its
+      // tap/ripple affordance for a field that does nothing when there are
+      // no accounts to pick from. Matches btc_entry_form_page.dart's
+      // `_TapField` for the same "no accounts yet" case. See
+      // docs/ide-improvement-fitur-existing.txt BAGIAN D #28.
+      onTap: portfolios.isEmpty ? null : () => _openPicker(context),
     );
   }
 }
@@ -400,6 +423,19 @@ class _AccountPickerSheet extends StatelessWidget {
                                   style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
                                 ),
                               ),
+                              // So the user can tell whether a transfer will
+                              // plausibly fit BEFORE picking this as the
+                              // source account, not just after a failed
+                              // submit. See
+                              // docs/ide-improvement-fitur-existing.txt
+                              // BAGIAN D #27.
+                              if (portfolio.balance != null) ...[
+                                Text(
+                                  formatRupiah(portfolio.balance!),
+                                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
                               if (portfolio.id == selectedId)
                                 Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                             ],

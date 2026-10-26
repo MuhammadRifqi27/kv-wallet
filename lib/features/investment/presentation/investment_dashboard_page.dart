@@ -10,7 +10,7 @@ import '../../../data/models/btc_tracking_model.dart';
 import '../../../data/models/crypto_price_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/btc_tracking_controller.dart';
 import '../application/crypto_price_controller.dart';
 
@@ -103,31 +103,47 @@ class _InvestmentBody extends ConsumerWidget {
       if (pnl != null) totalPnl24h = (totalPnl24h ?? 0) + pnl;
     }
 
-    return ListView(
+    final hasBalances = sortedBalances.isNotEmpty;
+
+    // ListView.builder, not a plain ListView + `for` loop — held assets are
+    // a user-grown collection. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN F #38. Header (total
+    // value card + "Your Assets" label) is index 0; the empty-state card
+    // takes over index 1 when there are no balances at all.
+    return ListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-      children: [
-        _TotalValueCard(
-          amount: overview.totalValue,
-          assetCount: overview.assetBalances.length,
-          pnl24h: totalPnl24h,
-        ),
-        if (sortedBalances.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text(
-            l10n.investYourAssetsLabel,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
-          ),
-          const SizedBox(height: 10),
-          for (final balance in sortedBalances) ...[
-            _AssetRow(balance: balance, price: prices[balance.asset.toUpperCase()]),
-            const SizedBox(height: 8),
-          ],
-        ] else ...[
-          const SizedBox(height: 24),
-          const _EmptyCryptoAccounts(),
-        ],
-      ],
+      itemCount: 1 + (hasBalances ? sortedBalances.length : 1),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TotalValueCard(
+                amount: overview.totalValue,
+                assetCount: overview.assetBalances.length,
+                pnl24h: totalPnl24h,
+              ),
+              if (hasBalances) ...[
+                const SizedBox(height: 24),
+                Text(
+                  l10n.investYourAssetsLabel,
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 10),
+              ],
+            ],
+          );
+        }
+        if (!hasBalances) {
+          return const Padding(padding: EdgeInsets.only(top: 24), child: _EmptyCryptoAccounts());
+        }
+        final balance = sortedBalances[index - 1];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _AssetRow(balance: balance, price: prices[balance.asset.toUpperCase()]),
+        );
+      },
     );
   }
 }

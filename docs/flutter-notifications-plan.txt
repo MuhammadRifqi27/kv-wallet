@@ -1,7 +1,16 @@
 PLAN - NOTIFIKASI APP (BUDGET EXCEEDED & LAINNYA)
 =================================================================
 Dibuat: 2026-08-26
-Status: DRAFT PLAN - belum diimplementasikan.
+Update: 2026-09-24 — Status diperbarui: Fase 1-3 (setup native, budget
+        exceeded, budget near-limit, tap-to-navigate) SUDAH
+        diimplementasikan, plus riwayat notifikasi in-app & toggle
+        mute yang tidak ada di plan awal ini (lihat CHECKLIST RINGKAS).
+        Fase 4 (toast recurring auto-processed) TERBLOKIR — backend
+        tidak mengembalikan jumlah item yang diproses, lihat
+        docs/ide-improvement-fitur-existing.txt BAGIAN G #42. Fase 5
+        (FCM) belum dikerjakan, masih di luar scope.
+Status: SEBAGIAN BESAR SUDAH DIIMPLEMENTASIKAN. Lihat catatan update
+        2026-09-24 dan CHECKLIST RINGKAS di bawah untuk detail per item.
 
 Permintaan: notifikasi untuk budget yang melebihi limit, plus rekomendasi
 notifikasi lain apa saja yang masuk akal untuk app ini.
@@ -196,18 +205,33 @@ BAGIAN 4 - URUTAN IMPLEMENTASI
 
 CHECKLIST RINGKAS
 ======================
-[ ] Tambah dependency flutter_local_notifications
-[ ] Setup notification channel Android + permission POST_NOTIFICATIONS
-[ ] Setup permission iOS
-[ ] Buat NotificationService (core/notifications/)
-[ ] Logic deteksi "kategori baru over-budget" di BudgetController
-    (bandingkan snapshot lama vs baru, in-memory per sesi)
-[ ] Trigger notifikasi budget dari 2 titik: abis tambah transaksi expense,
-    & abis refresh/buka halaman Budget
-[ ] Tap notifikasi buka halaman /budget
+(Diperbarui 2026-09-24 — status aktual di kode, bukan lagi rencana)
+[x] Tambah dependency flutter_local_notifications
+[x] Setup notification channel Android + permission POST_NOTIFICATIONS
+[x] Setup permission iOS
+[x] Buat NotificationService (core/notifications/notification_service.dart)
+[x] Logic deteksi "kategori baru over-budget" di BudgetController
+    (`_notifiedOverBudgetKeys`, in-memory per sesi)
+[x] Trigger notifikasi budget dari 2 titik: abis tambah transaksi expense
+    (lewat refresh), & abis refresh/buka halaman Budget (`build()`)
+[x] Tap notifikasi buka halaman /budget — lewat
+    `pendingNotificationRouteProvider` (core_providers.dart), dikonsumsi
+    `FlowrApp` di main.dart; TIDAK lewat NotificationService reach-in ke
+    appRouterProvider langsung (circular import), lihat
+    docs/ide-improvement-fitur-existing.txt BAGIAN G #40
 [ ] Test manual: notifikasi cuma muncul sekali per kategori+bulan sampai
-    kondisinya berubah
-[ ] (Opsional) Notifikasi "budget hampir habis" (>=80%)
-[ ] (Opsional) Toast/notifikasi "N transaksi berulang otomatis diproses"
+    kondisinya berubah — belum ada catatan hasil test tersimpan di
+    dokumen ini
+[x] Notifikasi "budget hampir habis" (>=80%) — `isNearLimit` di
+    budget_model.dart + `showBudgetNearLimitNotification`, id notifikasi
+    sama dengan over-budget supaya saling menggantikan di tray
+[BLOCKED] Toast/notifikasi "N transaksi berulang otomatis diproses" —
+    backend tidak pernah kirim jumlah item yang diproses, tidak bisa
+    dibangun tanpa heuristik rapuh. Lihat
+    docs/ide-improvement-fitur-existing.txt BAGIAN G #42 / BAGIAN F #39.
 [ ] (Opsional, scope terpisah/besar) Setup FCM untuk notifikasi
-    server-triggered (membership verified, IPO allotment, dst)
+    server-triggered (membership verified, IPO allotment, dst) — belum
+    dikerjakan
+[x] (DI LUAR SCOPE PLAN AWAL INI) Riwayat notifikasi in-app
+    (`/profile/notifications`) + toggle mute "Notifikasi Budget" di
+    Profile — lihat docs/ide-improvement-fitur-existing.txt BAGIAN G #43

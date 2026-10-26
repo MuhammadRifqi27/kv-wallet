@@ -167,7 +167,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get profileMembershipFallback => 'Member';
 
   @override
-  String get profileMembershipFree => 'Free — belum upgrade membership';
+  String get profileMembershipFree => 'Free';
 
   @override
   String profileAppVersion(String version) {
@@ -206,6 +206,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get emergencyFundManualLabel => 'Rata-rata pengeluaran bulanan (Rp)';
+
+  @override
+  String get emergencyFundManualInvalid => 'Masukkan nominal yang valid';
 
   @override
   String emergencyFundRecommendationLabel(int multiplier) {
@@ -283,6 +286,21 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String notificationBudgetNearLimitTitle(String category) {
+    return 'Budget $category Hampir Habis';
+  }
+
+  @override
+  String notificationBudgetNearLimitBody(
+    String spent,
+    String budget,
+    String month,
+    int year,
+  ) {
+    return 'Sudah terpakai $spent dari budget $budget bulan $month $year.';
+  }
+
+  @override
   String notificationBudgetExceededBody(
     String spent,
     String budget,
@@ -291,6 +309,30 @@ class AppLocalizationsId extends AppLocalizations {
   ) {
     return 'Terpakai $spent dari budget $budget bulan $month $year.';
   }
+
+  @override
+  String get notificationHistoryAppBarTitle => 'Riwayat Notifikasi';
+
+  @override
+  String get notificationHistoryEmptyTitle => 'Belum Ada Notifikasi';
+
+  @override
+  String get notificationHistoryEmptySubtitle =>
+      'Notifikasi budget yang pernah muncul akan tersimpan di sini.';
+
+  @override
+  String get profileNotificationHistoryTileTitle => 'Riwayat Notifikasi';
+
+  @override
+  String get profileNotificationHistoryTileSubtitle =>
+      'Lihat notifikasi budget yang pernah muncul';
+
+  @override
+  String get profileNotificationToggleTitle => 'Notifikasi Budget';
+
+  @override
+  String get profileNotificationToggleSubtitle =>
+      'Peringatan saat budget hampir habis atau terlampaui';
 
   @override
   String get appChangePasswordSuccessMessage => 'Password berhasil diperbarui.';
@@ -401,7 +443,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get appNavProfile => 'Profile';
 
   @override
-  String get appNavUpgradeRequired => 'Fitur ini butuh upgrade membership';
+  String get appNavUpgradeRequired => 'Fitur ini khusus akun Member';
 
   @override
   String get authLoginWelcomeTitle => 'Selamat datang kembali';
@@ -519,6 +561,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get authForgotPasswordPhoneRequired =>
       'Nomor WhatsApp/telepon wajib diisi';
+
+  @override
+  String get authForgotPasswordPhoneInvalid => 'Format nomor tidak valid';
 
   @override
   String get authForgotPasswordNoteLabel => 'Catatan (opsional)';
@@ -738,7 +783,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get walletPortfolioListUpgradeRequired =>
-      'Fitur ini butuh upgrade membership';
+      'Fitur ini khusus akun Member';
 
   @override
   String get walletPortfolioListTitle => 'Portfolio';
@@ -1090,6 +1135,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get walletDashboardRecentTransactionsTitle => 'Transaksi Terbaru';
 
   @override
+  String get walletDashboardEmptyTitle => 'Belum Ada Aktivitas';
+
+  @override
+  String get walletDashboardEmptySubtitle =>
+      'Catat transaksi pertamamu untuk mulai lihat ringkasan keuangan di sini.';
+
+  @override
+  String get walletDashboardEmptyCta => 'Catat Transaksi';
+
+  @override
   String walletDashboardGreetingMorning(String name) {
     return 'Selamat Pagi, $name';
   }
@@ -1126,6 +1181,17 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get walletDashboardNetWorthLabel => 'Total Kekayaan Bersih';
+
+  @override
+  String get walletDashboardToggleNominalShow => 'Tampilkan nominal';
+
+  @override
+  String get walletDashboardToggleNominalHide => 'Sembunyikan nominal';
+
+  @override
+  String pinCodeFieldSemanticLabel(int filled, int total) {
+    return 'Input kode PIN, $filled dari $total digit terisi';
+  }
 
   @override
   String get walletDashboardSavingsGoalsCardTitle => 'Target Tabungan';
@@ -1186,6 +1252,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get txnCommonSelectCategoryTitle => 'Pilih kategori';
 
   @override
+  String get txnCategoryTypeIncome => 'Pemasukan';
+
+  @override
+  String get txnCategoryTypeExpense => 'Pengeluaran';
+
+  @override
   String get txnCommonNoCategoryForType => 'Belum ada kategori untuk tipe ini';
 
   @override
@@ -1220,7 +1292,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get txnRecurringMenuTileTitle => 'Transaksi Berulang';
 
   @override
-  String get txnFeatureRequiresUpgrade => 'Fitur ini butuh upgrade membership';
+  String get txnFeatureRequiresUpgrade => 'Fitur ini khusus akun Member';
 
   @override
   String get txnListTitle => 'Transaksi';
@@ -1283,6 +1355,18 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get txnScanReceiptAutofilledMessage =>
       'Terisi otomatis dari struk — mohon periksa kembali sebelum simpan.';
+
+  @override
+  String get txnScanReceiptNoDataMessage =>
+      'Teks struk terbaca, tapi tidak ada info yang bisa dikenali — silakan isi manual.';
+
+  @override
+  String get txnScanReceiptFieldAutofilledBadge =>
+      'Terisi otomatis dari scan struk';
+
+  @override
+  String get txnScanReceiptFieldGuessBadge =>
+      'Perkiraan dari scan struk — mohon cek kembali';
 
   @override
   String get txnFormTitleEdit => 'Edit Transaksi';
@@ -1350,6 +1434,18 @@ class AppLocalizationsId extends AppLocalizations {
   String get txnRecurringFrequencyLabel => 'Frekuensi';
 
   @override
+  String get txnRecurringFrequencyDaily => 'Harian';
+
+  @override
+  String get txnRecurringFrequencyWeekly => 'Mingguan';
+
+  @override
+  String get txnRecurringFrequencyMonthly => 'Bulanan';
+
+  @override
+  String get txnRecurringFrequencyYearly => 'Tahunan';
+
+  @override
   String get txnRecurringStartDateLabel => 'Mulai Tanggal';
 
   @override
@@ -1391,6 +1487,11 @@ class AppLocalizationsId extends AppLocalizations {
       'Akun asal dan tujuan tidak boleh sama.';
 
   @override
+  String txnTransferInsufficientBalance(String balance) {
+    return 'Saldo tidak cukup (tersedia $balance)';
+  }
+
+  @override
   String get txnTransferAssetRequiredError =>
       'Isi simbol aset (mis. BTC) — salah satu akun tipe crypto.';
 
@@ -1429,8 +1530,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get txnBudgetListLoadError => 'Gagal memuat budget.';
 
   @override
+  String get txnBudgetListEmptyTitle => 'Belum Ada Budget';
+
+  @override
   String get txnBudgetListEmptyMessage =>
-      'Belum ada budget untuk bulan ini.\nTap tombol + untuk menambah.';
+      'Tap tombol + untuk menambah budget bulan ini.';
 
   @override
   String get txnBudgetPerCategoryLabel => 'Per Kategori';
@@ -1576,6 +1680,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Harga pasar untuk aset ini belum tersedia.';
 
   @override
+  String get investMarketPriceLoadError =>
+      'Gagal memuat harga pasar. Cek koneksi lalu coba lagi.';
+
+  @override
   String get investNoBalanceRecorded =>
       'Belum ada saldo tercatat untuk aset ini.';
 
@@ -1683,17 +1791,28 @@ class AppLocalizationsId extends AppLocalizations {
   String get investSelectCryptoAccountSheetTitle => 'Pilih akun crypto';
 
   @override
-  String get investUpgradeMembershipTitle => 'Upgrade Membership';
+  String get investMembershipTitle => 'Membership';
+
+  @override
+  String get investMembershipInfoNote =>
+      'Akses fitur mengikuti status membership akun Anda. Tarik ke bawah untuk memperbarui status.';
 
   @override
   String get investMembershipStatusLoadError =>
       'Gagal memuat status membership.';
 
   @override
-  String get investChoosePlanTitle => 'Pilih Plan';
+  String get investChoosePlanTitle => 'Paket Membership';
 
   @override
   String get investPlanListLoadError => 'Gagal memuat daftar plan.';
+
+  @override
+  String get investPlanListEmptyTitle => 'Belum Ada Plan Tersedia';
+
+  @override
+  String get investPlanListEmptySubtitle =>
+      'Paket membership belum tersedia saat ini. Coba lagi nanti.';
 
   @override
   String get investMemberFallbackName => 'Member';
@@ -1707,75 +1826,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get investActiveLabel => 'Aktif';
 
   @override
-  String get investPendingVerificationSubtitle =>
-      'Menunggu verifikasi pembayaran dari admin';
+  String get investPendingVerificationSubtitle => 'Membership sedang diproses';
 
   @override
   String get investFreeLabel => 'Free';
 
   @override
-  String get investNoMembershipSubtitle => 'Belum upgrade membership';
-
-  @override
-  String get investManualTransferTitle => 'Transfer Manual';
-
-  @override
-  String get investBankLabel => 'Bank';
-
-  @override
-  String get investAccountNumberLabel => 'No. Rekening';
-
-  @override
-  String get investAccountHolderLabel => 'Atas Nama';
-
-  @override
-  String get investNominalLabel => 'Nominal';
-
-  @override
-  String get investTransferInstructionsNote =>
-      'Setelah transfer, admin akan memverifikasi pembayaran dan mengaktifkan membership Anda secara manual.';
-
-  @override
-  String get investCheckStatusButton => 'Saya sudah transfer, cek status';
-
-  @override
-  String investConfirmPlanDialogTitle(String planName) {
-    return 'Konfirmasi $planName';
-  }
-
-  @override
-  String investConfirmPlanDialogContent(
-    String planName,
-    String price,
-    int days,
-  ) {
-    return 'Anda akan upgrade ke plan $planName seharga $price untuk $days hari.';
-  }
-
-  @override
-  String get investSwitchPlanWarning =>
-      'Plan Anda saat ini masih aktif. Mengganti ke plan lain akan mereset akses Anda ke Free sampai pembayaran baru diverifikasi admin.';
-
-  @override
-  String get investConfirmButton => 'Konfirmasi';
-
-  @override
-  String get investPlanSelectedSnackbar =>
-      'Plan dipilih. Silakan transfer sesuai instruksi di atas.';
-
-  @override
-  String get investSelectPlanError => 'Gagal memilih plan.';
+  String get investNoMembershipSubtitle => 'Menggunakan paket Free';
 
   @override
   String get investActivePlanLabel => 'Plan Aktif';
-
-  @override
-  String get investSelectPlanButton => 'Pilih Plan';
-
-  @override
-  String investPricePerDuration(String price, int days) {
-    return '$price / $days hari';
-  }
 
   @override
   String get investPlanFeaturesTitle => 'Fitur yang didapat';
@@ -1885,6 +1945,16 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get fireManualExpenseLabel => 'Rata-rata pengeluaran bulanan (Rp)';
+
+  @override
+  String get fireManualIncomeInvalid => 'Masukkan nominal yang valid';
+
+  @override
+  String get fireManualExpenseInvalid => 'Masukkan nominal yang valid';
+
+  @override
+  String get fireNegativeSavingsWarning =>
+      'Pengeluaran sama atau lebih besar dari pemasukan, jadi belum ada yang bisa disisihkan untuk pensiun. Proyeksi baru bisa dihitung kalau pemasukan lebih besar dari pengeluaran.';
 
   @override
   String get fireReturnRateConservative => 'Konservatif';
@@ -2018,4 +2088,676 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get profileUserGuideOpenFailed =>
       'Tidak dapat membuka panduan. Pastikan ada aplikasi pembaca PDF di perangkatmu.';
+
+  @override
+  String get wltSectionWallet => 'Dompet';
+
+  @override
+  String get wltCardTitle => 'Saldo Dompet';
+
+  @override
+  String get wltCardCopyAccountNumber => 'Salin nomor rekening';
+
+  @override
+  String get wltCopiedAccountNumber => 'Nomor rekening disalin';
+
+  @override
+  String get wltCardLoadError => 'Gagal memuat saldo dompet';
+
+  @override
+  String get wltCardRetry => 'Coba lagi';
+
+  @override
+  String get wltCardFrozen => 'Dompet dibekukan';
+
+  @override
+  String get wltTransferTileTitle => 'Transfer';
+
+  @override
+  String get wltTransferTileSubtitle =>
+      'Kirim saldo dompet ke pengguna lain lewat nomor rekening';
+
+  @override
+  String get wltPageTitle => 'Dompet Saya';
+
+  @override
+  String get wltAccountNumberLabel => 'Nomor Rekening';
+
+  @override
+  String get wltActionTransfer => 'Transfer';
+
+  @override
+  String get wltActionTopup => 'Isi Saldo';
+
+  @override
+  String get wltActionWithdraw => 'Tarik';
+
+  @override
+  String get wltFrozenBanner =>
+      'Dompet Anda dibekukan. Transaksi tidak dapat dilakukan, hubungi customer service.';
+
+  @override
+  String get wltLimitsTitle => 'Limit Transfer';
+
+  @override
+  String wltLimitPerTransaction(String min, String max) {
+    return 'Per transaksi: $min – $max';
+  }
+
+  @override
+  String wltLimitRemainingToday(String remaining, String daily) {
+    return 'Sisa limit hari ini: $remaining dari $daily';
+  }
+
+  @override
+  String get wltHistoryTitle => 'Mutasi';
+
+  @override
+  String get wltFilterAll => 'Semua';
+
+  @override
+  String get wltFilterTransferOut => 'Transfer Keluar';
+
+  @override
+  String get wltFilterTransferIn => 'Transfer Masuk';
+
+  @override
+  String get wltFilterTopup => 'Isi Saldo';
+
+  @override
+  String get wltFilterWithdraw => 'Tarik Saldo';
+
+  @override
+  String get wltHistoryEmptyTitle => 'Belum ada mutasi';
+
+  @override
+  String get wltHistoryEmptySubtitle =>
+      'Transfer, isi saldo, dan penarikan akan muncul di sini.';
+
+  @override
+  String get wltHistoryLoadError => 'Gagal memuat mutasi dompet.';
+
+  @override
+  String wltTxnTransferOut(String name) {
+    return 'Transfer ke $name';
+  }
+
+  @override
+  String wltTxnTransferIn(String name) {
+    return 'Transfer dari $name';
+  }
+
+  @override
+  String get wltTxnTopup => 'Isi saldo dari portofolio';
+
+  @override
+  String get wltTxnWithdraw => 'Tarik ke portofolio';
+
+  @override
+  String get wltTxnReversal => 'Pembatalan transaksi';
+
+  @override
+  String get wltTxnAdjustment => 'Penyesuaian saldo';
+
+  @override
+  String wltTxnBalanceAfter(String amount) {
+    return 'Saldo: $amount';
+  }
+
+  @override
+  String get wltTransferTitle => 'Transfer';
+
+  @override
+  String get wltTransferAccountField => 'Nomor rekening tujuan';
+
+  @override
+  String get wltTransferAccountHelper => '12 digit, diawali 88';
+
+  @override
+  String get wltTransferAccountInvalid => 'Nomor rekening harus 12 digit angka';
+
+  @override
+  String get wltTransferCheck => 'Cek Rekening';
+
+  @override
+  String get wltTransferRecipientLabel => 'Penerima';
+
+  @override
+  String get wltTransferChange => 'Ubah';
+
+  @override
+  String get wltTransferAmountLabel => 'Nominal (Rp)';
+
+  @override
+  String get wltTransferNoteLabel => 'Catatan (opsional)';
+
+  @override
+  String wltTransferAvailableBalance(String balance) {
+    return 'Saldo dompet: $balance';
+  }
+
+  @override
+  String get wltTransferContinue => 'Lanjut';
+
+  @override
+  String get wltTransferAmountRequired => 'Nominal wajib diisi';
+
+  @override
+  String wltTransferAmountTooSmall(String min) {
+    return 'Minimal transfer $min';
+  }
+
+  @override
+  String wltTransferAmountTooLarge(String max) {
+    return 'Maksimal $max per transaksi';
+  }
+
+  @override
+  String wltTransferExceedsDaily(String remaining) {
+    return 'Melebihi sisa limit harian ($remaining)';
+  }
+
+  @override
+  String get wltTransferInsufficient => 'Saldo dompet tidak cukup';
+
+  @override
+  String get wltTransferConfirmTitle => 'Konfirmasi Transfer';
+
+  @override
+  String get wltTransferConfirmCheckName =>
+      'Pastikan nama penerima sudah benar sebelum mengirim.';
+
+  @override
+  String get wltTransferConfirmSend => 'Kirim';
+
+  @override
+  String get wltCancel => 'Batal';
+
+  @override
+  String get wltPinTitle => 'Masukkan PIN';
+
+  @override
+  String get wltPinSubtitle => 'Konfirmasi transaksi dengan PIN 6 digit Anda.';
+
+  @override
+  String wltPinLocked(int minutes) {
+    return 'PIN terkunci. Coba lagi dalam $minutes menit.';
+  }
+
+  @override
+  String get wltPinNotSet =>
+      'Anda belum memiliki PIN. Atur PIN terlebih dulu di menu Profil.';
+
+  @override
+  String get wltPinRetryNetwork =>
+      'Koneksi bermasalah. Masukkan PIN lagi untuk mencoba ulang — transfer tidak akan terkirim dua kali.';
+
+  @override
+  String get wltErrAccountNotFound => 'Nomor rekening tidak ditemukan.';
+
+  @override
+  String get wltErrSelfTransfer => 'Tidak bisa transfer ke rekening sendiri.';
+
+  @override
+  String get wltErrFrozen => 'Dompet Anda dibekukan.';
+
+  @override
+  String get wltErrInsufficientBalance => 'Saldo dompet tidak cukup.';
+
+  @override
+  String get wltErrInsufficientPortfolio => 'Saldo portofolio tidak cukup.';
+
+  @override
+  String get wltErrDailyLimit => 'Limit transfer harian terlampaui.';
+
+  @override
+  String get wltErrAmountOutOfRange =>
+      'Nominal di luar batas minimum/maksimum per transaksi.';
+
+  @override
+  String get wltErrRateLimit =>
+      'Terlalu banyak percobaan. Coba lagi sebentar lagi.';
+
+  @override
+  String get wltErrPinInvalid => 'PIN salah.';
+
+  @override
+  String get wltReceiptTitle => 'Detail Transfer';
+
+  @override
+  String get wltReceiptSuccess => 'Transfer Berhasil';
+
+  @override
+  String get wltReceiptReceivedHeader => 'Transfer Diterima';
+
+  @override
+  String get wltReceiptReference => 'No. Referensi';
+
+  @override
+  String get wltReceiptDate => 'Waktu';
+
+  @override
+  String get wltReceiptStatus => 'Status';
+
+  @override
+  String get wltReceiptStatusCompleted => 'Berhasil';
+
+  @override
+  String get wltReceiptRecipient => 'Penerima';
+
+  @override
+  String get wltReceiptSender => 'Pengirim';
+
+  @override
+  String get wltReceiptAccount => 'Rekening';
+
+  @override
+  String get wltReceiptAmount => 'Nominal';
+
+  @override
+  String get wltReceiptNote => 'Catatan';
+
+  @override
+  String get wltReceiptBalanceAfter => 'Saldo setelah transfer';
+
+  @override
+  String get wltReceiptDone => 'Selesai';
+
+  @override
+  String get wltReceiptLoadError => 'Gagal memuat detail transfer.';
+
+  @override
+  String get wltTopupTitle => 'Isi Saldo Dompet';
+
+  @override
+  String get wltWithdrawTitle => 'Tarik ke Portofolio';
+
+  @override
+  String get wltMoveTopupInfo =>
+      'Saldo diambil dari portofolio yang dipilih dan masuk ke dompet.';
+
+  @override
+  String get wltMoveWithdrawInfo =>
+      'Saldo dompet dipindahkan ke portofolio yang dipilih.';
+
+  @override
+  String get wltMovePortfolioLabel => 'Portofolio';
+
+  @override
+  String get wltMovePortfolioPlaceholder => 'Pilih portofolio';
+
+  @override
+  String get wltMoveSelectPortfolioError => 'Pilih portofolio terlebih dulu';
+
+  @override
+  String get wltMoveDescriptionLabel => 'Keterangan (opsional)';
+
+  @override
+  String get wltMoveSubmitTopup => 'Isi Saldo';
+
+  @override
+  String get wltMoveSubmitWithdraw => 'Tarik Saldo';
+
+  @override
+  String get wltMoveSuccessTopup => 'Saldo dompet berhasil diisi.';
+
+  @override
+  String get wltMoveSuccessWithdraw => 'Saldo berhasil ditarik ke portofolio.';
+
+  @override
+  String wltMovePortfolioBalance(String balance) {
+    return 'Saldo portofolio: $balance';
+  }
+
+  @override
+  String get rptPageTitle => 'Laporan';
+
+  @override
+  String get rptTabCashFlow => 'Arus Kas';
+
+  @override
+  String get rptTabSavings => 'Tabungan';
+
+  @override
+  String get rptTabCompare => 'Bandingkan';
+
+  @override
+  String get rptTabCategory => 'Kategori';
+
+  @override
+  String get rptTabUnexpected => 'Tak Terduga';
+
+  @override
+  String get rptTabYear => 'Tahunan';
+
+  @override
+  String get rptTabTax => 'Pajak';
+
+  @override
+  String get rptCardTitle => 'Laporan';
+
+  @override
+  String get rptCardSubtitle =>
+      'Arus kas, rasio menabung, perbandingan, pajak, dan lainnya';
+
+  @override
+  String get rptLoadError => 'Gagal memuat laporan.';
+
+  @override
+  String rptCyclesOption(int n) {
+    return '$n cycle';
+  }
+
+  @override
+  String get rptCfOpening => 'Saldo Awal';
+
+  @override
+  String get rptCfClosing => 'Saldo Akhir';
+
+  @override
+  String get rptCfNet => 'Selisih Bersih';
+
+  @override
+  String get rptCfOther => 'Penyesuaian lain';
+
+  @override
+  String get rptCfOtherHint =>
+      'Perubahan saldo di luar pemasukan/pengeluaran, mis. perubahan nilai investasi.';
+
+  @override
+  String get rptCfBalanceChart => 'Saldo Berjalan';
+
+  @override
+  String get rptCfDailyTitle => 'Pergerakan Harian';
+
+  @override
+  String get rptCfEmptyTitle => 'Belum ada transaksi';
+
+  @override
+  String get rptCfEmptySubtitle => 'Tidak ada transaksi pada cycle ini.';
+
+  @override
+  String get rptSrCurrent => 'Rasio Saat Ini';
+
+  @override
+  String get rptSrPrevious => 'Cycle Lalu';
+
+  @override
+  String get rptSrAverage => 'Rata-rata';
+
+  @override
+  String get rptSrTargetLabel => 'Target';
+
+  @override
+  String rptSrChangePoints(String value) {
+    return '$value poin';
+  }
+
+  @override
+  String get rptSrFormula => '(Pemasukan − Pengeluaran) ÷ Pemasukan';
+
+  @override
+  String rptSrOnTarget(int count, int total) {
+    return '$count dari $total cycle mencapai target';
+  }
+
+  @override
+  String get rptSrSeriesTitle => 'Tren Rasio Menabung';
+
+  @override
+  String get rptSrBest => 'Terbaik';
+
+  @override
+  String get rptSrWorst => 'Terendah';
+
+  @override
+  String get rptCmpCompareWith => 'Dibanding dengan';
+
+  @override
+  String get rptCmpDefaultPrev => 'Cycle sebelumnya';
+
+  @override
+  String get rptCmpMetrics => 'Ringkasan';
+
+  @override
+  String get rptCmpSavingsRate => 'Rasio Menabung';
+
+  @override
+  String get rptCmpCategories => 'Pengeluaran per Kategori';
+
+  @override
+  String get rptCmpNewLabel => 'Baru';
+
+  @override
+  String get rptCatSelect => 'Kategori';
+
+  @override
+  String get rptCatNoCategoryTitle => 'Belum ada kategori';
+
+  @override
+  String get rptCatNoCategorySubtitle =>
+      'Tambahkan kategori dan transaksi untuk melihat laporan ini.';
+
+  @override
+  String get rptCatTotal => 'Total Cycle Ini';
+
+  @override
+  String rptCatCount(int count) {
+    return '$count transaksi';
+  }
+
+  @override
+  String get rptCatPrevious => 'Cycle Lalu';
+
+  @override
+  String get rptCatAverage => 'Rata-rata/cycle';
+
+  @override
+  String get rptCatShare => 'Porsi';
+
+  @override
+  String get rptCatSeries => 'Tren per Cycle';
+
+  @override
+  String get rptCatTop => 'Transaksi Terbesar';
+
+  @override
+  String get rptCatFrequent => 'Paling Sering';
+
+  @override
+  String rptCatFrequentLine(int count, String total) {
+    return '$count× · $total';
+  }
+
+  @override
+  String get rptCatAll => 'Semua Transaksi';
+
+  @override
+  String get rptCatNoTx => 'Belum ada transaksi di kategori ini.';
+
+  @override
+  String rptUxHow(String factor, int cycles, int samples) {
+    return 'Pengeluaran lebih dari $factor× rata-rata transaksi kategori itu dalam $cycles cycle sebelumnya. Kategori dengan kurang dari $samples transaksi pembanding tidak dianalisis.';
+  }
+
+  @override
+  String get rptUxTotalFlagged => 'Total Ditandai';
+
+  @override
+  String get rptUxAnalyzedLabel => 'Kategori Dianalisis';
+
+  @override
+  String get rptUxEmptyTitle => 'Tidak ada pengeluaran mencurigakan';
+
+  @override
+  String get rptUxEmptySubtitle =>
+      'Pengeluaranmu di cycle ini masih wajar. Bagus!';
+
+  @override
+  String rptUxRatio(String ratio) {
+    return '$ratio× rata-rata';
+  }
+
+  @override
+  String rptUxAverage(String amount) {
+    return 'Rata-rata kategori: $amount';
+  }
+
+  @override
+  String get rptYrAvgExpense => 'Rata-rata Pengeluaran/Bulan';
+
+  @override
+  String get rptYrMonthly => 'Pemasukan vs Pengeluaran Bulanan';
+
+  @override
+  String get rptYrBest => 'Bulan Terbaik';
+
+  @override
+  String get rptYrWorst => 'Bulan Terburuk';
+
+  @override
+  String get rptYrBiggest => 'Pengeluaran Terbesar';
+
+  @override
+  String get rptYrTopExpenses => 'Kategori Pengeluaran Teratas';
+
+  @override
+  String get rptYrTopIncome => 'Sumber Pemasukan Teratas';
+
+  @override
+  String get rptYrBudgetTitle => 'Anggaran Setahun';
+
+  @override
+  String rptYrBudgetTotals(String spent, String budget) {
+    return 'Terpakai $spent dari $budget';
+  }
+
+  @override
+  String rptYrBudgetMonthsOver(int over, int total) {
+    return '$over dari $total bulan melebihi anggaran';
+  }
+
+  @override
+  String rptYrBudgetUsed(String pct) {
+    return '$pct% terpakai';
+  }
+
+  @override
+  String get rptYrOverItems => 'Kelebihan Anggaran Terbesar';
+
+  @override
+  String rptYrOverBy(String amount, String pct) {
+    return '+$amount ($pct%)';
+  }
+
+  @override
+  String get rptYrOverCategories => 'Kategori Paling Sering Melebihi';
+
+  @override
+  String rptYrOverTimes(int times, String amount) {
+    return '$times× melebihi · $amount';
+  }
+
+  @override
+  String get rptTaxDisclaimer =>
+      'Ini hanya rekap, bukan perhitungan pajak: total pemasukan setahun dan pengeluaran yang kamu tandai sebagai pengurang pajak. Konsultasikan ke konsultan pajak untuk hitungan resmi.';
+
+  @override
+  String get rptTaxTotalIncome => 'Total Pemasukan';
+
+  @override
+  String get rptTaxTotalDeductible => 'Total Pengurang';
+
+  @override
+  String get rptTaxAfter => 'Pemasukan Setelah Pengurang';
+
+  @override
+  String get rptTaxDeductibleList => 'Pengurang Terhitung';
+
+  @override
+  String get rptTaxNoDeductible =>
+      'Belum ada kategori yang ditandai dan memiliki pengeluaran.';
+
+  @override
+  String get rptTaxCategoriesTitle => 'Kategori Pengurang Pajak';
+
+  @override
+  String get rptTaxCategoriesHint =>
+      'Centang kategori pengeluaran yang dapat mengurangi pajak. Pilihan berlaku untuk semua tahun.';
+
+  @override
+  String get rptTaxNoCategories => 'Belum ada kategori pengeluaran.';
+
+  @override
+  String get rptTaxSave => 'Simpan Pilihan';
+
+  @override
+  String get rptTaxSaved => 'Pilihan disimpan.';
+
+  @override
+  String get brcTitle => 'Rekomendasi Budget';
+
+  @override
+  String get brcLoadError => 'Gagal memuat rekomendasi budget.';
+
+  @override
+  String get brcEmptyTitle => 'Belum ada rekomendasi';
+
+  @override
+  String brcEmptySubtitle(int cycles) {
+    return 'Rekomendasi muncul setelah ada riwayat pengeluaran dalam $cycles cycle terakhir.';
+  }
+
+  @override
+  String brcBasisPercentage(String income, int cycles) {
+    return 'Saran dihitung dari rata-rata porsi pengeluaran tiap kategori terhadap pemasukan selama $cycles cycle terakhir, dikalikan pemasukan cycle ini ($income).';
+  }
+
+  @override
+  String brcBasisNominal(int cycles) {
+    return 'Gaji cycle ini belum masuk, saran memakai rata-rata nominal pengeluaran selama $cycles cycle terakhir.';
+  }
+
+  @override
+  String brcSelectedCount(int selected, int total) {
+    return '$selected dari $total dipilih';
+  }
+
+  @override
+  String get brcSelectAll => 'Pilih semua';
+
+  @override
+  String get brcDeselectAll => 'Batal pilih semua';
+
+  @override
+  String get brcNoBudgetYet => 'Belum ada budget';
+
+  @override
+  String brcAverageSpent(String amount, String percent) {
+    return 'Rata-rata belanja $amount per cycle · $percent dari pemasukan';
+  }
+
+  @override
+  String brcLimitedNote(int count) {
+    return 'Melebihi budget di $count cycle, tidak dinaikkan';
+  }
+
+  @override
+  String brcApplyButton(int count) {
+    return 'Terapkan ($count)';
+  }
+
+  @override
+  String brcApplied(int count) {
+    return '$count budget berhasil disimpan.';
+  }
+
+  @override
+  String brcAppliedPartial(int saved, int total) {
+    return '$saved dari $total budget disimpan. Sisanya tidak punya saran.';
+  }
+
+  @override
+  String get brcAppliedNone =>
+      'Tidak ada budget yang disimpan. Kategori yang dipilih tidak punya saran.';
 }

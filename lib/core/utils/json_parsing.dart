@@ -41,3 +41,12 @@ String parseLabel(Map<String, dynamic> json, List<String> keys, {String fallback
   }
   return fallback;
 }
+
+/// Like [parseDouble] but keeps `null` as `null` — for fields the API
+/// documents as nullable (e.g. `diff_pct` when there's no baseline), where
+/// "no value" must not be shown as 0.
+double? parseDoubleOrNull(Object? value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}

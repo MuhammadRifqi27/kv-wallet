@@ -58,7 +58,15 @@ class AssetDetailPage extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
-            error: (_, _) => const SizedBox.shrink(),
+            // Was `SizedBox.shrink()` — identical to "request succeeded,
+            // price just isn't available" (_NoPriceNotice below), so a
+            // genuine fetch failure (network down, CoinGecko rate limit)
+            // looked exactly like there was simply nothing to show, with no
+            // way to retry. See
+            // docs/ide-improvement-fitur-existing.txt BAGIAN E #33.
+            error: (_, _) => _PriceLoadErrorNotice(
+              onRetry: () => ref.invalidate(singleAssetPriceProvider(asset)),
+            ),
             data: (price) => price == null
                 ? const _NoPriceNotice()
                 : _PriceHeader(
@@ -397,9 +405,49 @@ class _NoPriceNotice extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.investMarketPriceUnavailable,
-              style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
+              // AppColors.textPrimary, not primaryDark — that token is
+              // fixed-color text meant only for the primaryGradient hero
+              // card, not this theme-aware primaryLight background (same
+              // fix as _AdvisorTile in summary_page.dart, BAGIAN A #2).
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 12.5),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Distinct from [_NoPriceNotice] — a genuine fetch failure (network,
+/// CoinGecko rate limit) rather than "request succeeded, no price to show".
+/// See docs/ide-improvement-fitur-existing.txt BAGIAN E #33.
+class _PriceLoadErrorNotice extends StatelessWidget {
+  const _PriceLoadErrorNotice({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              l10n.investMarketPriceLoadError,
+              style: TextStyle(color: AppColors.error, fontSize: 12.5),
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: Text(l10n.investRetryButton)),
         ],
       ),
     );

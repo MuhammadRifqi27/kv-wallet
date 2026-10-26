@@ -11,7 +11,7 @@ import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
 import '../../../shared/widgets/primary_button.dart';
-import '../../master_data/presentation/category_list_page.dart' show ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../../portfolio/application/portfolio_list_controller.dart';
 import '../application/savings_goal_controller.dart';
 import 'savings_goal_style.dart';
@@ -80,13 +80,22 @@ class SavingsGoalDetailPage extends ConsumerWidget {
                     subtitle: l10n.walletSavingsGoalDetailEmptySubtitle,
                   );
                 }
-                return Column(
-                  children: [
-                    for (final contribution in contributions) ...[
-                      _ContributionTile(goalId: goal.id, contribution: contribution),
-                      const SizedBox(height: 8),
-                    ],
-                  ],
+                // ListView.builder (shrinkWrap, non-scrolling — it's nested
+                // inside the outer ListView above), not a plain Column +
+                // `for` loop — contribution/withdrawal history is a user-
+                // grown collection that can get long over time, unlike the
+                // OUTER ListView's top-level children just above (summary
+                // card + section title + this), which are always exactly 3
+                // fixed items regardless of data and don't need `.builder`.
+                // See docs/ide-improvement-fitur-existing.txt BAGIAN F #38.
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: contributions.length,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _ContributionTile(goalId: goal.id, contribution: contributions[index]),
+                  ),
                 );
               },
             ),
@@ -370,11 +379,15 @@ class _ContributionFormSheetState extends ConsumerState<_ContributionFormSheet> 
   }
 
   Future<void> _pickDate() async {
+    // A contribution/withdrawal records money that has already moved —
+    // capped at today instead of a year out. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN D #19.
+    final today = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: _date.isAfter(today) ? today : _date,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: today,
     );
     if (picked != null) setState(() => _date = picked);
   }

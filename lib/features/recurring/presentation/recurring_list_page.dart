@@ -9,13 +9,27 @@ import '../../../data/models/recurring_transaction_model.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/recurring_list_controller.dart';
+
+/// `RecurringFrequency` no longer carries a hardcoded label (see
+/// docs/ide-improvement-fitur-existing.txt BAGIAN B #8) — this is the
+/// localized replacement, duplicated (not shared) with
+/// recurring_form_page.dart's identical helper since it's only 2 call
+/// sites' worth of logic.
+String _frequencyLabel(RecurringFrequency frequency, AppLocalizations l10n) => switch (frequency) {
+      RecurringFrequency.daily => l10n.txnRecurringFrequencyDaily,
+      RecurringFrequency.weekly => l10n.txnRecurringFrequencyWeekly,
+      RecurringFrequency.monthly => l10n.txnRecurringFrequencyMonthly,
+      RecurringFrequency.yearly => l10n.txnRecurringFrequencyYearly,
+    };
 
 /// Templates that auto-generate real transactions on a schedule — see
 /// docs/money-management-alur-bisnis-database.txt "TRANSAKSI BERULANG".
-/// No edit here (the API only has create/delete, no update) — delete and
-/// re-add instead, same as the backend itself supports.
+/// Edit IS supported — tapping a tile pushes to the form pre-filled with
+/// this item (`RecurringListController.editRecurring()` → `PUT
+/// .../{id}`). An earlier version of this comment claimed otherwise; see
+/// docs/ide-improvement-fitur-existing.txt BAGIAN L #58.
 class RecurringListPage extends ConsumerWidget {
   const RecurringListPage({super.key});
 
@@ -138,7 +152,7 @@ class _RecurringTile extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       [
-                        item.frequency.label,
+                        _frequencyLabel(item.frequency, l10n),
                         item.categoryName ?? l10n.txnCategoryFallbackName(item.categoryId),
                         if (item.nextDate != null)
                           l10n.txnRecurringNextDateLabel(formatLocalizedDateShort(item.nextDate!, locale)),

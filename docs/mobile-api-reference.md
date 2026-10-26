@@ -1,4 +1,4 @@
-# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking, Savings Goals)
+# Referensi API Mobile (Auth, PIN, Membership, Recurring Transactions, BTC Tracking, Savings Goals, Wallet)
 
 Referensi lengkap untuk tim Flutter — semua endpoint yang dibangun untuk
 mobile app di sesi ini. Untuk endpoint Money Management lainnya (dashboard,
@@ -929,6 +929,187 @@ dituju di URL:
 ```json
 { "error": "Kontribusi ini tidak ditemukan pada goal ini" }
 ```
+
+---
+
+## Wallet (Dompet Saldo & Transfer antar User)
+
+Base path: `/money-management/wallet` (gate permission
+`money-management.wallet`, diberikan ke semua role money-management). Tiap
+user punya **satu dompet** dengan **nomor rekening 12 digit** (awalan `88`,
+digit terakhir = check digit Luhn). User bisa kirim saldo dompet ke user lain
+lewat nomor rekening, dan memindahkan saldo antara dompet <-> portofolio
+sendiri. Desain lengkap: [money-management-wallet-p2p-transfer-blueprint.txt](money-management-wallet-p2p-transfer-blueprint.txt).
+
+Aturan penting untuk mobile:
+
+1. **Online-only.** Jangan masukkan endpoint ini ke antrean offline/sync.
+   Boleh cache tampilan terakhir (read-only) dengan label "terakhir
+   diperbarui".
+2. **PIN dikirim di dalam request** transfer / topup / withdraw dan
+   diverifikasi server. `POST /auth/verify-pin` hanya untuk lock screen —
+   jangan dipakai sebagai pengganti. 5 PIN salah berturut-turut mengunci
+   aksi dompet 15 menit (`423`, lihat `retry_after`).
+3. **`idempotency_key` wajib** di `POST /transfer` (UUID baru per percobaan
+   user; **pakai ulang key yang sama** saat retry karena timeout). Key yang
+   sudah pernah sukses mengembalikan transfer yang sama dengan status `200`
+   (bukan `201`), tanpa memindahkan uang dua kali.
+4. **Semua nominal integer rupiah** di JSON. Nomor rekening & nama lawan
+   transaksi: **nama ditampilkan lengkap** (supaya pengirim bisa memastikan
+   tidak salah transfer), sedangkan **nomor rekening disamarkan**
+   (`88******7890`); nomor lengkap hanya ada di `GET /` milik user sendiri.
+5. Saldo dompet ikut dihitung di net worth (dashboard & summary) sebagai
+   akun "Dompet Saldo".
+6. Untuk memilih portofolio di topup/withdraw, ambil daftar dari
+   `GET /money-management/portfolios`.
+
+**Format error**: validasi Laravel `422` biasa, atau error bisnis dengan
+`code` yang stabil (pakai `code`, bukan teks `message`, untuk logika UI):
+```json
+{ "message": "Saldo dompet tidak cukup.", "code": "INSUFFICIENT_BALANCE" }
+```
+
+| HTTP | `code` | Arti |
+|---|---|---|
+| 422 | `PIN_INVALID` | PIN salah (juga ada di `errors.pin`) |
+| 422 | `PIN_NOT_SET` | User belum punya PIN, arahkan ke `POST /auth/pin` |
+| 422 | `ACCOUNT_NOT_FOUND` | Nomor rekening salah/tidak ada/dompet dibekukan (sengaja tidak dibedakan) |
+| 422 | `SELF_TRANSFER` | Rekening tujuan = rekening sendiri |
+| 422 | `AMOUNT_TOO_SMALL` / `AMOUNT_TOO_LARGE` | Di luar batas min/maks per transaksi |
+| 403 | `WALLET_FROZEN` | Dompet Anda dibekukan admin |
+| 409 | `INSUFFICIENT_BALANCE` | Saldo dompet kurang |
+| 409 | `INSUFFICIENT_PORTFOLIO_BALANCE` | Saldo portofolio kurang (topup) |
+| 409 | `DAILY_LIMIT_EXCEEDED` | Limit transfer harian terlampaui |
+| 423 | `PIN_LOCKED` | PIN terkunci; body ada `retry_after` (detik) |
+| 429 | - | Rate limit (lookup 20/menit, transfer/topup/withdraw 10/menit) |
+
+### `GET /money-management/wallet` 🔒
+**Response `200`:**
+```json
+{
+  "data": {
+    "account_number": "881234567890",
+    "balance": 850000,
+    "status": "active",
+    "limits": {
+      "min_transfer": 10000,
+      "max_transfer": 5000000,
+      "daily_limit": 10000000,
+      "sent_today": 150000,
+      "remaining_today": 9850000
+    }
+  }
+}
+```
+
+---
+
+### `GET /money-management/wallet/transactions` 🔒
+Mutasi dompet, terbaru dulu. Query opsional: `type`
+(`all|transfer_out|transfer_in|topup_from_portfolio|withdraw_to_portfolio|reversal|adjustment`),
+`from`, `to` (tanggal), `page`, `per_page` (maks 100, default 20).
+
+**Response `200`:**
+```json
+{
+  "data": [
+    {
+      "id": 12,
+      "type": "transfer_out",
+      "direction": "out",
+      "amount": 150000,
+      "balance_after": 850000,
+      "description": "Transfer ke 88******7890",
+      "transfer": {
+        "id": 41, "reference_no": "TRF-20261004-AB12CD", "direction": "out",
+        "amount": 150000, "note": "Bayar makan siang", "status": "completed",
+        "counterparty": { "name": "Budi Santoso", "account_number": "88******7890" },
+        "created_at": "2026-10-04T10:15:00+07:00"
+      },
+      "created_at": "2026-10-04T10:15:00+07:00"
+    }
+  ],
+  "meta": { "current_page": 1, "last_page": 1, "per_page": 20, "total": 1 }
+}
+```
+`transfer` bernilai `null` untuk entri topup/withdraw. `direction`
+`in`/`out` = menambah/mengurangi saldo.
+
+---
+
+### `POST /money-management/wallet/lookup` 🔒
+Langkah 1 transfer: cek nomor rekening tujuan.
+```json
+{ "account_number": "881234567890" }
+```
+**Response `200`:**
+```json
+{ "data": { "account_number": "881234567890", "masked_account_number": "88******7890", "name": "Budi Santoso" } }
+```
+Error: `422 ACCOUNT_NOT_FOUND`, `422 SELF_TRANSFER`.
+
+---
+
+### `POST /money-management/wallet/transfer` 🔒
+Langkah 2: kirim.
+```json
+{
+  "to_account_number": "881234567890",
+  "amount": 150000,
+  "note": "Bayar makan siang",
+  "pin": "123456",
+  "idempotency_key": "b3f1c9e2-7a54-4c1e-9f0d-2a6e8d1c4b77"
+}
+```
+**Response `201`** (`200` jika `idempotency_key` sudah pernah sukses):
+```json
+{
+  "data": {
+    "id": 41,
+    "reference_no": "TRF-20261004-AB12CD",
+    "direction": "out",
+    "amount": 150000,
+    "note": "Bayar makan siang",
+    "status": "completed",
+    "counterparty": { "name": "Budi Santoso", "account_number": "88******7890" },
+    "created_at": "2026-10-04T10:15:00+07:00",
+    "balance_after": 850000
+  }
+}
+```
+Transfer bersifat final, tidak bisa diedit/dihapus user; koreksi hanya lewat
+pembatalan admin (web).
+
+---
+
+### `GET /money-management/wallet/transfers/{id}` 🔒
+Detail/struk satu transfer yang dikirim **atau diterima** user. Bentuknya
+sama dengan `data` di atas (tanpa `balance_after`; `direction` relatif ke
+user yang login). `404` jika bukan transfer milik user.
+
+---
+
+### `POST /money-management/wallet/topup` 🔒
+Isi dompet dari portofolio sendiri (saldo portofolio berkurang).
+```json
+{ "finance_portfolio_id": 1, "amount": 500000, "description": "Isi dompet", "pin": "123456" }
+```
+**Response `201`:** satu entri mutasi (bentuk sama dengan item di
+`/transactions`, `type: "topup_from_portfolio"`).
+Error: `409 INSUFFICIENT_PORTFOLIO_BALANCE`, `404` jika portofolio bukan milik user.
+
+### `POST /money-management/wallet/withdraw` 🔒
+Tarik saldo dompet ke portofolio sendiri. Body sama dengan topup.
+**Response `201`:** entri mutasi `type: "withdraw_to_portfolio"`.
+Error: `409 INSUFFICIENT_BALANCE`.
+
+---
+
+## Reports (Laporan)
+
+Endpoint laporan di menu Summary (`/money-management/reports/*`: cash-flow,
+savings-rate, compare, category, unexpected-expenses, year-in-review, tax)
+didokumentasikan terpisah di [mobile-api-reports.md](mobile-api-reports.md).
 
 ---
 

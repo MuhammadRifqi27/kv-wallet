@@ -14,6 +14,7 @@ class AppTextField extends StatefulWidget {
     this.validator,
     this.errorText,
     this.onFieldSubmitted,
+    this.helperText,
   });
 
   final String label;
@@ -25,6 +26,11 @@ class AppTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final String? errorText;
   final void Function(String)? onFieldSubmitted;
+
+  /// Shown below the field when there's no [errorText] (errors take
+  /// visual priority) — e.g. "auto-filled from receipt scan" hints. See
+  /// docs/ide-improvement-fitur-existing.txt BAGIAN K #54.
+  final String? helperText;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -46,6 +52,9 @@ class _AppTextFieldState extends State<AppTextField> {
       decoration: InputDecoration(
         labelText: widget.label,
         errorText: widget.errorText,
+        helperText: widget.helperText,
+        helperStyle: TextStyle(color: AppColors.primary, fontSize: 11.5, fontWeight: FontWeight.w600),
+        helperMaxLines: 2,
         prefixIcon: widget.icon != null ? Icon(widget.icon, color: AppColors.textSecondary, size: 20) : null,
         suffixIcon: widget.obscureText
             ? IconButton(

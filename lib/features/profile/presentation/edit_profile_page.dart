@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/validators.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/error_banner.dart';
@@ -132,7 +133,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       onFieldSubmitted: (_) => _submit(),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return l10n.appEditProfileEmailRequired;
-                        if (!value.contains('@')) return l10n.appEditProfileEmailInvalid;
+                        if (!isValidEmail(value)) return l10n.appEditProfileEmailInvalid;
                         return null;
                       },
                     ),

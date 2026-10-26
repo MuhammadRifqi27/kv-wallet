@@ -4,13 +4,6 @@ import 'transaction_model.dart';
 enum RecurringFrequency { daily, weekly, monthly, yearly }
 
 extension RecurringFrequencyLabel on RecurringFrequency {
-  String get label => switch (this) {
-        RecurringFrequency.daily => 'Harian',
-        RecurringFrequency.weekly => 'Mingguan',
-        RecurringFrequency.monthly => 'Bulanan',
-        RecurringFrequency.yearly => 'Tahunan',
-      };
-
   /// Value sent to `POST /money-management/recurring` — matches the enum
   /// name already (`daily`/`weekly`/`monthly`/`yearly`).
   String get apiValue => name;

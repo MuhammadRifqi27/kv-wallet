@@ -38,16 +38,30 @@ class ApiEndpoints {
   static const String verifyPin = '/auth/verify-pin';
 
   static const String membershipPlans = '/membership/plans';
-  static const String membershipSelectPlan = '/membership/select-plan';
   static const String membershipStatus = '/membership/status';
 
   static const String budgets = '/money-management/budgets';
+
+  /// GET = suggestions for a cycle, POST = apply selected category ids —
+  /// see docs/mobile-api-budget-recomendation.md.
+  static const String budgetRecommendations = '/money-management/budgets/recommendations';
   static const String categories = '/money-management/categories';
   static const String investments = '/money-management/investments';
   static const String settings = '/money-management/settings';
   static const String portfolios = '/money-management/portfolios';
   static const String dashboard = '/money-management/dashboard';
   static const String summary = '/money-management/summary';
+
+  /// Laporan di menu Summary — see docs/mobile-api-report.md. All GET except
+  /// `taxCategories`; every response is wrapped in `{"data": {...}}`.
+  static const String reportCashFlow = '/money-management/reports/cash-flow';
+  static const String reportSavingsRate = '/money-management/reports/savings-rate';
+  static const String reportCompare = '/money-management/reports/compare';
+  static const String reportCategory = '/money-management/reports/category';
+  static const String reportUnexpectedExpenses = '/money-management/reports/unexpected-expenses';
+  static const String reportYearInReview = '/money-management/reports/year-in-review';
+  static const String reportTax = '/money-management/reports/tax';
+  static const String reportTaxCategories = '/money-management/reports/tax-categories';
   static const String transactions = '/money-management/transactions';
 
   /// `GET` here has a side effect — it processes any due recurring template
@@ -67,4 +81,14 @@ class ApiEndpoints {
   /// against docs/flutter-mobile-app-development-guide.txt, response shape
   /// unverified.
   static const String transfers = '/money-management/transfers';
+
+  /// Dompet saldo + transfer antar user (P2P) — online-only, see
+  /// docs/mobile-api-reference.md "Wallet".
+  static const String wallet = '/money-management/wallet';
+  static const String walletTransactions = '/money-management/wallet/transactions';
+  static const String walletLookup = '/money-management/wallet/lookup';
+  static const String walletTransfer = '/money-management/wallet/transfer';
+  static const String walletTransfers = '/money-management/wallet/transfers';
+  static const String walletTopup = '/money-management/wallet/topup';
+  static const String walletWithdraw = '/money-management/wallet/withdraw';
 }

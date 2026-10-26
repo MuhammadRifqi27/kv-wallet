@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/category_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/list_states.dart';
 import '../application/category_list_controller.dart';
 
 /// Read-only — master data (kategori, provider investasi) is managed by
@@ -59,20 +60,6 @@ class CategoryListPage extends ConsumerWidget {
   }
 }
 
-/// Wraps content in a scrollable container so `RefreshIndicator`'s pull
-/// gesture keeps working even on the loading/error/empty states.
-Widget scrollableCenter(Widget child) {
-  return LayoutBuilder(
-    builder: (context, constraints) => SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-        child: Center(child: child),
-      ),
-    ),
-  );
-}
-
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({required this.category});
 
@@ -82,6 +69,11 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // No more CategoryTypeLabel.label on the model — a data model can't
+    // hold localized strings. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN B #7.
+    final typeLabel = category.type == CategoryType.income ? l10n.txnCategoryTypeIncome : l10n.txnCategoryTypeExpense;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -114,7 +106,7 @@ class _CategoryTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  category.description?.isNotEmpty == true ? category.description! : category.type.label,
+                  category.description?.isNotEmpty == true ? category.description! : typeLabel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
@@ -128,56 +120,6 @@ class _CategoryTile extends StatelessWidget {
   }
 }
 
-class ListEmptyState extends StatelessWidget {
-  const ListEmptyState({super.key, required this.icon, required this.title, required this.subtitle});
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: AppColors.textDisabled),
-          const SizedBox(height: 12),
-          Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ListErrorState extends StatelessWidget {
-  const ListErrorState({super.key, required this.message, required this.onRetry});
-
-  final String message;
-  final Future<void> Function() onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
-          const SizedBox(height: 12),
-          Text(message, textAlign: TextAlign.center, style: TextStyle(color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          TextButton(onPressed: onRetry, child: Text(l10n.investRetryButton)),
-        ],
-      ),
-    );
-  }
-}
+// ListEmptyState/ListErrorState/scrollableCenter moved to
+// lib/shared/widgets/list_states.dart — see
+// docs/ide-improvement-fitur-existing.txt BAGIAN E #36.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 6-box PIN entry. A fully transparent [TextField] drives focus & input;
 /// the boxes on top just reflect how many digits have been typed so far
@@ -51,6 +52,7 @@ class _PinCodeFieldState extends State<PinCodeField> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         GestureDetector(
@@ -73,17 +75,31 @@ class _PinCodeFieldState extends State<PinCodeField> {
                 Positioned.fill(
                   child: Opacity(
                     opacity: 0,
-                    child: TextField(
-                      controller: widget.controller,
-                      focusNode: _focusNode,
-                      autofocus: widget.autofocus,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(PinCodeField.length),
-                      ],
-                      showCursor: false,
-                      decoration: const InputDecoration(border: InputBorder.none, counterText: ''),
+                    // Fully transparent but still reachable by a screen
+                    // reader (Opacity doesn't strip semantics) — labelText
+                    // gives it an announced name instead of "text field
+                    // kosong". See
+                    // docs/ide-improvement-fitur-existing.txt BAGIAN I #50.
+                    child: Semantics(
+                      label: l10n.pinCodeFieldSemanticLabel(
+                        widget.controller.text.length,
+                        PinCodeField.length,
+                      ),
+                      child: TextField(
+                        controller: widget.controller,
+                        focusNode: _focusNode,
+                        autofocus: widget.autofocus,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(PinCodeField.length),
+                        ],
+                        showCursor: false,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          counterText: '',
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -93,7 +109,10 @@ class _PinCodeFieldState extends State<PinCodeField> {
         ),
         if (widget.errorText != null) ...[
           const SizedBox(height: 10),
-          Text(widget.errorText!, style: const TextStyle(color: AppColors.error, fontSize: 12.5)),
+          Text(
+            widget.errorText!,
+            style: const TextStyle(color: AppColors.error, fontSize: 12.5),
+          ),
         ],
       ],
     );
@@ -108,7 +127,9 @@ class _PinBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = hasError ? AppColors.error : (filled ? AppColors.primary : AppColors.border);
+    final color = hasError
+        ? AppColors.error
+        : (filled ? AppColors.primary : AppColors.border);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 6),
       width: 44,
@@ -123,7 +144,10 @@ class _PinBox extends StatelessWidget {
           ? Container(
               width: 10,
               height: 10,
-              decoration: BoxDecoration(color: AppColors.textPrimary, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: AppColors.textPrimary,
+                shape: BoxShape.circle,
+              ),
             )
           : null,
     );

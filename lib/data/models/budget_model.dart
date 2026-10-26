@@ -71,4 +71,11 @@ class BudgetCategoryItem {
 
   double get progress => amount <= 0 ? 0 : (spent / amount).clamp(0, 1);
   bool get isOverBudget => spent > amount;
+
+  /// >=80% used but not yet over — an early warning distinct from
+  /// [isOverBudget], per docs/flutter-notifications-plan.txt BAGIAN 1.1.b
+  /// (previously unimplemented — only the "already over" notification
+  /// existed). See docs/ide-improvement-fitur-existing.txt BAGIAN G #41.
+  static const nearLimitThreshold = 0.8;
+  bool get isNearLimit => !isOverBudget && amount > 0 && progress >= nearLimitThreshold;
 }

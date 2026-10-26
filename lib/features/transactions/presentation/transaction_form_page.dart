@@ -45,23 +45,64 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   bool _isScanning = false;
   ApiException? _error;
 
+  // Which fields the last receipt scan filled — drives the "auto-filled"
+  // badges below (BAGIAN K #54) and clears as soon as the user edits that
+  // field themselves. `_amountFromOcrIsGuess` additionally flags the
+  // last-resort "largest number on the receipt" fallback (BAGIAN K #55),
+  // which needs a stronger "please verify" hint than a confident
+  // total-keyword match.
+  bool _amountFromOcr = false;
+  bool _amountFromOcrIsGuess = false;
+  bool _dateFromOcr = false;
+  bool _descriptionFromOcr = false;
+
   bool get _isEditing => widget.transaction != null;
 
   @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(_onAmountEdited);
+    _descriptionController.addListener(_onDescriptionEdited);
+  }
+
+  void _onAmountEdited() {
+    if (_amountFromOcr) setState(() => _amountFromOcr = _amountFromOcrIsGuess = false);
+  }
+
+  void _onDescriptionEdited() {
+    if (_descriptionFromOcr) setState(() => _descriptionFromOcr = false);
+  }
+
+  @override
   void dispose() {
+    _amountController.removeListener(_onAmountEdited);
+    _descriptionController.removeListener(_onDescriptionEdited);
     _amountController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
   Future<void> _pickDate() async {
+    // A transaction records something that's already happened, unlike a
+    // Recurring template (which legitimately needs a future start date) —
+    // capped at today instead of +365 days. If `_date` is somehow already
+    // in the future (e.g. editing a transaction created before this fix),
+    // fall back to today as the initial value so it stays within
+    // [firstDate, lastDate] instead of showDatePicker asserting.
+    // See docs/ide-improvement-fitur-existing.txt BAGIAN D #17.
+    final today = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
+      initialDate: _date.isAfter(today) ? today : _date,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: today,
     );
-    if (picked != null) setState(() => _date = picked);
+    if (picked != null) {
+      setState(() {
+        _date = picked;
+        _dateFromOcr = false;
+      });
+    }
   }
 
   /// See docs/flutter-ocr-scan-struk-plan.txt — reads text off a struk
@@ -93,19 +134,35 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       return;
     }
 
-    final amount = parseAmountFromReceipt(text);
+    final amountMatch = parseAmountFromReceipt(text);
     final date = parseDateFromReceipt(text);
     final description = parseDescriptionFromReceipt(text);
+    // Was the OCR read technically successful (`text != null`, handled
+    // above) but none of the 3 parsers found anything usable? Then the
+    // form is still blank — don't claim success. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN K #53.
+    final filledAny = amountMatch != null || date != null || description != null;
 
     setState(() {
-      if (amount != null) _amountController.text = amount.toStringAsFixed(0);
-      if (date != null) _date = date;
-      if (description != null) _descriptionController.text = description;
+      if (amountMatch != null) {
+        _amountController.text = amountMatch.amount.toStringAsFixed(0);
+        _amountFromOcr = true;
+        _amountFromOcrIsGuess = !amountMatch.isConfident;
+      }
+      if (date != null) {
+        _date = date;
+        _dateFromOcr = true;
+      }
+      if (description != null) {
+        _descriptionController.text = description;
+        _descriptionFromOcr = true;
+      }
     });
 
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context).txnScanReceiptAutofilledMessage)),
+      SnackBar(content: Text(filledAny ? l10n.txnScanReceiptAutofilledMessage : l10n.txnScanReceiptNoDataMessage)),
     );
   }
 
@@ -211,6 +268,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   icon: Icons.calendar_today_outlined,
                   label: formatLocalizedDate(_date, locale),
                   onTap: _pickDate,
+                  badgeText: _dateFromOcr ? l10n.txnScanReceiptFieldAutofilledBadge : null,
                 ),
                 const SizedBox(height: 16),
                 Text(l10n.txnCommonCategorySectionLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
@@ -256,6 +314,11 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: false),
                   textInputAction: TextInputAction.next,
                   errorText: _error?.errorFor('amount'),
+                  helperText: _amountFromOcr
+                      ? (_amountFromOcrIsGuess
+                          ? l10n.txnScanReceiptFieldGuessBadge
+                          : l10n.txnScanReceiptFieldAutofilledBadge)
+                      : null,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return l10n.txnCommonAmountRequired;
                     final parsed = parseRupiahInput(value);
@@ -270,6 +333,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                   icon: Icons.notes_rounded,
                   textInputAction: TextInputAction.done,
                   errorText: _error?.errorFor('description'),
+                  helperText: _descriptionFromOcr ? l10n.txnScanReceiptFieldAutofilledBadge : null,
                   onFieldSubmitted: (_) => _submit(),
                 ),
                 const SizedBox(height: 28),
@@ -405,11 +469,15 @@ class _ScanSourceTile extends StatelessWidget {
 }
 
 class _TapField extends StatelessWidget {
-  const _TapField({required this.icon, required this.label, required this.onTap});
+  const _TapField({required this.icon, required this.label, required this.onTap, this.badgeText});
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+
+  /// See AppTextField.helperText's doc — same "auto-filled from receipt
+  /// scan" hint, for the date field which isn't a TextFormField.
+  final String? badgeText;
 
   @override
   Widget build(BuildContext context) {
@@ -423,12 +491,27 @@ class _TapField extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.textSecondary, size: 20),
-            const SizedBox(width: 12),
-            Expanded(child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 15))),
-            Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+            Row(
+              children: [
+                Icon(icon, color: AppColors.textSecondary, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 15))),
+                Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+              ],
+            ),
+            if (badgeText != null) ...[
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 32),
+                child: Text(
+                  badgeText!,
+                  style: TextStyle(color: AppColors.primary, fontSize: 11.5, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -451,18 +534,22 @@ class _CategoryPickerField extends StatelessWidget {
   }
 
   Future<void> _openPicker(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final selected = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => _PickerSheet<CategoryModel>(
-        title: AppLocalizations.of(context).txnCommonSelectCategoryTitle,
+        title: l10n.txnCommonSelectCategoryTitle,
         items: categories,
         selectedId: selectedId,
         idOf: (c) => c.id,
         titleOf: (c) => c.name,
-        subtitleOf: (c) => c.type.label,
+        // No more CategoryTypeLabel.label on the model — a data model can't
+        // hold localized strings. See
+        // docs/ide-improvement-fitur-existing.txt BAGIAN B #7.
+        subtitleOf: (c) => c.type == CategoryType.income ? l10n.txnCategoryTypeIncome : l10n.txnCategoryTypeExpense,
       ),
     );
     if (selected != null) onChanged(selected);

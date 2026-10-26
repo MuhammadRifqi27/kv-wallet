@@ -108,6 +108,13 @@ FireProjection projectFire({
   required double annualExpense,
   required double annualReturnRate,
 }) {
+  // `balance * (1 + annualReturnRate)` collapses to <= 0 forever once
+  // `annualReturnRate <= -1` (a "lose everything or more each year" rate) —
+  // not reachable today since the UI only offers the fixed 4/6/8% chips,
+  // but this is a public function with no input validation of its own, so
+  // guard it here in case a future custom-rate input feeds it something
+  // nonsensical. See docs/ide-improvement-fitur-existing.txt BAGIAN D #24.
+  assert(annualReturnRate > -1, 'annualReturnRate must be > -1 (a total-or-worse loss rate every year)');
   final target = annualExpense / safeWithdrawalRate;
   if (currentNetWorth >= target) {
     return FireProjection(targetAmount: target, years: 0, reachable: true);

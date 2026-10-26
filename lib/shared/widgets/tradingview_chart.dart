@@ -25,6 +25,11 @@ class TradingViewChart extends StatefulWidget {
 class _TradingViewChartState extends State<TradingViewChart> {
   late final WebViewController _controller;
 
+  /// Guards against re-loading the HTML on every dependency change —
+  /// [didChangeDependencies] (unlike [initState]) also fires whenever an
+  /// ancestor InheritedWidget changes, not just once.
+  bool _loadedInitialHtml = false;
+
   @override
   void initState() {
     super.initState();
@@ -39,15 +44,26 @@ class _TradingViewChartState extends State<TradingViewChart> {
     // docs/ide-improvement-fitur-existing.txt BAGIAN C #13.
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(AppColors.surface)
-      ..loadHtmlString(_html(widget.symbol));
+      ..setBackgroundColor(AppColors.surface);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // `Localizations.localeOf` needs a fully-established InheritedWidget
+    // chain — unlike AppColors.isDark above, it can't be read safely from
+    // initState. See docs/ide-improvement-fitur-existing.txt BAGIAN B #10.
+    if (!_loadedInitialHtml) {
+      _loadedInitialHtml = true;
+      _controller.loadHtmlString(_html(widget.symbol, Localizations.localeOf(context)));
+    }
   }
 
   @override
   void didUpdateWidget(covariant TradingViewChart oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.symbol != widget.symbol) {
-      _controller.loadHtmlString(_html(widget.symbol));
+      _controller.loadHtmlString(_html(widget.symbol, Localizations.localeOf(context)));
     }
   }
 
@@ -55,9 +71,10 @@ class _TradingViewChartState extends State<TradingViewChart> {
   /// plain hex string.
   static String _toHex(Color color) => '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
-  String _html(String symbol) {
+  String _html(String symbol, Locale locale) {
     final tvSymbol = 'BINANCE:${symbol.toUpperCase()}USDT';
     final tvTheme = AppColors.isDark ? 'dark' : 'light';
+    final tvLocale = locale.languageCode == 'en' ? 'en' : 'id';
     final toolbarBg = _toHex(AppColors.surface);
     return '''
 <!DOCTYPE html>
@@ -84,7 +101,7 @@ class _TradingViewChartState extends State<TradingViewChart> {
         "timezone": "Asia/Jakarta",
         "theme": "$tvTheme",
         "style": "1",
-        "locale": "id",
+        "locale": "$tvLocale",
         "toolbar_bg": "$toolbarBg",
         "enable_publishing": false,
         "hide_top_toolbar": false,

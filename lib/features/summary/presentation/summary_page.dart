@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +13,7 @@ import '../../../data/models/summary_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/cycle_period_filter_bar.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/summary_controller.dart';
 
 /// Percent change from [previous] to [current]. Null when [previous] is 0 —
@@ -45,7 +46,9 @@ class SummaryPage extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: CyclePeriodFilterBar(
               period: period,
-              onChanged: (value) => ref.read(selectedSummaryPeriodProvider.notifier).state = value,
+              onChanged: (value) =>
+                  ref.read(selectedSummaryPeriodProvider.notifier).state =
+                      value,
             ),
           ),
           Expanded(
@@ -56,7 +59,9 @@ class SummaryPage extends ConsumerWidget {
                 loading: () => scrollableCenter(const AppLoadingIndicator()),
                 error: (error, _) => scrollableCenter(
                   ListErrorState(
-                    message: error is ApiException ? error.message : l10n.summaryLoadError,
+                    message: error is ApiException
+                        ? error.message
+                        : l10n.summaryLoadError,
                     onRetry: controller.refresh,
                   ),
                 ),
@@ -78,8 +83,21 @@ class _SummaryBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final previous = ref.watch(previousMonthSummaryProvider).valueOrNull;
-    final savingsRate = summary.totalIncome > 0 ? (summary.netProfit / summary.totalIncome * 100) : null;
+    final previousAsync = ref.watch(previousMonthSummaryProvider);
+    // Same reasoning as _BudgetHealthCard above — the month-over-month
+    // comparison badges below just silently omit themselves either way,
+    // but a genuine fetch failure is now distinguishable from "no previous
+    // month data" in debug logs. See
+    // docs/ide-improvement-fitur-existing.txt BAGIAN E #35.
+    if (previousAsync.hasError && kDebugMode) {
+      debugPrint(
+        '[_SummaryBody] failed to load previous month summary: ${previousAsync.error}',
+      );
+    }
+    final previous = previousAsync.valueOrNull;
+    final savingsRate = summary.totalIncome > 0
+        ? (summary.netProfit / summary.totalIncome * 100)
+        : null;
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -97,7 +115,9 @@ class _SummaryBody extends ConsumerWidget {
                 label: l10n.summaryIncomeLabel,
                 value: formatRupiah(summary.totalIncome),
                 color: AppColors.success,
-                percentChange: previous != null ? _percentChange(summary.totalIncome, previous.totalIncome) : null,
+                percentChange: previous != null
+                    ? _percentChange(summary.totalIncome, previous.totalIncome)
+                    : null,
                 // Income going up is good.
                 higherIsBetter: true,
               ),
@@ -108,7 +128,12 @@ class _SummaryBody extends ConsumerWidget {
                 label: l10n.summaryExpenseLabel,
                 value: formatRupiah(summary.totalExpense),
                 color: AppColors.error,
-                percentChange: previous != null ? _percentChange(summary.totalExpense, previous.totalExpense) : null,
+                percentChange: previous != null
+                    ? _percentChange(
+                        summary.totalExpense,
+                        previous.totalExpense,
+                      )
+                    : null,
                 // Expense going up is bad.
                 higherIsBetter: false,
               ),
@@ -118,8 +143,12 @@ class _SummaryBody extends ConsumerWidget {
               child: _StatCard(
                 label: l10n.summaryNetProfitLabel,
                 value: formatRupiah(summary.netProfit),
-                color: summary.netProfit >= 0 ? AppColors.primary : AppColors.error,
-                percentChange: previous != null ? _percentChange(summary.netProfit, previous.netProfit) : null,
+                color: summary.netProfit >= 0
+                    ? AppColors.primary
+                    : AppColors.error,
+                percentChange: previous != null
+                    ? _percentChange(summary.netProfit, previous.netProfit)
+                    : null,
                 higherIsBetter: true,
               ),
             ),
@@ -131,6 +160,8 @@ class _SummaryBody extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         const _BudgetHealthCard(),
+        const SizedBox(height: 10),
+        const _ReportsCard(),
         const SizedBox(height: 10),
         const _EmergencyFundCalculatorCard(),
         const SizedBox(height: 10),
@@ -174,7 +205,14 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary));
+    return Text(
+      text,
+      style: TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 15,
+        color: AppColors.textPrimary,
+      ),
+    );
   }
 }
 
@@ -225,17 +263,27 @@ class _NetWorthCard extends StatelessWidget {
         children: [
           Text(
             l10n.summaryNetWorthTitle,
-            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 13),
+            style: TextStyle(
+              color: AppColors.primaryDark.withValues(alpha: 0.65),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             formatRupiah(amount),
-            style: const TextStyle(color: AppColors.primaryDark, fontSize: 26, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              color: AppColors.primaryDark,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           if (delta != null && delta != 0) ...[
             const SizedBox(height: 6),
             Text(
-              l10n.summaryNetWorthDelta(delta > 0 ? '+' : '-', formatRupiah(delta.abs())),
+              l10n.summaryNetWorthDelta(
+                delta > 0 ? '+' : '-',
+                formatRupiah(delta.abs()),
+              ),
               style: TextStyle(
                 color: AppColors.primaryDark.withValues(alpha: 0.65),
                 fontSize: 11.5,
@@ -282,17 +330,27 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text(
+            label,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          ),
           const SizedBox(height: 4),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+            ),
           ),
           if (percentChange != null) ...[
             const SizedBox(height: 4),
-            _ChangeBadge(percentChange: percentChange!, higherIsBetter: higherIsBetter),
+            _ChangeBadge(
+              percentChange: percentChange!,
+              higherIsBetter: higherIsBetter,
+            ),
           ],
         ],
       ),
@@ -303,7 +361,10 @@ class _StatCard extends StatelessWidget {
 /// "▲ 12% dari bulan lalu" style badge — green when the direction of change
 /// is good for this metric, red when bad, gray for ~0%.
 class _ChangeBadge extends StatelessWidget {
-  const _ChangeBadge({required this.percentChange, required this.higherIsBetter});
+  const _ChangeBadge({
+    required this.percentChange,
+    required this.higherIsBetter,
+  });
 
   final double percentChange;
   final bool higherIsBetter;
@@ -312,10 +373,14 @@ class _ChangeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isFlat = percentChange.abs() < 0.5;
     final isGood = percentChange > 0 ? higherIsBetter : !higherIsBetter;
-    final color = isFlat ? AppColors.textSecondary : (isGood ? AppColors.success : AppColors.error);
+    final color = isFlat
+        ? AppColors.textSecondary
+        : (isGood ? AppColors.success : AppColors.error);
     final icon = isFlat
         ? Icons.remove_rounded
-        : (percentChange > 0 ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded);
+        : (percentChange > 0
+              ? Icons.arrow_upward_rounded
+              : Icons.arrow_downward_rounded);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -324,10 +389,16 @@ class _ChangeBadge extends StatelessWidget {
         const SizedBox(width: 2),
         Flexible(
           child: Text(
-            AppLocalizations.of(context).summaryChangeBadge(percentChange.abs().toStringAsFixed(0)),
+            AppLocalizations.of(
+              context,
+            ).summaryChangeBadge(percentChange.abs().toStringAsFixed(0)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -359,19 +430,30 @@ class _SavingsRateCard extends StatelessWidget {
           Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
             child: Icon(Icons.savings_outlined, color: color, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               AppLocalizations.of(context).summarySavingsRateTitle,
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textPrimary),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           Text(
             '${rate.toStringAsFixed(0)}%',
-            style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 16),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
           ),
         ],
       ),
@@ -393,55 +475,149 @@ class _BudgetHealthCard extends ConsumerWidget {
 
     return budgetAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      // Still renders nothing on error — this card is supplementary, not
+      // core to the Summary page — but a genuine fetch failure is now at
+      // least distinguishable from "no budget data" in debug logs. See
+      // docs/ide-improvement-fitur-existing.txt BAGIAN E #35.
+      error: (error, _) {
+        if (kDebugMode) {
+          debugPrint(
+            '[_BudgetHealthCard] failed to load budget health: $error',
+          );
+        }
+        return const SizedBox.shrink();
+      },
       data: (summary) {
         if (summary.categories.isEmpty) return const SizedBox.shrink();
 
-        final overBudgetCount = summary.categories.where((c) => c.isOverBudget).length;
+        final overBudgetCount = summary.categories
+            .where((c) => c.isOverBudget)
+            .length;
         final allOk = overBudgetCount == 0;
         final color = allOk ? AppColors.success : AppColors.error;
 
         return Material(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(14),
-            onTap: () => context.push('/budget'),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                    child: Icon(
-                      allOk ? Icons.check_circle_outline_rounded : Icons.warning_amber_rounded,
-                      color: color,
-                      size: 18,
+          // See docs/ide-improvement-fitur-existing.txt BAGIAN I #49 —
+          // merges the icon/title text into one screen-reader stop instead
+          // of announcing each descendant Text separately.
+          child: MergeSemantics(
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => context.push('/budget'),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        allOk
+                            ? Icons.check_circle_outline_rounded
+                            : Icons.warning_amber_rounded,
+                        color: color,
+                        size: 18,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      allOk
-                          ? AppLocalizations.of(context).summaryBudgetAllOk
-                          : AppLocalizations.of(context)
-                              .summaryBudgetOverCount(overBudgetCount, summary.categories.length),
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        allOk
+                            ? AppLocalizations.of(context).summaryBudgetAllOk
+                            : AppLocalizations.of(
+                                context,
+                              ).summaryBudgetOverCount(
+                                overBudgetCount,
+                                summary.categories.length,
+                              ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ),
-                  ),
-                  Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
-                ],
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Entry point to Laporan (docs/mobile-api-report.md) — static CTA, the
+/// reports page fetches its own data per tab.
+class _ReportsCard extends StatelessWidget {
+  const _ReportsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: MergeSemantics(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => context.push('/reports'),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.assessment_outlined, color: AppColors.primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.rptCardTitle,
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.rptCardSubtitle,
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -459,42 +635,62 @@ class _EmergencyFundCalculatorCard extends StatelessWidget {
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => context.push('/emergency-fund-calculator'),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), shape: BoxShape.circle),
-                child: Icon(Icons.shield_outlined, color: AppColors.primary, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.emergencyFundTitle,
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.summaryEmergencyFundCardSubtitle,
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ],
+      child: MergeSemantics(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => context.push('/emergency-fund-calculator'),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.shield_outlined,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.emergencyFundTitle,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.summaryEmergencyFundCardSubtitle,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -514,42 +710,62 @@ class _FireCalculatorCard extends StatelessWidget {
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => context.push('/fire-calculator'),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), shape: BoxShape.circle),
-                child: Icon(Icons.savings_outlined, color: AppColors.accent, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.fireTitle,
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5, color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.summaryFireCardSubtitle,
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                    ),
-                  ],
+      child: MergeSemantics(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => context.push('/fire-calculator'),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.savings_outlined,
+                    color: AppColors.accent,
+                    size: 18,
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.fireTitle,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.summaryFireCardSubtitle,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -565,13 +781,13 @@ class _BreakdownChart extends StatelessWidget {
   final List<NamedAmount> items;
 
   static List<Color> get _palette => [
-        AppColors.primary,
-        AppColors.accent,
-        AppColors.success,
-        AppColors.error,
-        AppColors.primaryGradient[0],
-        AppColors.chartTeal,
-      ];
+    AppColors.primary,
+    AppColors.accent,
+    AppColors.success,
+    AppColors.error,
+    AppColors.primaryGradient[0],
+    AppColors.chartTeal,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -612,7 +828,10 @@ class _BreakdownChart extends StatelessWidget {
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: BoxDecoration(color: _palette[index % _palette.length], shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: _palette[index % _palette.length],
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -620,12 +839,18 @@ class _BreakdownChart extends StatelessWidget {
                         item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11.5, color: AppColors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                     Text(
                       '${percentage.toStringAsFixed(0)}%',
-                      style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -651,7 +876,10 @@ class _MonthlyTrendChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            _LegendDot(color: AppColors.success, label: l10n.summaryIncomeLabel),
+            _LegendDot(
+              color: AppColors.success,
+              label: l10n.summaryIncomeLabel,
+            ),
             const SizedBox(width: 14),
             _LegendDot(color: AppColors.error, label: l10n.summaryExpenseLabel),
           ],
@@ -663,19 +891,27 @@ class _MonthlyTrendChart extends StatelessWidget {
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: false,
-                getDrawingHorizontalLine: (value) => FlLine(color: AppColors.border, strokeWidth: 1),
+                getDrawingHorizontalLine: (value) =>
+                    FlLine(color: AppColors.border, strokeWidth: 1),
               ),
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 40,
                     getTitlesWidget: (value, meta) => Text(
-                      formatCompactRupiah(value),
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 9.5),
+                      formatCompactRupiah(value, Localizations.localeOf(context)),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 9.5,
+                      ),
                     ),
                   ),
                 ),
@@ -685,7 +921,9 @@ class _MonthlyTrendChart extends StatelessWidget {
                     reservedSize: 20,
                     getTitlesWidget: (value, meta) {
                       final index = value.toInt();
-                      if (index < 0 || index >= points.length) return const SizedBox.shrink();
+                      if (index < 0 || index >= points.length) {
+                        return const SizedBox.shrink();
+                      }
                       // "Jan 2026" -> "Jan" — the full label overflows the
                       // chart card when there are several months to show.
                       final shortLabel = points[index].label.split(' ').first;
@@ -693,7 +931,10 @@ class _MonthlyTrendChart extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
                           shortLabel,
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 9.5),
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 9.5,
+                          ),
                         ),
                       );
                     },
@@ -702,14 +943,20 @@ class _MonthlyTrendChart extends StatelessWidget {
               ),
               lineBarsData: [
                 LineChartBarData(
-                  spots: [for (var i = 0; i < points.length; i++) FlSpot(i.toDouble(), points[i].income)],
+                  spots: [
+                    for (var i = 0; i < points.length; i++)
+                      FlSpot(i.toDouble(), points[i].income),
+                  ],
                   isCurved: true,
                   color: AppColors.success,
                   barWidth: 3,
                   dotData: const FlDotData(show: false),
                 ),
                 LineChartBarData(
-                  spots: [for (var i = 0; i < points.length; i++) FlSpot(i.toDouble(), points[i].expense)],
+                  spots: [
+                    for (var i = 0; i < points.length; i++)
+                      FlSpot(i.toDouble(), points[i].expense),
+                  ],
                   isCurved: true,
                   color: AppColors.error,
                   barWidth: 3,
@@ -735,9 +982,16 @@ class _LegendDot extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5)),
+        Text(
+          label,
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 10.5),
+        ),
       ],
     );
   }
@@ -767,7 +1021,10 @@ class _AdvisorTile extends StatelessWidget {
             // hero card, not this theme-aware primaryLight background; using
             // it here left near-black text on a dark-purple card in dark
             // mode (docs/ide-improvement-fitur-existing.txt BAGIAN A #2).
-            child: Text(tip, style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
+            child: Text(
+              tip,
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
+            ),
           ),
         ],
       ),

@@ -33,13 +33,28 @@ class AppColors {
   /// hardcoded at every call site and silently lost contrast in dark mode.
   /// See docs/ide-improvement-fitur-existing.txt BAGIAN A #3.
   static Color get onPrimary => _isDark ? _dark.onPrimary : _light.onPrimary;
-  static Color get primaryLight => _isDark ? _dark.primaryLight : _light.primaryLight;
+  static Color get primaryLight =>
+      _isDark ? _dark.primaryLight : _light.primaryLight;
   static Color get background => _isDark ? _dark.background : _light.background;
   static Color get surface => _isDark ? _dark.surface : _light.surface;
-  static Color get textPrimary => _isDark ? _dark.textPrimary : _light.textPrimary;
-  static Color get textSecondary => _isDark ? _dark.textSecondary : _light.textSecondary;
-  static Color get textDisabled => _isDark ? _dark.textDisabled : _light.textDisabled;
+  static Color get textPrimary =>
+      _isDark ? _dark.textPrimary : _light.textPrimary;
+  static Color get textSecondary =>
+      _isDark ? _dark.textSecondary : _light.textSecondary;
+  static Color get textDisabled =>
+      _isDark ? _dark.textDisabled : _light.textDisabled;
   static Color get border => _isDark ? _dark.border : _light.border;
+
+  /// Skeleton-loading placeholder fill (base) and its pulse target
+  /// (highlight) — a solid FILL clearly distinct from [surface]/
+  /// [background], not reused from [border] (that's a thin outline
+  /// color, too subtle as a filled box). See
+  /// docs/plan-dev/skeleton-loading-plan.txt BAGIAN 2.3 — verify
+  /// against both theme backgrounds before shipping wider rollout.
+  static Color get skeletonBase =>
+      _isDark ? _dark.skeletonBase : _light.skeletonBase;
+  static Color get skeletonHighlight =>
+      _isDark ? _dark.skeletonHighlight : _light.skeletonHighlight;
 
   /// Text color used ON [primaryGradient] — that card is a fixed brand
   /// element in both themes, so its own palette doesn't flip either.
@@ -81,6 +96,8 @@ class _ColorSet {
     required this.textSecondary,
     required this.textDisabled,
     required this.border,
+    required this.skeletonBase,
+    required this.skeletonHighlight,
   });
 
   final Color primary;
@@ -92,6 +109,8 @@ class _ColorSet {
   final Color textSecondary;
   final Color textDisabled;
   final Color border;
+  final Color skeletonBase;
+  final Color skeletonHighlight;
 }
 
 const _light = _ColorSet(
@@ -104,6 +123,8 @@ const _light = _ColorSet(
   textSecondary: Color(0xFF6B7280),
   textDisabled: Color(0xFFA1A6B4),
   border: Color(0xFFE5E7EB),
+  skeletonBase: Color(0xFFE4E6EC),
+  skeletonHighlight: Color(0xFFF1F2F6),
 );
 
 /// Deliberately not a pure-black/blue-gray dark theme — kept warm (a hint
@@ -122,4 +143,6 @@ const _dark = _ColorSet(
   textSecondary: Color(0xFFA8A2AC),
   textDisabled: Color(0xFF6E6874),
   border: Color(0xFF322F3A),
+  skeletonBase: Color(0xFF2A2830),
+  skeletonHighlight: Color(0xFF3A3742),
 );

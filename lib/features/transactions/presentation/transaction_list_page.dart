@@ -8,10 +8,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/filter_pill_bar.dart';
 import '../../auth/application/auth_controller.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
+import '../../../shared/widgets/skeleton_loader.dart';
 import '../application/transaction_list_controller.dart';
 
 /// "Transaksi Berulang" is a premium-only feature (see
@@ -26,7 +26,9 @@ void _openRecurring(BuildContext context, WidgetRef ref) {
     return;
   }
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(AppLocalizations.of(context).txnFeatureRequiresUpgrade)),
+    SnackBar(
+      content: Text(AppLocalizations.of(context).txnFeatureRequiresUpgrade),
+    ),
   );
   context.push('/profile/membership');
 }
@@ -36,10 +38,6 @@ class TransactionListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionListControllerProvider);
-    final controller = ref.read(transactionListControllerProvider.notifier);
-    final searchQuery = ref.watch(transactionSearchQueryProvider);
-    final isLoadingMore = ref.watch(transactionLoadingMoreProvider);
     final l10n = AppLocalizations.of(context);
     // Kept alive inside MainShell's IndexedStack — see AppColors' class doc
     // + MainShell's note on why this needs an explicit watch.
@@ -70,79 +68,112 @@ class TransactionListPage extends ConsumerWidget {
               ],
             ),
           ),
-          Expanded(
-            child: RefreshIndicator(
-              color: AppColors.primary,
-              onRefresh: controller.refresh,
-              child: transactionsAsync.when(
-                loading: () => scrollableCenter(const AppLoadingIndicator()),
-                error: (error, _) => scrollableCenter(
-                  ListErrorState(
-                    message: error is ApiException ? error.message : l10n.txnListLoadError,
-                    onRetry: controller.refresh,
-                  ),
-                ),
-                data: (result) {
-                  if (result.transactions.isEmpty) {
-                    return scrollableCenter(
-                      ListEmptyState(
-                        icon: Icons.receipt_long_outlined,
-                        title: l10n.txnListEmptyTitle,
-                        subtitle: l10n.txnListEmptySubtitle,
-                      ),
-                    );
-                  }
-
-                  final filtered = filterTransactionsByQuery(result.transactions, searchQuery);
-                  if (filtered.isEmpty) {
-                    // Search is client-side over whatever pages are already
-                    // loaded (see transactionSearchQueryProvider's doc
-                    // comment) — if the server still has more pages that
-                    // might contain a match, offer "load more" here too
-                    // instead of a dead-end "no results" screen. See
-                    // docs/ide-improvement-fitur-existing.txt BAGIAN A #5.
-                    return scrollableCenter(
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListEmptyState(
-                            icon: Icons.search_off_rounded,
-                            title: l10n.txnListNoResultsTitle,
-                            subtitle: l10n.txnListNoResultsSubtitle,
-                          ),
-                          if (result.hasMorePages) ...[
-                            const SizedBox(height: 12),
-                            _LoadMoreButton(isLoading: isLoadingMore, onTap: controller.loadMore),
-                          ],
-                        ],
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                    itemCount: filtered.length + 1 + (result.hasMorePages ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _SummaryRow(result: result),
-                        );
-                      }
-                      if (index == filtered.length + 1) {
-                        return _LoadMoreButton(isLoading: isLoadingMore, onTap: controller.loadMore);
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _TransactionTile(transaction: filtered[index - 1]),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
+          // A separate widget (not inline here) so `transactionSearchQueryProvider`/
+          // `transactionListControllerProvider`/`transactionLoadingMoreProvider`
+          // are watched down here instead of at the top of
+          // TransactionListPage.build — otherwise every keystroke in
+          // `_SearchField` rebuilt the whole Scaffold (AppBar, filter bars,
+          // FAB), not just the list below. See
+          // docs/ide-improvement-fitur-existing.txt BAGIAN F #37.
+          const Expanded(child: _TransactionListBody()),
         ],
+      ),
+    );
+  }
+}
+
+class _TransactionListBody extends ConsumerWidget {
+  const _TransactionListBody();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactionsAsync = ref.watch(transactionListControllerProvider);
+    final controller = ref.read(transactionListControllerProvider.notifier);
+    final searchQuery = ref.watch(transactionSearchQueryProvider);
+    final isLoadingMore = ref.watch(transactionLoadingMoreProvider);
+    final l10n = AppLocalizations.of(context);
+
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: controller.refresh,
+      child: transactionsAsync.when(
+        // Skeleton loading proof-of-concept — see
+        // docs/plan-dev/skeleton-loading-plan.txt Tahap 1.
+        loading: () => skeletonListTiles(),
+        error: (error, _) => scrollableCenter(
+          ListErrorState(
+            message: error is ApiException
+                ? error.message
+                : l10n.txnListLoadError,
+            onRetry: controller.refresh,
+          ),
+        ),
+        data: (result) {
+          if (result.transactions.isEmpty) {
+            return scrollableCenter(
+              ListEmptyState(
+                icon: Icons.receipt_long_outlined,
+                title: l10n.txnListEmptyTitle,
+                subtitle: l10n.txnListEmptySubtitle,
+              ),
+            );
+          }
+
+          final filtered = filterTransactionsByQuery(
+            result.transactions,
+            searchQuery,
+          );
+          if (filtered.isEmpty) {
+            // Search is client-side over whatever pages are already
+            // loaded (see transactionSearchQueryProvider's doc
+            // comment) — if the server still has more pages that
+            // might contain a match, offer "load more" here too
+            // instead of a dead-end "no results" screen. See
+            // docs/ide-improvement-fitur-existing.txt BAGIAN A #5.
+            return scrollableCenter(
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListEmptyState(
+                    icon: Icons.search_off_rounded,
+                    title: l10n.txnListNoResultsTitle,
+                    subtitle: l10n.txnListNoResultsSubtitle,
+                  ),
+                  if (result.hasMorePages) ...[
+                    const SizedBox(height: 12),
+                    _LoadMoreButton(
+                      isLoading: isLoadingMore,
+                      onTap: controller.loadMore,
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            itemCount: filtered.length + 1 + (result.hasMorePages ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _SummaryRow(result: result),
+                );
+              }
+              if (index == filtered.length + 1) {
+                return _LoadMoreButton(
+                  isLoading: isLoadingMore,
+                  onTap: controller.loadMore,
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _TransactionTile(transaction: filtered[index - 1]),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -168,7 +199,10 @@ class _LoadMoreButton extends StatelessWidget {
             ? SizedBox(
                 width: 22,
                 height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primary),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: AppColors.primary,
+                ),
               )
             : TextButton(onPressed: onTap, child: Text(l10n.txnListLoadMore)),
       ),
@@ -187,7 +221,9 @@ class _SearchField extends ConsumerStatefulWidget {
 }
 
 class _SearchFieldState extends ConsumerState<_SearchField> {
-  late final _controller = TextEditingController(text: ref.read(transactionSearchQueryProvider));
+  late final _controller = TextEditingController(
+    text: ref.read(transactionSearchQueryProvider),
+  );
 
   @override
   void dispose() {
@@ -206,15 +242,24 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
 
     return TextField(
       controller: _controller,
-      onChanged: (value) => ref.read(transactionSearchQueryProvider.notifier).state = value,
+      onChanged: (value) =>
+          ref.read(transactionSearchQueryProvider.notifier).state = value,
       style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
       decoration: InputDecoration(
         isDense: true,
         hintText: AppLocalizations.of(context).txnSearchHint,
-        prefixIcon: Icon(Icons.search_rounded, color: AppColors.textSecondary, size: 20),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          color: AppColors.textSecondary,
+          size: 20,
+        ),
         suffixIcon: hasQuery
             ? IconButton(
-                icon: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 18),
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: AppColors.textSecondary,
+                  size: 18,
+                ),
                 onPressed: _clear,
               )
             : null,
@@ -262,7 +307,11 @@ class _SummaryRow extends StatelessWidget {
 }
 
 class _SummaryChip extends StatelessWidget {
-  const _SummaryChip({required this.label, required this.value, required this.color});
+  const _SummaryChip({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final String value;
@@ -280,13 +329,20 @@ class _SummaryChip extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text(
+            label,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          ),
           const SizedBox(height: 4),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -308,10 +364,16 @@ class _TransactionTile extends ConsumerWidget {
         title: Text(l10n.txnDeleteDialogTitle),
         content: Text(l10n.txnDeleteDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.txnCommonCancel)),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.txnCommonCancel),
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.txnCommonDelete, style: TextStyle(color: AppColors.error)),
+            child: Text(
+              l10n.txnCommonDelete,
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -319,10 +381,14 @@ class _TransactionTile extends ConsumerWidget {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await ref.read(transactionListControllerProvider.notifier).removeTransaction(transaction.id);
+      await ref
+          .read(transactionListControllerProvider.notifier)
+          .removeTransaction(transaction.id);
     } on ApiException catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
 
@@ -345,9 +411,14 @@ class _TransactionTile extends ConsumerWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
             child: Icon(
-              isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+              isIncome
+                  ? Icons.arrow_downward_rounded
+                  : Icons.arrow_upward_rounded,
               color: color,
               size: 20,
             ),
@@ -358,27 +429,39 @@ class _TransactionTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.categoryName ?? l10n.txnCategoryFallbackName(transaction.categoryId),
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  transaction.categoryName ??
+                      l10n.txnCategoryFallbackName(transaction.categoryId),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   [
                     formatLocalizedDateShort(transaction.date, locale),
-                    if (transaction.portfolioName != null && transaction.portfolioName != '-')
+                    if (transaction.portfolioName != null &&
+                        transaction.portfolioName != '-')
                       transaction.portfolioName!,
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
                 ),
-                if (transaction.description != null && transaction.description!.isNotEmpty) ...[
+                if (transaction.description != null &&
+                    transaction.description!.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
                     transaction.description!,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                    ),
                   ),
                 ],
               ],
@@ -386,7 +469,11 @@ class _TransactionTile extends ConsumerWidget {
           ),
           Text(
             '${isIncome ? '+' : '-'} ${formatRupiah(transaction.amount)}',
-            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 13),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
@@ -436,8 +523,15 @@ class _RecurringMenuTile extends StatelessWidget {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-                child: Icon(Icons.autorenew_rounded, color: AppColors.primary, size: 20),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.autorenew_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -446,12 +540,18 @@ class _RecurringMenuTile extends StatelessWidget {
                   children: [
                     Text(
                       l10n.txnRecurringMenuTileTitle,
-                      style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     SizedBox(height: 2),
                     Text(
                       l10n.txnRecurringMenuTileSubtitle,
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5,
+                      ),
                     ),
                   ],
                 ),
@@ -482,12 +582,19 @@ class _DateFilterBar extends ConsumerWidget {
       lastDate: now,
       initialDateRange: existing != null
           ? DateTimeRange(start: existing.start, end: existing.end)
-          : DateTimeRange(start: now.subtract(const Duration(days: 6)), end: now),
+          : DateTimeRange(
+              start: now.subtract(const Duration(days: 6)),
+              end: now,
+            ),
     );
     if (picked == null) return;
 
-    ref.read(transactionCustomRangeProvider.notifier).state = DateRange(start: picked.start, end: picked.end);
-    ref.read(transactionDateShortcutProvider.notifier).state = TransactionDateShortcut.custom;
+    ref.read(transactionCustomRangeProvider.notifier).state = DateRange(
+      start: picked.start,
+      end: picked.end,
+    );
+    ref.read(transactionDateShortcutProvider.notifier).state =
+        TransactionDateShortcut.custom;
   }
 
   @override
@@ -497,9 +604,11 @@ class _DateFilterBar extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context);
 
-    void select(TransactionDateShortcut value) => ref.read(transactionDateShortcutProvider.notifier).state = value;
+    void select(TransactionDateShortcut value) =>
+        ref.read(transactionDateShortcutProvider.notifier).state = value;
 
-    final customLabel = shortcut == TransactionDateShortcut.custom && customRange != null
+    final customLabel =
+        shortcut == TransactionDateShortcut.custom && customRange != null
         ? '${formatLocalizedDateShort(customRange.start, locale)} - ${formatLocalizedDateShort(customRange.end, locale)}'
         : l10n.txnPickDateLabel;
 
@@ -552,11 +661,16 @@ class _TypeFilterBar extends ConsumerWidget {
     final typeFilter = ref.watch(transactionTypeFilterProvider);
     final l10n = AppLocalizations.of(context);
 
-    void select(TransactionType? value) => ref.read(transactionTypeFilterProvider.notifier).state = value;
+    void select(TransactionType? value) =>
+        ref.read(transactionTypeFilterProvider.notifier).state = value;
 
     return FilterPillBar(
       pills: [
-        FilterPillSpec(label: l10n.txnFilterAll, selected: typeFilter == null, onTap: () => select(null)),
+        FilterPillSpec(
+          label: l10n.txnFilterAll,
+          selected: typeFilter == null,
+          onTap: () => select(null),
+        ),
         FilterPillSpec(
           label: l10n.txnIncomeLabel,
           selected: typeFilter == TransactionType.income,

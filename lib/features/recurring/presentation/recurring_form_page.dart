@@ -17,6 +17,18 @@ import '../../master_data/application/category_list_controller.dart';
 import '../../portfolio/application/portfolio_list_controller.dart';
 import '../application/recurring_list_controller.dart';
 
+/// `RecurringFrequency` no longer carries a hardcoded label (see
+/// docs/ide-improvement-fitur-existing.txt BAGIAN B #8) — this is the
+/// localized replacement, duplicated (not shared) with
+/// recurring_list_page.dart's identical helper since it's only 2 call
+/// sites' worth of logic.
+String _frequencyLabel(RecurringFrequency frequency, AppLocalizations l10n) => switch (frequency) {
+      RecurringFrequency.daily => l10n.txnRecurringFrequencyDaily,
+      RecurringFrequency.weekly => l10n.txnRecurringFrequencyWeekly,
+      RecurringFrequency.monthly => l10n.txnRecurringFrequencyMonthly,
+      RecurringFrequency.yearly => l10n.txnRecurringFrequencyYearly,
+    };
+
 /// `POST /money-management/recurring` for create, `PUT .../{id}` for edit —
 /// same body shape for both (see docs/mobile-api-reference.md's "Recurring
 /// Transactions" section), so this form handles both in one place, mirroring
@@ -275,7 +287,7 @@ class _RecurringFormPageState extends ConsumerState<RecurringFormPage> {
                 const SizedBox(height: 16),
                 Text(l10n.txnRecurringFrequencyLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
-                _TapField(icon: Icons.repeat_rounded, label: _frequency.label, onTap: _pickFrequency),
+                _TapField(icon: Icons.repeat_rounded, label: _frequencyLabel(_frequency, l10n), onTap: _pickFrequency),
                 const SizedBox(height: 16),
                 Text(l10n.txnRecurringStartDateLabel, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                 const SizedBox(height: 8),
@@ -337,6 +349,7 @@ class _FrequencyPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
@@ -352,7 +365,7 @@ class _FrequencyPickerSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text(AppLocalizations.of(context).txnRecurringPickFrequencyTitle, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+            Text(l10n.txnRecurringPickFrequencyTitle, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             for (final frequency in RecurringFrequency.values)
               Padding(
@@ -370,7 +383,7 @@ class _FrequencyPickerSheet extends StatelessWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text(frequency.label, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                          child: Text(_frequencyLabel(frequency, l10n), style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                         ),
                         if (frequency == selected) Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20),
                       ],

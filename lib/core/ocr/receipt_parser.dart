@@ -12,6 +12,19 @@ final _numberToken = RegExp(r'\d[\d.,]*\d|\d');
 
 const _totalKeywords = ['grand total', 'total belanja', 'total bayar', 'jumlah bayar', 'total', 'jumlah'];
 
+/// [amount] paired with whether it's a confident match (a "total"-labelled
+/// line was found) or a last-resort guess (just the largest plausible
+/// number on the receipt, which can be a phone/invoice/member-card number
+/// instead of the real total). Callers should surface [isConfident] to the
+/// user instead of presenting both cases identically. See
+/// docs/ide-improvement-fitur-existing.txt BAGIAN K #55.
+class ReceiptAmountMatch {
+  const ReceiptAmountMatch({required this.amount, required this.isConfident});
+
+  final double amount;
+  final bool isConfident;
+}
+
 /// Finds the transaction total. Tries, in order:
 /// 1. The last "total"-ish line that ISN'T a subtotal line (real totals
 ///    tend to appear after subtotal on a printed receipt).
@@ -19,10 +32,11 @@ const _totalKeywords = ['grand total', 'total belanja', 'total bayar', 'jumlah b
 ///    there is.
 /// 3. The largest plausible-looking Rupiah number (>= 4 digits) anywhere
 ///    in the receipt, on the assumption the total is usually the biggest
-///    number printed.
+///    number printed — flagged `isConfident: false` since this strategy
+///    can pick up a phone/invoice/member-card number instead.
 /// Returns `null` if nothing usable was found — callers should leave the
 /// amount field blank rather than guess 0.
-double? parseAmountFromReceipt(String text) {
+ReceiptAmountMatch? parseAmountFromReceipt(String text) {
   final lines = text.split('\n');
 
   double? fromKeywordLines({required bool excludeSubtotal}) {
@@ -39,9 +53,11 @@ double? parseAmountFromReceipt(String text) {
     return null;
   }
 
-  return fromKeywordLines(excludeSubtotal: true) ??
-      fromKeywordLines(excludeSubtotal: false) ??
-      _largestNumberIn(text);
+  final keywordMatch = fromKeywordLines(excludeSubtotal: true) ?? fromKeywordLines(excludeSubtotal: false);
+  if (keywordMatch != null) return ReceiptAmountMatch(amount: keywordMatch, isConfident: true);
+
+  final guess = _largestNumberIn(text);
+  return guess != null ? ReceiptAmountMatch(amount: guess, isConfident: false) : null;
 }
 
 final _dateToken = RegExp(r'(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})');

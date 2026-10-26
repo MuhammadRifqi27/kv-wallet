@@ -50,7 +50,7 @@
   "profileLogoutConfirm": "Log Out",
   "profileEditTooltip": "Edit Profile",
   "profileMembershipFallback": "Member",
-  "profileMembershipFree": "Free — membership not upgraded yet",
+  "profileMembershipFree": "Free",
   "profileAppVersion": "Version {version}",
   "@profileAppVersion": {
     "placeholders": {
@@ -73,6 +73,7 @@
   },
   "emergencyFundManualHint": "Your transaction data isn't enough yet to calculate an automatic average. Enter it manually below:",
   "emergencyFundManualLabel": "Average monthly expense (Rp)",
+  "emergencyFundManualInvalid": "Enter a valid amount",
   "emergencyFundRecommendationLabel": "Emergency Fund Recommendation ({multiplier}x monthly expense)",
   "@emergencyFundRecommendationLabel": {
     "placeholders": {
@@ -133,6 +134,21 @@
       "category": {"type": "String"}
     }
   },
+  "notificationBudgetNearLimitTitle": "{category} Budget Almost Used Up",
+  "@notificationBudgetNearLimitTitle": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "notificationBudgetNearLimitBody": "Already used {spent} of the {budget} budget for {month} {year}.",
+  "@notificationBudgetNearLimitBody": {
+    "placeholders": {
+      "spent": {"type": "String"},
+      "budget": {"type": "String"},
+      "month": {"type": "String"},
+      "year": {"type": "int"}
+    }
+  },
   "notificationBudgetExceededBody": "Used {spent} of the {budget} budget for {month} {year}.",
   "@notificationBudgetExceededBody": {
     "placeholders": {
@@ -142,6 +158,13 @@
       "year": {"type": "int"}
     }
   },
+  "notificationHistoryAppBarTitle": "Notification History",
+  "notificationHistoryEmptyTitle": "No Notifications Yet",
+  "notificationHistoryEmptySubtitle": "Budget notifications you've received will be saved here.",
+  "profileNotificationHistoryTileTitle": "Notification History",
+  "profileNotificationHistoryTileSubtitle": "View budget notifications you've received",
+  "profileNotificationToggleTitle": "Budget Notifications",
+  "profileNotificationToggleSubtitle": "Alerts when a budget is near or over its limit",
 
   "appChangePasswordSuccessMessage": "Password updated successfully.",
   "appChangePasswordAppBarTitle": "Change Password",
@@ -178,7 +201,7 @@
   "appNavBudgets": "Budget",
   "appNavInvestment": "Investment",
   "appNavProfile": "Profile",
-  "appNavUpgradeRequired": "This feature requires a membership upgrade",
+  "appNavUpgradeRequired": "This feature is for Member accounts",
 
   "authLoginWelcomeTitle": "Welcome back",
   "authLoginWelcomeSubtitle": "Log in to continue managing your finances",
@@ -218,6 +241,7 @@
   "authForgotPasswordIdentifierRequired": "Email or username is required",
   "authForgotPasswordPhoneLabel": "WhatsApp/phone number",
   "authForgotPasswordPhoneRequired": "WhatsApp/phone number is required",
+  "authForgotPasswordPhoneInvalid": "Invalid phone number format",
   "authForgotPasswordNoteLabel": "Note (optional)",
   "authForgotPasswordSubmitButton": "Submit Request",
   "authForgotPasswordCheckStatusLink": "Already submitted a request? Check status",
@@ -296,7 +320,7 @@
   "authBiometricPromptFailedContent": "Biometric verification failed or was cancelled. You can try again anytime from Profile.",
   "authBiometricPromptOkButton": "OK",
 
-  "walletPortfolioListUpgradeRequired": "This feature requires a membership upgrade",
+  "walletPortfolioListUpgradeRequired": "This feature is for Member accounts",
   "walletPortfolioListTitle": "Portfolio",
   "walletPortfolioListLoadError": "Failed to load portfolio.",
   "walletPortfolioListEmptyTitle": "No accounts yet",
@@ -453,6 +477,9 @@
   "walletDashboardIncomeSourcesTitle": "Income Sources",
   "walletDashboardTopCategoriesTitle": "Top Categories",
   "walletDashboardRecentTransactionsTitle": "Recent Transactions",
+  "walletDashboardEmptyTitle": "No Activity Yet",
+  "walletDashboardEmptySubtitle": "Log your first transaction to start seeing your financial summary here.",
+  "walletDashboardEmptyCta": "Add Transaction",
   "walletDashboardGreetingMorning": "Good Morning, {name}",
   "@walletDashboardGreetingMorning": {
     "placeholders": {
@@ -497,6 +524,15 @@
     }
   },
   "walletDashboardNetWorthLabel": "Total Net Worth",
+  "walletDashboardToggleNominalShow": "Show amount",
+  "walletDashboardToggleNominalHide": "Hide amount",
+  "pinCodeFieldSemanticLabel": "PIN code input, {filled} of {total} digits filled",
+  "@pinCodeFieldSemanticLabel": {
+    "placeholders": {
+      "filled": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "walletDashboardSavingsGoalsCardTitle": "Savings Goals",
   "walletDashboardSavingsGoalsSummary": "{active} active · {achieved} achieved",
   "@walletDashboardSavingsGoalsSummary": {
@@ -528,6 +564,8 @@
   "txnCommonDescriptionLabel": "Description (optional)",
   "txnCommonAmountRpLabel": "Amount (Rp)",
   "txnCommonSelectCategoryTitle": "Select category",
+  "txnCategoryTypeIncome": "Income",
+  "txnCategoryTypeExpense": "Expense",
   "txnCommonNoCategoryForType": "No categories yet for this type",
   "txnCommonSelectAccountTitle": "Select account",
   "txnCommonNoneOption": "None",
@@ -549,7 +587,7 @@
   },
   "txnRecurringMenuTileTitle": "Recurring Transactions",
 
-  "txnFeatureRequiresUpgrade": "This feature requires a membership upgrade",
+  "txnFeatureRequiresUpgrade": "This feature is for Member accounts",
   "txnListTitle": "Transactions",
   "txnListLoadError": "Failed to load transactions.",
   "txnListEmptyTitle": "No transactions yet",
@@ -570,6 +608,9 @@
 
   "txnScanReceiptFailedMessage": "Couldn't read this receipt, please fill in manually.",
   "txnScanReceiptAutofilledMessage": "Auto-filled from the receipt — please double-check before saving.",
+  "txnScanReceiptNoDataMessage": "The receipt text was read, but nothing recognizable was found — please fill in manually.",
+  "txnScanReceiptFieldAutofilledBadge": "Auto-filled from receipt scan",
+  "txnScanReceiptFieldGuessBadge": "Guessed from receipt scan — please double-check",
   "txnFormTitleEdit": "Edit Transaction",
   "txnFormTitleAdd": "Add Transaction",
   "txnFormAccountOptionalLabel": "Account (optional)",
@@ -602,6 +643,10 @@
   "txnRecurringNameRequired": "Name is required",
   "txnRecurringAccountSectionLabel": "Account",
   "txnRecurringFrequencyLabel": "Frequency",
+  "txnRecurringFrequencyDaily": "Daily",
+  "txnRecurringFrequencyWeekly": "Weekly",
+  "txnRecurringFrequencyMonthly": "Monthly",
+  "txnRecurringFrequencyYearly": "Yearly",
   "txnRecurringStartDateLabel": "Start Date",
   "txnRecurringStartDateHistoricalNote": "This template has already been processed, so changing this date won't shift the next schedule — it just records when it was first created.",
   "txnRecurringSubmitAdd": "Add",
@@ -616,6 +661,12 @@
 
   "txnTransferSelectAccountsError": "Select the source and destination accounts.",
   "txnTransferSameAccountError": "Source and destination accounts can't be the same.",
+  "txnTransferInsufficientBalance": "Insufficient balance (available {balance})",
+  "@txnTransferInsufficientBalance": {
+    "placeholders": {
+      "balance": {"type": "String"}
+    }
+  },
   "txnTransferAssetRequiredError": "Enter the asset symbol (e.g. BTC) — one of the accounts is a crypto account.",
   "txnTransferFormTitleEdit": "Edit Transfer",
   "txnTransferFromAccountLabel": "From Account",
@@ -629,7 +680,8 @@
 
   "txnBudgetListTitle": "Budget",
   "txnBudgetListLoadError": "Failed to load budget.",
-  "txnBudgetListEmptyMessage": "No budget yet for this month.\nTap the + button to add one.",
+  "txnBudgetListEmptyTitle": "No Budget Yet",
+  "txnBudgetListEmptyMessage": "Tap the + button to add a budget for this month.",
   "txnBudgetPerCategoryLabel": "By Category",
   "txnBudgetTapToEditHint": "Tap one to change its budget amount.",
   "txnBudgetTotalLabel": "Total Budget",
@@ -720,6 +772,7 @@
   "investPeriod5y": "5 Years",
   "investDataUnavailable": "Data unavailable",
   "investMarketPriceUnavailable": "Market price for this asset isn't available yet.",
+  "investMarketPriceLoadError": "Couldn't load the market price. Check your connection and try again.",
   "investNoBalanceRecorded": "No balance recorded for this asset yet.",
   "investAccountFallbackName": "Account #{accountId}",
   "@investAccountFallbackName": {
@@ -761,10 +814,13 @@
   "investSaveButton": "Save",
   "investSelectCryptoAccountSheetTitle": "Select crypto account",
 
-  "investUpgradeMembershipTitle": "Upgrade Membership",
+  "investMembershipTitle": "Membership",
+  "investMembershipInfoNote": "Feature access follows your account's membership status. Pull down to refresh the status.",
   "investMembershipStatusLoadError": "Failed to load membership status.",
-  "investChoosePlanTitle": "Choose a Plan",
+  "investChoosePlanTitle": "Membership Plans",
   "investPlanListLoadError": "Failed to load plan list.",
+  "investPlanListEmptyTitle": "No Plans Available Yet",
+  "investPlanListEmptySubtitle": "Membership plans aren't available right now. Please check back later.",
   "investMemberFallbackName": "Member",
   "investActiveUntil": "Active until {date}",
   "@investActiveUntil": {
@@ -773,43 +829,10 @@
     }
   },
   "investActiveLabel": "Active",
-  "investPendingVerificationSubtitle": "Waiting for payment verification from admin",
+  "investPendingVerificationSubtitle": "Membership is being processed",
   "investFreeLabel": "Free",
-  "investNoMembershipSubtitle": "Haven't upgraded membership yet",
-  "investManualTransferTitle": "Manual Transfer",
-  "investBankLabel": "Bank",
-  "investAccountNumberLabel": "Account Number",
-  "investAccountHolderLabel": "Account Holder",
-  "investNominalLabel": "Amount",
-  "investTransferInstructionsNote": "After transferring, admin will verify the payment and activate your membership manually.",
-  "investCheckStatusButton": "I've transferred, check status",
-  "investConfirmPlanDialogTitle": "Confirm {planName}",
-  "@investConfirmPlanDialogTitle": {
-    "placeholders": {
-      "planName": {"type": "String"}
-    }
-  },
-  "investConfirmPlanDialogContent": "You will upgrade to the {planName} plan for {price} for {days} days.",
-  "@investConfirmPlanDialogContent": {
-    "placeholders": {
-      "planName": {"type": "String"},
-      "price": {"type": "String"},
-      "days": {"type": "int"}
-    }
-  },
-  "investSwitchPlanWarning": "Your current plan is still active. Switching to another plan will reset your access to Free until the new payment is verified by admin.",
-  "investConfirmButton": "Confirm",
-  "investPlanSelectedSnackbar": "Plan selected. Please transfer according to the instructions above.",
-  "investSelectPlanError": "Failed to select plan.",
+  "investNoMembershipSubtitle": "On the Free plan",
   "investActivePlanLabel": "Active Plan",
-  "investSelectPlanButton": "Select Plan",
-  "investPricePerDuration": "{price} / {days} days",
-  "@investPricePerDuration": {
-    "placeholders": {
-      "price": {"type": "String"},
-      "days": {"type": "int"}
-    }
-  },
   "investPlanFeaturesTitle": "Features included",
   "investPlanFeaturesUnavailable": "Feature details for this plan aren't available yet.",
 
@@ -857,6 +880,9 @@
   "fireManualHint": "Your transaction data isn't enough yet to calculate an automatic average. Enter it manually below:",
   "fireManualIncomeLabel": "Average monthly income (Rp)",
   "fireManualExpenseLabel": "Average monthly expense (Rp)",
+  "fireManualIncomeInvalid": "Enter a valid amount",
+  "fireManualExpenseInvalid": "Enter a valid amount",
+  "fireNegativeSavingsWarning": "Expenses are equal to or higher than income, so there's nothing left to set aside for retirement yet. A projection can only be calculated once income is higher than expenses.",
   "fireReturnRateConservative": "Conservative",
   "fireReturnRateModerate": "Moderate",
   "fireReturnRateAggressive": "Aggressive",
@@ -927,5 +953,303 @@
 
   "profileUserGuideTileTitle": "User Guide",
   "profileUserGuideTileSubtitle": "Full guide on how to use the app (PDF)",
-  "profileUserGuideOpenFailed": "Couldn't open the guide. Make sure you have a PDF reader app installed."
+  "profileUserGuideOpenFailed": "Couldn't open the guide. Make sure you have a PDF reader app installed.",
+
+  "wltSectionWallet": "Wallet",
+  "wltCardTitle": "Wallet Balance",
+  "wltCardCopyAccountNumber": "Copy account number",
+  "wltCopiedAccountNumber": "Account number copied",
+  "wltCardLoadError": "Couldn't load wallet balance",
+  "wltCardRetry": "Retry",
+  "wltCardFrozen": "Wallet frozen",
+  "wltTransferTileTitle": "Transfer",
+  "wltTransferTileSubtitle": "Send wallet balance to another user by account number",
+  "wltPageTitle": "My Wallet",
+  "wltAccountNumberLabel": "Account Number",
+  "wltActionTransfer": "Transfer",
+  "wltActionTopup": "Top Up",
+  "wltActionWithdraw": "Withdraw",
+  "wltFrozenBanner": "Your wallet is frozen. Transactions are unavailable, please contact customer service.",
+  "wltLimitsTitle": "Transfer Limits",
+  "wltLimitPerTransaction": "Per transaction: {min} – {max}",
+  "@wltLimitPerTransaction": {
+    "placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}
+  },
+  "wltLimitRemainingToday": "Remaining today: {remaining} of {daily}",
+  "@wltLimitRemainingToday": {
+    "placeholders": {"remaining": {"type": "String"}, "daily": {"type": "String"}}
+  },
+  "wltHistoryTitle": "Activity",
+  "wltFilterAll": "All",
+  "wltFilterTransferOut": "Sent",
+  "wltFilterTransferIn": "Received",
+  "wltFilterTopup": "Top Ups",
+  "wltFilterWithdraw": "Withdrawals",
+  "wltHistoryEmptyTitle": "No activity yet",
+  "wltHistoryEmptySubtitle": "Transfers, top ups and withdrawals will show up here.",
+  "wltHistoryLoadError": "Couldn't load wallet activity.",
+  "wltTxnTransferOut": "Transfer to {name}",
+  "@wltTxnTransferOut": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "wltTxnTransferIn": "Transfer from {name}",
+  "@wltTxnTransferIn": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "wltTxnTopup": "Top up from portfolio",
+  "wltTxnWithdraw": "Withdraw to portfolio",
+  "wltTxnReversal": "Transaction reversal",
+  "wltTxnAdjustment": "Balance adjustment",
+  "wltTxnBalanceAfter": "Balance: {amount}",
+  "@wltTxnBalanceAfter": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "wltTransferTitle": "Transfer",
+  "wltTransferAccountField": "Recipient account number",
+  "wltTransferAccountHelper": "12 digits, starting with 88",
+  "wltTransferAccountInvalid": "Account number must be 12 digits",
+  "wltTransferCheck": "Check Account",
+  "wltTransferRecipientLabel": "Recipient",
+  "wltTransferChange": "Change",
+  "wltTransferAmountLabel": "Amount (Rp)",
+  "wltTransferNoteLabel": "Note (optional)",
+  "wltTransferAvailableBalance": "Wallet balance: {balance}",
+  "@wltTransferAvailableBalance": {
+    "placeholders": {"balance": {"type": "String"}}
+  },
+  "wltTransferContinue": "Continue",
+  "wltTransferAmountRequired": "Amount is required",
+  "wltTransferAmountTooSmall": "Minimum transfer is {min}",
+  "@wltTransferAmountTooSmall": {
+    "placeholders": {"min": {"type": "String"}}
+  },
+  "wltTransferAmountTooLarge": "Maximum {max} per transaction",
+  "@wltTransferAmountTooLarge": {
+    "placeholders": {"max": {"type": "String"}}
+  },
+  "wltTransferExceedsDaily": "Exceeds remaining daily limit ({remaining})",
+  "@wltTransferExceedsDaily": {
+    "placeholders": {"remaining": {"type": "String"}}
+  },
+  "wltTransferInsufficient": "Insufficient wallet balance",
+  "wltTransferConfirmTitle": "Confirm Transfer",
+  "wltTransferConfirmCheckName": "Make sure the recipient's name is correct before sending.",
+  "wltTransferConfirmSend": "Send",
+  "wltCancel": "Cancel",
+  "wltPinTitle": "Enter PIN",
+  "wltPinSubtitle": "Confirm this transaction with your 6-digit PIN.",
+  "wltPinLocked": "PIN is locked. Try again in {minutes} minutes.",
+  "@wltPinLocked": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "wltPinNotSet": "You don't have a PIN yet. Set one in the Profile menu first.",
+  "wltPinRetryNetwork": "Connection problem. Enter your PIN again to retry — the transfer won't be sent twice.",
+  "wltErrAccountNotFound": "Account number not found.",
+  "wltErrSelfTransfer": "You can't transfer to your own account.",
+  "wltErrFrozen": "Your wallet is frozen.",
+  "wltErrInsufficientBalance": "Insufficient wallet balance.",
+  "wltErrInsufficientPortfolio": "Insufficient portfolio balance.",
+  "wltErrDailyLimit": "Daily transfer limit exceeded.",
+  "wltErrAmountOutOfRange": "Amount is outside the per-transaction limits.",
+  "wltErrRateLimit": "Too many attempts. Please try again shortly.",
+  "wltErrPinInvalid": "Incorrect PIN.",
+  "wltReceiptTitle": "Transfer Details",
+  "wltReceiptSuccess": "Transfer Successful",
+  "wltReceiptReceivedHeader": "Transfer Received",
+  "wltReceiptReference": "Reference No.",
+  "wltReceiptDate": "Time",
+  "wltReceiptStatus": "Status",
+  "wltReceiptStatusCompleted": "Completed",
+  "wltReceiptRecipient": "Recipient",
+  "wltReceiptSender": "Sender",
+  "wltReceiptAccount": "Account",
+  "wltReceiptAmount": "Amount",
+  "wltReceiptNote": "Note",
+  "wltReceiptBalanceAfter": "Balance after transfer",
+  "wltReceiptDone": "Done",
+  "wltReceiptLoadError": "Couldn't load transfer details.",
+  "wltTopupTitle": "Top Up Wallet",
+  "wltWithdrawTitle": "Withdraw to Portfolio",
+  "wltMoveTopupInfo": "Funds are taken from the selected portfolio and added to your wallet.",
+  "wltMoveWithdrawInfo": "Wallet funds are moved to the selected portfolio.",
+  "wltMovePortfolioLabel": "Portfolio",
+  "wltMovePortfolioPlaceholder": "Select portfolio",
+  "wltMoveSelectPortfolioError": "Select a portfolio first",
+  "wltMoveDescriptionLabel": "Description (optional)",
+  "wltMoveSubmitTopup": "Top Up",
+  "wltMoveSubmitWithdraw": "Withdraw",
+  "wltMoveSuccessTopup": "Wallet topped up.",
+  "wltMoveSuccessWithdraw": "Funds withdrawn to portfolio.",
+  "wltMovePortfolioBalance": "Portfolio balance: {balance}",
+  "@wltMovePortfolioBalance": {
+    "placeholders": {"balance": {"type": "String"}}
+  },
+
+  "rptPageTitle": "Reports",
+  "rptTabCashFlow": "Cash Flow",
+  "rptTabSavings": "Savings",
+  "rptTabCompare": "Compare",
+  "rptTabCategory": "Category",
+  "rptTabUnexpected": "Unexpected",
+  "rptTabYear": "Yearly",
+  "rptTabTax": "Tax",
+  "rptCardTitle": "Reports",
+  "rptCardSubtitle": "Cash flow, savings rate, comparisons, tax and more",
+  "rptLoadError": "Couldn't load the report.",
+  "rptCyclesOption": "{n} cycles",
+  "@rptCyclesOption": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "rptCfOpening": "Opening Balance",
+  "rptCfClosing": "Closing Balance",
+  "rptCfNet": "Net",
+  "rptCfOther": "Other adjustments",
+  "rptCfOtherHint": "Balance changes outside income/expenses, e.g. investment value changes.",
+  "rptCfBalanceChart": "Running Balance",
+  "rptCfDailyTitle": "Daily Movements",
+  "rptCfEmptyTitle": "No transactions yet",
+  "rptCfEmptySubtitle": "There are no transactions in this cycle.",
+  "rptSrCurrent": "Current Rate",
+  "rptSrPrevious": "Previous Cycle",
+  "rptSrAverage": "Average",
+  "rptSrTargetLabel": "Target",
+  "rptSrChangePoints": "{value} pts",
+  "@rptSrChangePoints": {
+    "placeholders": {"value": {"type": "String"}}
+  },
+  "rptSrFormula": "(Income − Expense) ÷ Income",
+  "rptSrOnTarget": "{count} of {total} cycles hit the target",
+  "@rptSrOnTarget": {
+    "placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "rptSrSeriesTitle": "Savings Rate Trend",
+  "rptSrBest": "Best",
+  "rptSrWorst": "Lowest",
+  "rptCmpCompareWith": "Compare with",
+  "rptCmpDefaultPrev": "Previous cycle",
+  "rptCmpMetrics": "Summary",
+  "rptCmpSavingsRate": "Savings Rate",
+  "rptCmpCategories": "Expenses by Category",
+  "rptCmpNewLabel": "New",
+  "rptCatSelect": "Category",
+  "rptCatNoCategoryTitle": "No categories yet",
+  "rptCatNoCategorySubtitle": "Add categories and transactions to see this report.",
+  "rptCatTotal": "Total This Cycle",
+  "rptCatCount": "{count} transactions",
+  "@rptCatCount": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "rptCatPrevious": "Previous Cycle",
+  "rptCatAverage": "Avg/cycle",
+  "rptCatShare": "Share",
+  "rptCatSeries": "Trend per Cycle",
+  "rptCatTop": "Largest Transactions",
+  "rptCatFrequent": "Most Frequent",
+  "rptCatFrequentLine": "{count}× · {total}",
+  "@rptCatFrequentLine": {
+    "placeholders": {"count": {"type": "int"}, "total": {"type": "String"}}
+  },
+  "rptCatAll": "All Transactions",
+  "rptCatNoTx": "No transactions in this category yet.",
+  "rptUxHow": "Expenses more than {factor}× that category's average transaction over the previous {cycles} cycles. Categories with fewer than {samples} comparison transactions are skipped.",
+  "@rptUxHow": {
+    "placeholders": {"factor": {"type": "String"}, "cycles": {"type": "int"}, "samples": {"type": "int"}}
+  },
+  "rptUxTotalFlagged": "Total Flagged",
+  "rptUxAnalyzedLabel": "Categories Analyzed",
+  "rptUxEmptyTitle": "No unusual expenses",
+  "rptUxEmptySubtitle": "Your spending this cycle looks normal. Nice!",
+  "rptUxRatio": "{ratio}× average",
+  "@rptUxRatio": {
+    "placeholders": {"ratio": {"type": "String"}}
+  },
+  "rptUxAverage": "Category average: {amount}",
+  "@rptUxAverage": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "rptYrAvgExpense": "Avg Monthly Expense",
+  "rptYrMonthly": "Monthly Income vs Expense",
+  "rptYrBest": "Best Month",
+  "rptYrWorst": "Worst Month",
+  "rptYrBiggest": "Biggest Expense",
+  "rptYrTopExpenses": "Top Expense Categories",
+  "rptYrTopIncome": "Top Income Sources",
+  "rptYrBudgetTitle": "Yearly Budget",
+  "rptYrBudgetTotals": "Spent {spent} of {budget}",
+  "@rptYrBudgetTotals": {
+    "placeholders": {"spent": {"type": "String"}, "budget": {"type": "String"}}
+  },
+  "rptYrBudgetMonthsOver": "{over} of {total} months over budget",
+  "@rptYrBudgetMonthsOver": {
+    "placeholders": {"over": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "rptYrBudgetUsed": "{pct}% used",
+  "@rptYrBudgetUsed": {
+    "placeholders": {"pct": {"type": "String"}}
+  },
+  "rptYrOverItems": "Biggest Budget Overruns",
+  "rptYrOverBy": "+{amount} ({pct}%)",
+  "@rptYrOverBy": {
+    "placeholders": {"amount": {"type": "String"}, "pct": {"type": "String"}}
+  },
+  "rptYrOverCategories": "Most Often Over Budget",
+  "rptYrOverTimes": "{times}× over · {amount}",
+  "@rptYrOverTimes": {
+    "placeholders": {"times": {"type": "int"}, "amount": {"type": "String"}}
+  },
+  "rptTaxDisclaimer": "This is only a recap, not a tax calculation: your yearly income and the expenses you mark as tax deductible. Consult a tax advisor for official figures.",
+  "rptTaxTotalIncome": "Total Income",
+  "rptTaxTotalDeductible": "Total Deductions",
+  "rptTaxAfter": "Income After Deductions",
+  "rptTaxDeductibleList": "Counted Deductions",
+  "rptTaxNoDeductible": "No marked category has spending yet.",
+  "rptTaxCategoriesTitle": "Tax-Deductible Categories",
+  "rptTaxCategoriesHint": "Check the expense categories that can reduce tax. The selection applies to every year.",
+  "rptTaxNoCategories": "No expense categories yet.",
+  "rptTaxSave": "Save Selection",
+  "rptTaxSaved": "Selection saved.",
+
+  "brcTitle": "Budget Recommendations",
+  "brcLoadError": "Couldn't load budget recommendations.",
+  "brcEmptyTitle": "No recommendations yet",
+  "brcEmptySubtitle": "Recommendations appear once there is spending history in the last {cycles} cycles.",
+  "@brcEmptySubtitle": {
+    "placeholders": {"cycles": {"type": "int"}}
+  },
+  "brcBasisPercentage": "Suggestions use each category's average share of income over the last {cycles} cycles, applied to this cycle's income ({income}).",
+  "@brcBasisPercentage": {
+    "placeholders": {"income": {"type": "String"}, "cycles": {"type": "int"}}
+  },
+  "brcBasisNominal": "This cycle's income hasn't arrived yet, so suggestions use the average spending over the last {cycles} cycles.",
+  "@brcBasisNominal": {
+    "placeholders": {"cycles": {"type": "int"}}
+  },
+  "brcSelectedCount": "{selected} of {total} selected",
+  "@brcSelectedCount": {
+    "placeholders": {"selected": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "brcSelectAll": "Select all",
+  "brcDeselectAll": "Deselect all",
+  "brcNoBudgetYet": "No budget yet",
+  "brcAverageSpent": "Average spend {amount} per cycle · {percent} of income",
+  "@brcAverageSpent": {
+    "placeholders": {"amount": {"type": "String"}, "percent": {"type": "String"}}
+  },
+  "brcLimitedNote": "Over budget in {count} cycles, not raised",
+  "@brcLimitedNote": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "brcApplyButton": "Apply ({count})",
+  "@brcApplyButton": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "brcApplied": "{count} budgets saved.",
+  "@brcApplied": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "brcAppliedPartial": "{saved} of {total} budgets saved. The rest had no suggestion.",
+  "@brcAppliedPartial": {
+    "placeholders": {"saved": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "brcAppliedNone": "No budgets were saved. The selected categories had no suggestion."
 }

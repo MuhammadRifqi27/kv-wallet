@@ -8,22 +8,20 @@ import '../../../data/models/membership_plan_model.dart';
 import '../../../data/models/membership_status_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../../shared/widgets/primary_button.dart';
 import '../../auth/application/auth_controller.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../application/membership_controller.dart';
 
-/// Static payment destination — not provided by the API (see
-/// docs/pin-and-membership-plan-api-reference.md: "kelola sebagai konten
-/// statis di app").
-const _bankName = 'SEABANK';
-const _bankAccountNumber = '901026474553';
-const _bankAccountHolder = 'Muhammad Rifqi Zaki Rizqullah';
-
-/// Refreshes membership status/plans and, if that reveals the payment is
-/// now verified, also refetches `/auth/me` so permissions (and locked
-/// navbar tabs) update immediately instead of needing a re-login. Shared
-/// by pull-to-refresh and the "Saya sudah transfer, cek status" button.
+/// Information-only screen: shows the account's membership status and what
+/// each plan includes. There is deliberately NO price, payment instruction,
+/// or "choose/upgrade" action anywhere in the app — memberships are handled
+/// outside it, and Google Play's Payments policy forbids steering users to
+/// an off-Play payment from inside an app distributed there. See
+/// docs/plan-dev/playstore-launch-plan.md bagian 2.
+///
+/// Refreshes membership status/plans and, if that reveals the account is now
+/// a paid member, also refetches `/auth/me` so permissions (and locked
+/// navbar tabs) update immediately instead of needing a re-login.
 Future<void> _refreshMembership(WidgetRef ref) async {
   ref.invalidate(membershipPlansProvider);
   ref.invalidate(membershipStatusProvider);
@@ -43,7 +41,7 @@ class MembershipPlansPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(l10n.investUpgradeMembershipTitle)),
+      appBar: AppBar(title: Text(l10n.investMembershipTitle)),
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () => _refreshMembership(ref),
@@ -77,10 +75,8 @@ class _MembershipBody extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         _StatusCard(status: status),
-        if (status.isPendingVerification) ...[
-          const SizedBox(height: 16),
-          _PaymentInstructions(status: status),
-        ],
+        const SizedBox(height: 12),
+        Text(l10n.investMembershipInfoNote, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
         const SizedBox(height: 24),
         Text(
           l10n.investChoosePlanTitle,
@@ -96,14 +92,20 @@ class _MembershipBody extends ConsumerWidget {
             message: error is ApiException ? error.message : l10n.investPlanListLoadError,
             onRetry: () async => ref.invalidate(membershipPlansProvider),
           ),
-          data: (plans) => Column(
-            children: [
-              for (final plan in plans) ...[
-                _PlanCard(plan: plan, status: status),
-                const SizedBox(height: 8),
-              ],
-            ],
-          ),
+          data: (plans) => plans.isEmpty
+              ? ListEmptyState(
+                  icon: Icons.workspace_premium_outlined,
+                  title: l10n.investPlanListEmptyTitle,
+                  subtitle: l10n.investPlanListEmptySubtitle,
+                )
+              : Column(
+                  children: [
+                    for (final plan in plans) ...[
+                      _PlanCard(plan: plan, isCurrent: status.membershipPlan?.id == plan.id),
+                      const SizedBox(height: 8),
+                    ],
+                  ],
+                ),
         ),
       ],
     );
@@ -176,223 +178,55 @@ class _StatusCard extends StatelessWidget {
   }
 }
 
-class _PaymentInstructions extends ConsumerStatefulWidget {
-  const _PaymentInstructions({required this.status});
-
-  final MembershipStatus status;
-
-  @override
-  ConsumerState<_PaymentInstructions> createState() => _PaymentInstructionsState();
-}
-
-class _PaymentInstructionsState extends ConsumerState<_PaymentInstructions> {
-  bool _checking = false;
-
-  Future<void> _checkStatus() async {
-    setState(() => _checking = true);
-    try {
-      await _refreshMembership(ref);
-    } finally {
-      if (mounted) setState(() => _checking = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final status = widget.status;
-    final plansAsync = ref.watch(membershipPlansProvider);
-    final planId = status.membershipPlan?.id;
-    final price = plansAsync.asData?.value.where((p) => p.id == planId).firstOrNull?.price;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.investManualTransferTitle,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.primaryDark),
-          ),
-          const SizedBox(height: 10),
-          _InfoRow(label: l10n.investBankLabel, value: _bankName),
-          _InfoRow(label: l10n.investAccountNumberLabel, value: _bankAccountNumber),
-          _InfoRow(label: l10n.investAccountHolderLabel, value: _bankAccountHolder),
-          if (price != null) _InfoRow(label: l10n.investNominalLabel, value: formatRupiah(price)),
-          const SizedBox(height: 12),
-          Text(
-            l10n.investTransferInstructionsNote,
-            style: TextStyle(color: AppColors.primaryDark, fontSize: 12.5),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: _checking ? null : _checkStatus,
-              child: _checking
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2.2, color: AppColors.primary),
-                    )
-                  : Text(l10n.investCheckStatusButton),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(label, style: const TextStyle(color: AppColors.primaryDark, fontSize: 12.5)),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: AppColors.primaryDark, fontSize: 12.5, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PlanCard extends ConsumerWidget {
-  const _PlanCard({required this.plan, required this.status});
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({required this.plan, required this.isCurrent});
 
   final MembershipPlan plan;
-  final MembershipStatus status;
+  final bool isCurrent;
 
-  bool get _isCurrentPlan => status.membershipPlan?.id == plan.id;
-
-  Future<void> _showPlanDetail(BuildContext context, WidgetRef ref) async {
-    await showModalBottomSheet<void>(
+  Future<void> _showPlanDetail(BuildContext context) {
+    return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (sheetContext) => _PlanDetailSheet(
-        plan: plan,
-        onSelectPlan: () {
-          Navigator.of(sheetContext).pop();
-          _confirmAndSelect(context, ref);
-        },
-      ),
+      builder: (_) => _PlanDetailSheet(plan: plan),
     );
-  }
-
-  Future<void> _confirmAndSelect(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context);
-    final isSwitchingActivePlan = status.isPaidMember && !_isCurrentPlan;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(l10n.investConfirmPlanDialogTitle(plan.name)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.investConfirmPlanDialogContent(plan.name, formatRupiah(plan.price), plan.durationDays),
-            ),
-            if (isSwitchingActivePlan) ...[
-              const SizedBox(height: 12),
-              Text(
-                l10n.investSwitchPlanWarning,
-                style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600, fontSize: 13),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.investCancelButton)),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.investConfirmButton)),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    final success = await ref.read(selectPlanControllerProvider.notifier).selectPlan(plan.id);
-    if (!context.mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.investPlanSelectedSnackbar)),
-      );
-    } else {
-      final error = ref.read(selectPlanControllerProvider).error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error?.message ?? l10n.investSelectPlanError)),
-      );
-    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final selectState = ref.watch(selectPlanControllerProvider);
-
-    final isLockedActive = _isCurrentPlan && status.isPaidMember;
 
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: isLockedActive || selectState.isLoading ? null : () => _showPlanDetail(context, ref),
+        onTap: () => _showPlanDetail(context),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _isCurrentPlan ? AppColors.primary : AppColors.border, width: _isCurrentPlan ? 1.5 : 1),
+            border: Border.all(color: isCurrent ? AppColors.primary : AppColors.border, width: isCurrent ? 1.5 : 1),
           ),
           child: Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(plan.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary)),
-                    const SizedBox(height: 2),
-                    Text(
-                      l10n.investPricePerDuration(formatRupiah(plan.price), plan.durationDays),
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
-                    ),
-                  ],
+                child: Text(
+                  plan.name,
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
                 ),
               ),
-              if (isLockedActive)
+              if (isCurrent)
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(l10n.investActivePlanLabel, style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5)),
-                )
-              else
-                OutlinedButton(
-                  onPressed: selectState.isLoading ? null : () => _showPlanDetail(context, ref),
-                  child: Text(l10n.investSelectPlanButton),
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Text(
+                    l10n.investActivePlanLabel,
+                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12.5),
+                  ),
                 ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 20),
             ],
           ),
         ),
@@ -401,26 +235,19 @@ class _PlanCard extends ConsumerWidget {
   }
 }
 
-/// Full plan info shown as a bottom sheet before the user commits — name,
-/// price, and the benefit list (from [MembershipPlan.description]) — with
-/// "Pilih Plan" at the bottom leading into the confirmation dialog.
+/// Benefit list for one plan (from [MembershipPlan.benefits]) — no price and
+/// no action button.
 class _PlanDetailSheet extends StatelessWidget {
-  const _PlanDetailSheet({required this.plan, required this.onSelectPlan});
+  const _PlanDetailSheet({required this.plan});
 
   final MembershipPlan plan;
-  final VoidCallback onSelectPlan;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 12,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,12 +264,7 @@ class _PlanDetailSheet extends StatelessWidget {
               plan.name,
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.textPrimary),
             ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.investPricePerDuration(formatRupiah(plan.price), plan.durationDays),
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             if (plan.benefits.isNotEmpty) ...[
               Text(
                 l10n.investPlanFeaturesTitle,
@@ -462,11 +284,6 @@ class _PlanDetailSheet extends StatelessWidget {
                 l10n.investPlanFeaturesUnavailable,
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: PrimaryButton(label: l10n.investSelectPlanButton, onPressed: onSelectPlan),
-            ),
           ],
         ),
       ),

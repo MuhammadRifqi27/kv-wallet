@@ -8,7 +8,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/transfer_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../master_data/presentation/category_list_page.dart' show scrollableCenter, ListEmptyState, ListErrorState;
+import '../../../shared/widgets/list_states.dart';
 import '../../portfolio/application/portfolio_list_controller.dart';
 import '../application/transfer_list_controller.dart';
 

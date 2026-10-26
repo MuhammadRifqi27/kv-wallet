@@ -19,6 +19,7 @@ import '../../../shared/widgets/settings_tile.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../pin/presentation/confirm_pin_sheet.dart';
 import '../../tour/application/tour_controller.dart';
+import '../../wallet/presentation/profile_wallet_card.dart';
 
 const _customerServiceFormUrl = 'https://forms.gle/DsB5KK67qddKvUuM9';
 const _instagramUrl = 'https://www.instagram.com/kodevisual';
@@ -124,6 +125,11 @@ Future<void> _setThemeMode(WidgetRef ref, ThemeMode mode) async {
   await ref.read(themePreferenceServiceProvider).setThemeMode(mode);
 }
 
+Future<void> _setBudgetNotificationsEnabled(WidgetRef ref, bool enabled) async {
+  ref.read(budgetNotificationsEnabledProvider.notifier).state = enabled;
+  await ref.read(notificationPreferenceServiceProvider).setEnabled(enabled);
+}
+
 Future<void> _setLocale(WidgetRef ref, Locale? locale) async {
   ref.read(localeProvider.notifier).state = locale;
   await ref.read(localePreferenceServiceProvider).setLocale(locale);
@@ -184,6 +190,21 @@ class ProfilePage extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (user != null) _ProfileHeader(user: user),
+          // Wallet balance + P2P transfer sit between the account card and
+          // the Portfolio section; gated by the `wallet` permission (same
+          // key as the /wallet route in app_router.dart).
+          if (user?.hasPermission('wallet') ?? false) ...[
+            const SizedBox(height: 12),
+            const ProfileWalletCard(),
+            const SizedBox(height: 24),
+            _SectionLabel(l10n.wltSectionWallet),
+            SettingsTile(
+              icon: Icons.send_rounded,
+              title: l10n.wltTransferTileTitle,
+              subtitle: l10n.wltTransferTileSubtitle,
+              onTap: () => context.push('/wallet/transfer'),
+            ),
+          ],
           const SizedBox(height: 24),
           _SectionLabel(l10n.profileSectionPortfolio),
           Showcase(
@@ -276,6 +297,18 @@ class ProfilePage extends ConsumerWidget {
             title: l10n.profileFeatureTourTileTitle,
             subtitle: l10n.profileFeatureTourTileSubtitle,
             onTap: () => ref.read(tourControllerProvider).startManually(),
+          ),
+          const SizedBox(height: 8),
+          SettingsTile(
+            icon: Icons.history_rounded,
+            title: l10n.profileNotificationHistoryTileTitle,
+            subtitle: l10n.profileNotificationHistoryTileSubtitle,
+            onTap: () => context.push('/profile/notifications'),
+          ),
+          const SizedBox(height: 8),
+          _NotificationToggleTile(
+            enabled: ref.watch(budgetNotificationsEnabledProvider),
+            onChanged: (value) => _setBudgetNotificationsEnabled(ref, value),
           ),
           const SizedBox(height: 24),
           _SectionLabel(l10n.profileSectionSecurity),
@@ -517,6 +550,46 @@ class _BiometricToggleTile extends StatelessWidget {
             enabled ? l10n.profileBiometricSubtitleEnabled : l10n.profileBiometricSubtitleDisabled,
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Mute switch for budget near-limit/over-budget notifications — same
+/// tappable-card look as [_BiometricToggleTile]. See
+/// docs/ide-improvement-fitur-existing.txt BAGIAN G #43.
+class _NotificationToggleTile extends StatelessWidget {
+  const _NotificationToggleTile({required this.enabled, required this.onChanged});
+
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: SwitchListTile(
+          value: enabled,
+          onChanged: onChanged,
+          activeThumbColor: AppColors.primary,
+          secondary: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.notifications_active_outlined, color: AppColors.primary, size: 20),
+          ),
+          title: Text(l10n.profileNotificationToggleTitle, style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          subtitle: Text(l10n.profileNotificationToggleSubtitle, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
         ),
       ),
     );

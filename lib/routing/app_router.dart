@@ -9,6 +9,7 @@ import '../data/models/recurring_transaction_model.dart';
 import '../data/models/savings_goal_model.dart';
 import '../data/models/transaction_model.dart';
 import '../data/models/transfer_model.dart';
+import '../data/models/wallet_model.dart';
 import '../features/auth/application/auth_controller.dart';
 import '../features/auth/application/auth_state.dart';
 import '../features/auth/presentation/forgot_password_page.dart';
@@ -17,6 +18,7 @@ import '../features/auth/presentation/password_reset_status_page.dart';
 import '../features/auth/presentation/register_page.dart';
 import '../features/budget/presentation/budget_form_page.dart';
 import '../features/budget/presentation/budget_list_page.dart';
+import '../features/budget/presentation/budget_recommendation_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/emergency_fund/presentation/emergency_fund_calculator_page.dart';
 import '../features/fire_calculator/presentation/fire_calculator_page.dart';
@@ -29,6 +31,7 @@ import '../features/master_data/presentation/investment_list_page.dart';
 import '../features/master_data/presentation/payroll_settings_page.dart';
 import '../core/providers/core_providers.dart';
 import '../features/membership/presentation/membership_plans_page.dart';
+import '../features/notifications/presentation/notification_history_page.dart';
 import '../features/onboarding/presentation/onboarding_page.dart';
 import '../features/pin/application/pin_controller.dart';
 import '../features/pin/presentation/change_pin_page.dart';
@@ -41,6 +44,7 @@ import '../features/portfolio/presentation/portfolio_form_page.dart';
 import '../features/portfolio/presentation/portfolio_list_page.dart';
 import '../features/recurring/presentation/recurring_form_page.dart';
 import '../features/recurring/presentation/recurring_list_page.dart';
+import '../features/reports/presentation/reports_page.dart';
 import '../features/savings_goals/presentation/savings_goal_detail_page.dart';
 import '../features/savings_goals/presentation/savings_goal_form_page.dart';
 import '../features/savings_goals/presentation/savings_goal_list_page.dart';
@@ -50,6 +54,10 @@ import '../features/transactions/presentation/transaction_form_page.dart';
 import '../features/transactions/presentation/transaction_list_page.dart';
 import '../features/transfers/presentation/transfer_form_page.dart';
 import '../features/transfers/presentation/transfer_list_page.dart';
+import '../features/wallet/presentation/wallet_move_page.dart';
+import '../features/wallet/presentation/wallet_page.dart';
+import '../features/wallet/presentation/wallet_transfer_page.dart';
+import '../features/wallet/presentation/wallet_transfer_receipt_page.dart';
 import 'main_shell.dart';
 
 /// Bridges Riverpod state changes into something [GoRouter]'s
@@ -68,7 +76,9 @@ const _routePermissions = {
   '/transactions': 'transactions',
   '/emergency-fund-calculator': 'summary',
   '/fire-calculator': 'summary',
+  '/reports': 'summary',
   '/summary': 'summary',
+  '/wallet': 'wallet',
   '/portfolio/transfers': 'internal-transfers',
   '/portfolio': 'portfolio',
   '/savings-goals': 'savings-goals',
@@ -220,6 +230,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      // Wallet balance + P2P transfer — reached from the wallet card / menu
+      // tile on the Profile page, off the bottom-nav shell like Portfolio.
+      GoRoute(
+        path: '/wallet',
+        builder: (context, state) => const WalletPage(),
+        routes: [
+          GoRoute(path: 'transfer', builder: (context, state) => const WalletTransferPage()),
+          GoRoute(path: 'topup', builder: (context, state) => const WalletMovePage(mode: WalletMoveMode.topup)),
+          GoRoute(path: 'withdraw', builder: (context, state) => const WalletMovePage(mode: WalletMoveMode.withdraw)),
+          GoRoute(
+            path: 'transfers/:id',
+            builder: (context, state) => WalletTransferReceiptPage(
+              transferId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+              transfer: state.extra as WalletTransferModel?,
+            ),
+          ),
+        ],
+      ),
       // Reached via a summary card on the Summary tab — see
       // docs/plan-dev/kalkulator-dana-darurat-plan.txt. Off the bottom-nav
       // shell, same precedent as Portfolio/Savings Goals above.
@@ -227,6 +255,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/emergency-fund-calculator',
         builder: (context, state) => const EmergencyFundCalculatorPage(),
       ),
+      // Laporan — reached via a card on the Summary tab (docs/mobile-api-report.md).
+      GoRoute(path: '/reports', builder: (context, state) => const ReportsPage()),
       // Reached via a summary card on the Summary tab — see
       // docs/plan-dev/kalkulator-pensiun-fire-plan.txt. Off the bottom-nav
       // shell, same precedent as the Emergency Fund Calculator above.
@@ -298,6 +328,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'form',
                     builder: (context, state) => BudgetFormPage(budget: state.extra as BudgetCategoryItem?),
                   ),
+                  GoRoute(path: 'recommendations', builder: (context, state) => const BudgetRecommendationPage()),
                 ],
               ),
             ],
@@ -315,6 +346,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(path: 'investments', builder: (context, state) => const InvestmentListPage()),
                   GoRoute(path: 'payroll', builder: (context, state) => const PayrollSettingsPage()),
                   GoRoute(path: 'membership', builder: (context, state) => const MembershipPlansPage()),
+                  GoRoute(path: 'notifications', builder: (context, state) => const NotificationHistoryPage()),
                 ],
               ),
             ],

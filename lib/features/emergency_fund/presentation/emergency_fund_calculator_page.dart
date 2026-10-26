@@ -9,6 +9,7 @@ import '../../../data/models/savings_goal_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_text_field.dart';
+import '../../../shared/widgets/list_states.dart';
 import '../../../shared/widgets/primary_button.dart';
 import '../application/emergency_fund_controller.dart';
 
@@ -20,15 +21,18 @@ class EmergencyFundCalculatorPage extends ConsumerStatefulWidget {
   const EmergencyFundCalculatorPage({super.key});
 
   @override
-  ConsumerState<EmergencyFundCalculatorPage> createState() => _EmergencyFundCalculatorPageState();
+  ConsumerState<EmergencyFundCalculatorPage> createState() =>
+      _EmergencyFundCalculatorPageState();
 }
 
-class _EmergencyFundCalculatorPageState extends ConsumerState<EmergencyFundCalculatorPage> {
+class _EmergencyFundCalculatorPageState
+    extends ConsumerState<EmergencyFundCalculatorPage> {
   static const _multiplierOptions = [3, 6, 9, 12];
 
   final _manualAverageController = TextEditingController();
   int _multiplier = 6;
   double? _manualAverage;
+  bool _manualAverageHasError = false;
 
   @override
   void initState() {
@@ -44,9 +48,19 @@ class _EmergencyFundCalculatorPageState extends ConsumerState<EmergencyFundCalcu
   }
 
   void _onManualAverageChanged() {
-    final parsed = parseRupiahInput(_manualAverageController.text);
+    final text = _manualAverageController.text;
+    final parsed = parseRupiahInput(text);
     final value = (parsed != null && parsed > 0) ? parsed : null;
-    if (value != _manualAverage) setState(() => _manualAverage = value);
+    // Only flag an error once the user has actually typed something invalid
+    // — an empty field just means "hasn't answered yet", not "answered
+    // wrong". See docs/ide-improvement-fitur-existing.txt BAGIAN D #22.
+    final hasError = text.trim().isNotEmpty && value == null;
+    if (value != _manualAverage || hasError != _manualAverageHasError) {
+      setState(() {
+        _manualAverage = value;
+        _manualAverageHasError = hasError;
+      });
+    }
   }
 
   @override
@@ -61,28 +75,22 @@ class _EmergencyFundCalculatorPageState extends ConsumerState<EmergencyFundCalcu
       body: SafeArea(
         child: dataAsync.when(
           loading: () => const Center(child: AppLoadingIndicator()),
-          error: (error, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    error is ApiException ? error.message : l10n.emergencyFundLoadError,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => ref.invalidate(emergencyFundDataProvider),
-                    child: Text(l10n.emergencyFundRetry),
-                  ),
-                ],
-              ),
+          // Was a hand-rolled block near-identical to ListErrorState but
+          // missing its icon — now the same shared widget Dashboard/Summary/
+          // every list page uses. See
+          // docs/ide-improvement-fitur-existing.txt BAGIAN E #36.
+          error: (error, _) => scrollableCenter(
+            ListErrorState(
+              message: error is ApiException
+                  ? error.message
+                  : l10n.emergencyFundLoadError,
+              onRetry: () async => ref.invalidate(emergencyFundDataProvider),
             ),
           ),
           data: (data) {
-            final average = data.isDataSufficient ? data.averageExpense : (_manualAverage ?? 0);
+            final average = data.isDataSufficient
+                ? data.averageExpense
+                : (_manualAverage ?? 0);
             final hasUsableAverage = average > 0;
             final recommendation = average * _multiplier;
 
@@ -90,13 +98,25 @@ class _EmergencyFundCalculatorPageState extends ConsumerState<EmergencyFundCalcu
               padding: const EdgeInsets.all(20),
               children: [
                 if (data.isDataSufficient)
-                  _AverageCard(average: data.averageExpense, monthsUsed: data.monthsUsed)
+                  _AverageCard(
+                    average: data.averageExpense,
+                    monthsUsed: data.monthsUsed,
+                  )
                 else
-                  _ManualAverageInput(controller: _manualAverageController),
+                  _ManualAverageInput(
+                    controller: _manualAverageController,
+                    errorText: _manualAverageHasError
+                        ? l10n.emergencyFundManualInvalid
+                        : null,
+                  ),
                 const SizedBox(height: 20),
                 Text(
                   l10n.emergencyFundTargetLabel,
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -111,24 +131,31 @@ class _EmergencyFundCalculatorPageState extends ConsumerState<EmergencyFundCalcu
                   ],
                 ),
                 const SizedBox(height: 20),
-                _RecommendationCard(amount: recommendation, multiplier: _multiplier, hasUsableAverage: hasUsableAverage),
+                _RecommendationCard(
+                  amount: recommendation,
+                  multiplier: _multiplier,
+                  hasUsableAverage: hasUsableAverage,
+                ),
                 if (existingGoal != null) ...[
                   const SizedBox(height: 16),
-                  _ExistingGoalProgressCard(goal: existingGoal, recommendation: recommendation),
+                  _ExistingGoalProgressCard(
+                    goal: existingGoal,
+                    recommendation: recommendation,
+                  ),
                 ],
                 const SizedBox(height: 24),
                 PrimaryButton(
                   label: l10n.emergencyFundCreateGoalButton,
                   onPressed: hasUsableAverage
                       ? () => context.push(
-                            '/savings-goals/form',
-                            extra: SavingsGoalDraft(
-                              name: l10n.emergencyFundGoalName,
-                              targetAmount: recommendation,
-                              icon: 'shield-tick',
-                              color: 'success',
-                            ),
-                          )
+                          '/savings-goals/form',
+                          extra: SavingsGoalDraft(
+                            name: l10n.emergencyFundGoalName,
+                            targetAmount: recommendation,
+                            icon: 'shield-tick',
+                            color: 'success',
+                          ),
+                        )
                       : null,
                 ),
               ],
@@ -160,11 +187,18 @@ class _AverageCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.emergencyFundAverageLabel, style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+          Text(
+            l10n.emergencyFundAverageLabel,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+          ),
           const SizedBox(height: 6),
           Text(
             formatRupiah(average),
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w800),
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -182,9 +216,10 @@ class _AverageCard extends StatelessWidget {
 /// brand-new account. Purely local state (see [_EmergencyFundCalculatorPageState]),
 /// never sent to the backend.
 class _ManualAverageInput extends StatelessWidget {
-  const _ManualAverageInput({required this.controller});
+  const _ManualAverageInput({required this.controller, this.errorText});
 
   final TextEditingController controller;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -202,12 +237,19 @@ class _ManualAverageInput extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline_rounded, color: AppColors.accent, size: 18),
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.accent,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   l10n.emergencyFundManualHint,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
                 ),
               ),
             ],
@@ -218,6 +260,7 @@ class _ManualAverageInput extends StatelessWidget {
             controller: controller,
             icon: Icons.calculate_outlined,
             keyboardType: const TextInputType.numberWithOptions(decimal: false),
+            errorText: errorText,
           ),
         ],
       ),
@@ -226,7 +269,11 @@ class _ManualAverageInput extends StatelessWidget {
 }
 
 class _MultiplierChip extends StatelessWidget {
-  const _MultiplierChip({required this.months, required this.selected, required this.onTap});
+  const _MultiplierChip({
+    required this.months,
+    required this.selected,
+    required this.onTap,
+  });
 
   final int months;
   final bool selected;
@@ -234,22 +281,31 @@ class _MultiplierChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? AppColors.primary : AppColors.border),
-        ),
-        child: Text(
-          '${months}x',
-          style: TextStyle(
-            color: selected ? AppColors.onPrimary : AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-            fontSize: 13,
+    // Semantics(selected: ...) — a screen reader can otherwise only tell
+    // which multiplier is active from color, not from the announced text.
+    // See docs/ide-improvement-fitur-existing.txt BAGIAN I #49.
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? AppColors.primary : AppColors.border,
+            ),
+          ),
+          child: Text(
+            '${months}x',
+            style: TextStyle(
+              color: selected ? AppColors.onPrimary : AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
           ),
         ),
       ),
@@ -258,7 +314,11 @@ class _MultiplierChip extends StatelessWidget {
 }
 
 class _RecommendationCard extends StatelessWidget {
-  const _RecommendationCard({required this.amount, required this.multiplier, required this.hasUsableAverage});
+  const _RecommendationCard({
+    required this.amount,
+    required this.multiplier,
+    required this.hasUsableAverage,
+  });
 
   final double amount;
   final int multiplier;
@@ -283,12 +343,19 @@ class _RecommendationCard extends StatelessWidget {
         children: [
           Text(
             l10n.emergencyFundRecommendationLabel(multiplier),
-            style: TextStyle(color: AppColors.primaryDark.withValues(alpha: 0.65), fontSize: 12.5),
+            style: TextStyle(
+              color: AppColors.primaryDark.withValues(alpha: 0.65),
+              fontSize: 12.5,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             hasUsableAverage ? formatRupiah(amount) : '—',
-            style: const TextStyle(color: AppColors.primaryDark, fontSize: 26, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              color: AppColors.primaryDark,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),
@@ -297,7 +364,10 @@ class _RecommendationCard extends StatelessWidget {
 }
 
 class _ExistingGoalProgressCard extends StatelessWidget {
-  const _ExistingGoalProgressCard({required this.goal, required this.recommendation});
+  const _ExistingGoalProgressCard({
+    required this.goal,
+    required this.recommendation,
+  });
 
   final SavingsGoalModel goal;
   final double recommendation;
@@ -305,7 +375,9 @@ class _ExistingGoalProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final progress = recommendation > 0 ? (goal.savedAmount / recommendation).clamp(0, 1).toDouble() : 0.0;
+    final progress = recommendation > 0
+        ? (goal.savedAmount / recommendation).clamp(0, 1).toDouble()
+        : 0.0;
 
     return Container(
       width: double.infinity,
@@ -325,7 +397,11 @@ class _ExistingGoalProgressCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.emergencyFundExistingGoalProgress(goal.name),
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ],
@@ -342,7 +418,10 @@ class _ExistingGoalProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.emergencyFundExistingGoalAmounts(formatRupiah(goal.savedAmount), formatRupiah(recommendation)),
+            l10n.emergencyFundExistingGoalAmounts(
+              formatRupiah(goal.savedAmount),
+              formatRupiah(recommendation),
+            ),
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ],
